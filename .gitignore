@@ -1,0 +1,6 @@
+*~
+*.bak
+*.BAK
+*.o
+depend
+tests/integration/basic/basicTest

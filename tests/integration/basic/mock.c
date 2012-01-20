@@ -1,0 +1,51 @@
+/*
+ Mock module designed to run the basic test while middleware is not yet ready
+ */
+
+#include <stdio.h>
+#include "trains.h"
+
+address my_address = 0x01;
+ListenerUtoDeliver lud;
+int tr_errno = 0;
+
+char *addr_2_str(char *s, address ad){
+  sprintf(s, "0x%02x", ad);
+  return s;
+}
+
+message *newmsg(int payloadSize){
+  static char byteArray[6]; /* 6 because mp.len is 2 bytes long and basic test uses payload of 4 bytes */
+  message *mp = (message*)byteArray;
+  mp->len = sizeof(byteArray);
+  return mp;
+}
+
+void tr_error_at_line(int status, int errnum, const char *filename, unsigned int linenum, const char *format){
+  fflush(stdout);
+  fprintf(stderr, "basic version of tr_error_at_line\n");
+}
+
+int tr_init(ListenerCircuitChange aListenerCircuitChange, ListenerUtoDeliver aListenerUtoDeliver){
+  circuitview cv;
+  cv.cv_nmemb = 1;
+  cv.cv_members[0] = my_address;
+  cv.cv_joined = my_address;
+  cv.cv_departed = 0;
+  (*aListenerCircuitChange)(&cv);
+  lud = aListenerUtoDeliver;
+  return 0;
+}
+
+void tr_perror(int errnum){
+  fprintf(stderr, "basic version of tr_perror");
+}
+
+int uto_broadcast(message *mp){
+  (*lud)(my_address,mp);
+  return 0;
+}
+
+int tr_terminate(){
+  return 0;
+}
