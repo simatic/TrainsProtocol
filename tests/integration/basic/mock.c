@@ -6,7 +6,7 @@
 #include "trains.h"
 
 address my_address = 0x01;
-ListenerUtoDeliver lud;
+CallbackUtoDeliver lud;
 int tr_errno = 0;
 
 char *addr_2_str(char *s, address ad){
@@ -26,14 +26,14 @@ void tr_error_at_line(int status, int errnum, const char *filename, unsigned int
   fprintf(stderr, "basic version of tr_error_at_line\n");
 }
 
-int tr_init(ListenerCircuitChange aListenerCircuitChange, ListenerUtoDeliver aListenerUtoDeliver){
+int tr_init(CallbackCircuitChange aCallbackCircuitChange, CallbackUtoDeliver aCallbackUtoDeliver){
   circuitview cv;
   cv.cv_nmemb = 1;
   cv.cv_members[0] = my_address;
   cv.cv_joined = my_address;
   cv.cv_departed = 0;
-  (*aListenerCircuitChange)(&cv);
-  lud = aListenerUtoDeliver;
+  (*aCallbackCircuitChange)(&cv);
+  lud = aCallbackUtoDeliver;
   return 0;
 }
 

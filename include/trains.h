@@ -81,12 +81,12 @@ extern int tr_error;
 /** 
  * @brief Type of function called by trains middleware when there is a change in circuit members
  */
-typedef  void (*ListenerCircuitChange)(circuitview*);
+typedef  void (*CallbackCircuitChange)(circuitview*);
 
 /** 
  * @brief Type of function called by trains middleware when it is ready to uto-deliver a message to the application layer
  */
-typedef  void (*ListenerUtoDeliver)(address,message*);
+typedef  void (*CallbackUtoDeliver)(address,message*);
 
 /**
  * @brief Strore the error number specific to errors in trains middleware
@@ -122,11 +122,11 @@ void tr_error_at_line(int status, int errnum, const char *filename, unsigned int
 
 /**
  * @brief Initialization of trains protocol middleware
- * @param[in] listenerCircuitChange Function to be called when there is a circuit changed (Arrival or departure of a process)
- * @param[in] listenerUtoDeliver    Function to be called when a message can be uto-delivered by trains protocol
+ * @param[in] callbackCircuitChange Function to be called when there is a circuit changed (Arrival or departure of a process)
+ * @param[in] callbackUtoDeliver    Function to be called when a message can be uto-delivered by trains protocol
  * @return 0 upon successful completion, or -1 if an error occurred (in which case, @a tr_errno is set appropriately)
  */
-int tr_init(ListenerCircuitChange listenerCircuitChange, ListenerUtoDeliver listenerUtoDeliver);
+int tr_init(CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver callbackUtoDeliver);
 
 /**
  * @brief Prints (trains middleware specific) error message

@@ -1,7 +1,7 @@
 /*
  Basic test program
  Syntax:
-   basic sender nbMemberMin delayBetweenUtoBroadcast nbRecMsgBeforeStop
+   basicTest sender nbMemberMin delayBetweenUtoBroadcast nbRecMsgBeforeStop
  Where:
    - sender is 'y' or 'Y' if user wants the process to utoBrodcast messages
    - nbMemberMin is the minimum number of members in the protocol before starting to utoBroadcast
@@ -27,10 +27,10 @@ int  nbMemberMin;
 int  delayBetweenTwoUtoBroadcast;
 int  nbRecMsgBeforeStop;
 
-void listenerCircuitChange(circuitview *cp){
+void callbackCircuitChange(circuitview *cp){
   char s[MAX_LEN_ADDRESS_AS_STR];
 
-  printf("!!! ******** listenerCircuitChange called with %d members (process ", cp->cv_nmemb);
+  printf("!!! ******** callbackCircuitChange called with %d members (process ", cp->cv_nmemb);
   if (!addr_isnull(cp->cv_joined)){
     printf("%s has arrived)\n", addr_2_str(s,cp->cv_joined));
   }else{
@@ -47,7 +47,7 @@ void listenerCircuitChange(circuitview *cp){
   }
 }
 
-void listenerUtoDeliver(address sender, message *mp){
+void callbackUtoDeliver(address sender, message *mp){
   char s[MAX_LEN_ADDRESS_AS_STR];
   static int nbRecMsg = 0;
 
@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
   int  rankMessage = 0;
 
   if (argc != 5) {
-    printf("basic sender nbMemberMin delayBetweenUtoBroadcast nbRecMsgBeforeStop\n");
+    printf("%s sender nbMemberMin delayBetweenUtoBroadcast nbRecMsgBeforeStop\n", argv[0]);
     printf("\t- sender is 'y' or 'Y' if user wants the process to utoBrodcast messages\n");
     printf("\t- nbMemberMin is the minimum number of members in the protocol before starting to utoBroadcast\n");
     printf("\t- delayBetweenUtoBroadcast is the minimum delay in microseconds between 2 utoBroadcasts by the same process\n");
@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
   }
 
   // We initialize the trains protocol
-  rc = tr_init(listenerCircuitChange, listenerUtoDeliver);
+  rc = tr_init(callbackCircuitChange, callbackUtoDeliver);
   if (rc < 0) {
     tr_error_at_line(rc, tr_errno, __FILE__, __LINE__, "tr_init()");
     return EXIT_FAILURE;
@@ -137,7 +137,7 @@ int main(int argc, char *argv[]) {
       usleep(delayBetweenTwoUtoBroadcast);
     }
   }else{
-    // Process waits that listenerUtoDelivery tells it to die
+    // Process waits that callbackUtoDelivery tells it to die
     do {
       rc = sem_wait(&semWaitToDie);
     } while ((rc < 0) && (errno == EINTR));
