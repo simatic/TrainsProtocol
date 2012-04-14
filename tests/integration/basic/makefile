@@ -1,80 +1,76 @@
-# Executable to build
-BIN = basicTest
+### Configuration.  ####################################################
 
-# Paths where sources can be found (separate by space, e.g. "dir1 dir2")
-SOURCEDIRS = .
-
-# All the sources
-SOURCES := $(foreach dir,$(SOURCEDIRS),$(wildcard $(dir)/*.c))
-
-# All the objects
-OBJETS= $(subst .c,.o, $(SOURCES))
-
-# Compilation options
-INCLUDEDIRSOPTION = -I../../../include $(foreach dir, $(SOURCEDIRS),-I$(dir) )
-CFLAGS = -Wall -g -pthread $(INCLUDEDIRSOPTION)
-
+# Binaries to build
+BIN		= basicTest
+# C source files for the binaries
+SOURCES		= $(wildcard *.c)
+# Object files corresponding to source files
+OBJECTS		= $(SOURCES:.c=.o)
+# Include directory
+INCLUDEDIRS = -I../../../include
+# Compilation flags
+CFLAGS = -Wall -g $(INCLUDEDIRS)
+# Link flags
+LDFLAGS = -L../../../src -ltrains -pthread
 # Valgrind options
 VALGRINDFLAGS =--leak-check=yes --leak-resolution=high --num-callers=40 --tool=memcheck --show-reachable=yes
 
+### Rules.  ############################################################
 
-all:  depend $(BIN)
+.PHONY:         all clean cleanall run valgrind
 
-# makedepend : used to write in this Makefile dependencies to all include files
-depend: $(SOURCES) 
-	touch depend
-	makedepend -- $(INCLUDEDIRSOPTION) -- $(SOURCES) 2>/dev/null
+all: depend $(BIN)
 
-# 
-$(BIN): $(OBJETS)
-	gcc $(CFLAGS) $(OBJETS) -o $(BIN)
+basicTest: $(OBJECTS)
+	$(CC) $^ -o $@ $(LDFLAGS)
 
-# Produces doxygen documentation
-doc:
-	doxygen doxy.conf
-
-# Test memory leaks with valgrind
-valgrind: $(BIN)
-	valgrind -v $(VALGRINDFLAGS) ./$(BIN) 2>&1
-
-# Nettoyage du repertoire
 clean:
-	rm -f *.o */*.o *~ *.bak 
+	rm -f *~ *.bak *.BAK *.tmp
 
-cleanall: clean cleandoc
-	rm -f  $(BIN) depend
+cleanall: clean
+	rm -f $(OBJECTS) $(BIN) depend
 
-cleandoc:
-	rm -rf html latex
-# DO NOT DELETE
+depend: $(SOURCES)
+	touch depend
+	makedepend -- $(CFLAGS) -- $(SOURCES) 2>/dev/null
 
-./basicTest.o: /usr/include/stdlib.h /usr/include/features.h
-./basicTest.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
-./basicTest.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
-./basicTest.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
-./basicTest.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
-./basicTest.o: /usr/include/time.h /usr/include/endian.h
-./basicTest.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
-./basicTest.o: /usr/include/sys/select.h /usr/include/bits/select.h
-./basicTest.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
-./basicTest.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
-./basicTest.o: /usr/include/alloca.h /usr/include/unistd.h
-./basicTest.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
-./basicTest.o: /usr/include/getopt.h /usr/include/stdio.h
-./basicTest.o: /usr/include/libio.h /usr/include/_G_config.h
-./basicTest.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
-./basicTest.o: /usr/include/bits/sys_errlist.h /usr/include/error.h
-./basicTest.o: /usr/include/bits/error.h /usr/include/errno.h
-./basicTest.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
-./basicTest.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
-./basicTest.o: /usr/include/asm-generic/errno-base.h /usr/include/semaphore.h
-./basicTest.o: /usr/include/bits/semaphore.h /usr/include/strings.h
-./basicTest.o: /usr/include/xlocale.h ../../../include/trains.h
-./mock.o: /usr/include/stdio.h /usr/include/features.h
-./mock.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
-./mock.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
-./mock.o: /usr/include/gnu/stubs-32.h /usr/include/bits/types.h
-./mock.o: /usr/include/bits/typesizes.h /usr/include/libio.h
-./mock.o: /usr/include/_G_config.h /usr/include/wchar.h
-./mock.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
-./mock.o: ../../../include/trains.h
+# Run all the tests
+run:
+	(export LD_LIBRARY_PATH=LD_LIBRARY_PATH';'../../../src; ./basicTest y 1 100000 1)
+
+# Test memory problems with valgrind
+valgrind: $(BIN)
+	(export LD_LIBRARY_PATH=LD_LIBRARY_PATH';'../../../src; valgrind $(VALGRINDFLAGS) ./basicTest y 1 100000 1 2>&1)
+
+# DO NOT DELETE THIS LINE -- make depend depends on it.
+
+basicTest.o: /usr/include/stdlib.h /usr/include/features.h
+basicTest.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+basicTest.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+basicTest.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+basicTest.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+basicTest.o: /usr/include/time.h /usr/include/endian.h
+basicTest.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+basicTest.o: /usr/include/sys/select.h /usr/include/bits/select.h
+basicTest.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+basicTest.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+basicTest.o: /usr/include/alloca.h /usr/include/unistd.h
+basicTest.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+basicTest.o: /usr/include/getopt.h /usr/include/stdio.h /usr/include/libio.h
+basicTest.o: /usr/include/_G_config.h /usr/include/wchar.h
+basicTest.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+basicTest.o: /usr/include/error.h /usr/include/bits/error.h
+basicTest.o: /usr/include/errno.h /usr/include/bits/errno.h
+basicTest.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+basicTest.o: /usr/include/asm-generic/errno.h
+basicTest.o: /usr/include/asm-generic/errno-base.h /usr/include/semaphore.h
+basicTest.o: /usr/include/bits/semaphore.h /usr/include/strings.h
+basicTest.o: /usr/include/xlocale.h ../../../include/trains.h
+mock.o: /usr/include/stdio.h /usr/include/features.h
+mock.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+mock.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+mock.o: /usr/include/gnu/stubs-32.h /usr/include/bits/types.h
+mock.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+mock.o: /usr/include/_G_config.h /usr/include/wchar.h
+mock.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+mock.o: ../../../include/trains.h

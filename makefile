@@ -1,16 +1,25 @@
-all:
-	@echo For the moment, this makefile produces only doxygen documentation
-	@echo When the project will be done, it will produce:
-	@echo  - the middleware library
-	@echo  - all the tests
-	@echo
-	doxygen doxy.conf
+# Subdirectories containing a makefile
+SUBDIRS = $(dir $(wildcard */makefile) $(wildcard */*/makefile) $(wildcard */*/*/makefile))
+
+.PHONY: all clean cleanall ${SUBDIRS}
+
+all: WHATTODO=all
+all: ${SUBDIRS} doc
 
 clean:
-	rm -f *~ *.bak */*~ */*.bak
+	for i in '*'~ '*'.bak '*'.tmp; do find . -iname $$i -exec rm -f '{}' \+; done
 
-cleandoc:
+cleanall: WHATTODO=cleanall
+cleanall: ${SUBDIRS}
+	# NB : No dependency with clean so that we do not go twice through 
+	#      all directories
+	${RM} -f *~ *.bak *.tmp
 	rm -rf html latex
 
-cleanall: clean cleandoc
+doc:
+	doxygen doxy.conf
+
+${SUBDIRS}:
+	${MAKE} -C $@ ${WHATTODO}
+
 
