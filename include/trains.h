@@ -52,7 +52,7 @@ extern address my_address;
  * The @a payload contains the information carried by the protocol for the application.
  */
 typedef struct{
-  unsigned short len;                /**< Length of whole message */
+  int            len;                /**< Length of whole message */
   char           payload[];          /**< Payload (i.e. contents) of the message */
 } message;
 
