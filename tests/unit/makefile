@@ -19,17 +19,17 @@ VALGRINDFLAGS =--leak-check=yes --leak-resolution=high --num-callers=40 --tool=m
 
 all: depend $(BIN)
 
-testBqueue: $(OBJECTS)
-	$(CC) $(CFLAGS) $@.c -o $@ $(LDFLAGS)
+testBqueue: testBqueue.o
+	$(CC) $@.o -o $@ $(LDFLAGS)
 
-testList: $(OBJECTS)
-	$(CC) $(CFLAGS) $@.c -o $@ $(LDFLAGS)
+testList: testList.o
+	$(CC) $@.o -o $@ $(LDFLAGS)
 
 clean:
 	rm -f *~ *.bak *.BAK 
 
 cleanall: clean
-	rm -f $(OBJECTS) $(BIN) depend
+	rm -f *.o $(BIN) depend
 
 depend: $(SOURCES)
 	touch depend
