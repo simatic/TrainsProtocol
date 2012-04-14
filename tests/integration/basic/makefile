@@ -35,7 +35,7 @@ depend: $(SOURCES)
 	makedepend -- $(CFLAGS) -- $(SOURCES) 2>/dev/null
 
 # Run all the tests
-run:
+run: $(BIN)
 	(export LD_LIBRARY_PATH=LD_LIBRARY_PATH';'../../../src; ./basicTest y 1 100000 1)
 
 # Test memory problems with valgrind

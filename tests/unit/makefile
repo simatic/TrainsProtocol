@@ -36,11 +36,11 @@ depend: $(SOURCES)
 	makedepend -- $(CFLAGS) -- $(SOURCES) 2>/dev/null
 
 # Run all the tests
-run:
+run: $(BIN)
 	for i in $(BIN); do (echo Running $$i; export LD_LIBRARY_PATH=LD_LIBRARY_PATH';'../../src; ./$$i); done
 
 # Test memory problems with valgrind
-valgrind:
+valgrind: $(BIN)
 	for i in $(BIN); do (echo Running $$i; export LD_LIBRARY_PATH=LD_LIBRARY_PATH';'../../src; valgrind $(VALGRINDFLAGS) ./$$i 2>&1); done
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
