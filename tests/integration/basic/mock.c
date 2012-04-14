@@ -15,9 +15,9 @@ char *addr_2_str(char *s, address ad){
 }
 
 message *newmsg(int payloadSize){
-  static char byteArray[6]; /* 6 because mp.len is 2 bytes long and basic test uses payload of 4 bytes */
+  static char byteArray[256]; /* 256 to be sure we will never have problems to store this message */
   message *mp = (message*)byteArray;
-  mp->len = sizeof(byteArray);
+  mp->len = sizeof(mp->len)+payloadSize;
   return mp;
 }
 
