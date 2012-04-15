@@ -1,10 +1,7 @@
 #ifndef _TRAINS_H
 #define _TRAINS_H
 
-/**
- * @brief Enumeration used to define booleans.
- */
-typedef enum {false, true} bool;
+#include "common.h"
 
 /**
  * @brief Address of a process in the trains protocol
@@ -147,4 +144,4 @@ int uto_broadcast(message *mp);
  */
 int tr_terminate();
 
-#endif
+#endif /* _TRAINS_H_ */

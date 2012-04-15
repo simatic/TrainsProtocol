@@ -3,22 +3,9 @@
 #include <stdlib.h>
 
 #include "list.h"
+#include "common.h"
 
 #define NULLINK ((LINK*)NULL)
-
-#define MUTEX_LOCK(m) \
-  {						      \
-    int rc=pthread_mutex_lock(&(m));		      \
-    if (rc < 0)								\
-      error_at_line(EXIT_FAILURE,rc,__FILE__,__LINE__,"pthread_mutex_lock"); \
-  }
-
-#define MUTEX_UNLOCK(m) \
-  {						      \
-    int rc=pthread_mutex_unlock(&(m));					\
-    if (rc < 0)								\
-      error_at_line(EXIT_FAILURE,rc,__FILE__,__LINE__,"pthread_mutex_lock"); \
-  }
 
 t_list *list_new(){
   t_list *aList;

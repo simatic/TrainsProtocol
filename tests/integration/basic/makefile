@@ -36,11 +36,11 @@ depend: $(SOURCES)
 
 # Run all the tests
 run: $(BIN)
-	(export LD_LIBRARY_PATH=LD_LIBRARY_PATH';'../../../src; ./basicTest y 1 100000 1)
+	(export LD_LIBRARY_PATH=LD_LIBRARY_PATH:../../../src; ./basicTest y 1 100000 1)
 
 # Test memory problems with valgrind
 valgrind: $(BIN)
-	(export LD_LIBRARY_PATH=LD_LIBRARY_PATH';'../../../src; valgrind $(VALGRINDFLAGS) ./basicTest y 1 100000 1 2>&1)
+	(export LD_LIBRARY_PATH=LD_LIBRARY_PATH:../../../src; valgrind $(VALGRINDFLAGS) ./basicTest y 1 100000 1 2>&1)
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
@@ -66,6 +66,7 @@ basicTest.o: /usr/include/asm-generic/errno.h
 basicTest.o: /usr/include/asm-generic/errno-base.h /usr/include/semaphore.h
 basicTest.o: /usr/include/bits/semaphore.h /usr/include/strings.h
 basicTest.o: /usr/include/xlocale.h ../../../include/trains.h
+basicTest.o: ../../../include/common.h
 mock.o: /usr/include/stdio.h /usr/include/features.h
 mock.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
 mock.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
@@ -73,4 +74,4 @@ mock.o: /usr/include/gnu/stubs-32.h /usr/include/bits/types.h
 mock.o: /usr/include/bits/typesizes.h /usr/include/libio.h
 mock.o: /usr/include/_G_config.h /usr/include/wchar.h
 mock.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
-mock.o: ../../../include/trains.h
+mock.o: ../../../include/trains.h ../../../include/common.h

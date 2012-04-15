@@ -1,15 +1,15 @@
 ### Configuration.  ####################################################
 
 # Binaries to build
-BIN		= testBqueue testList
+BIN		= testBqueue testComm testList
 # C source files for the binaries
 SOURCES		= $(wildcard *.c)
 # Include directory
 INCLUDEDIRS = -I../../include
 # Compilation flags
-CFLAGS = -Wall $(INCLUDEDIRS)
+CFLAGS = -g -Wall $(INCLUDEDIRS)
 # Link flags
-LDFLAGS = -L../../src -ltrains -pthread
+LDFLAGS = -g -L../../src -ltrains -pthread
 # Valgrind options
 VALGRINDFLAGS =--leak-check=yes --leak-resolution=high --num-callers=40 --tool=memcheck --show-reachable=yes
 
@@ -20,10 +20,13 @@ VALGRINDFLAGS =--leak-check=yes --leak-resolution=high --num-callers=40 --tool=m
 all: depend $(BIN)
 
 testBqueue: testBqueue.o
-	$(CC) $@.o -o $@ $(LDFLAGS)
+	$(CC) $^ -o $@ $(LDFLAGS)
+
+testComm: testComm.o
+	$(CC) $^ -o $@ $(LDFLAGS)
 
 testList: testList.o
-	$(CC) $@.o -o $@ $(LDFLAGS)
+	$(CC) $^ -o $@ $(LDFLAGS)
 
 clean:
 	rm -f *~ *.bak *.BAK 
@@ -37,11 +40,11 @@ depend: $(SOURCES)
 
 # Run all the tests
 run: $(BIN)
-	for i in $(BIN); do (echo Running $$i; export LD_LIBRARY_PATH=LD_LIBRARY_PATH';'../../src; ./$$i); done
+	for i in $(BIN); do (echo Running $$i; export LD_LIBRARY_PATH=LD_LIBRARY_PATH:../../src; ./$$i); done
 
 # Test memory problems with valgrind
 valgrind: $(BIN)
-	for i in $(BIN); do (echo Running $$i; export LD_LIBRARY_PATH=LD_LIBRARY_PATH';'../../src; valgrind $(VALGRINDFLAGS) ./$$i 2>&1); done
+	for i in $(BIN); do (echo Running $$i; export LD_LIBRARY_PATH=LD_LIBRARY_PATH:../../src; valgrind $(VALGRINDFLAGS) ./$$i 2>&1); done
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
@@ -64,6 +67,31 @@ testBqueue.o: /usr/include/signal.h /usr/include/bits/setjmp.h
 testBqueue.o: /usr/include/error.h /usr/include/bits/error.h
 testBqueue.o: ../../include/bqueue.h /usr/include/semaphore.h
 testBqueue.o: /usr/include/bits/semaphore.h ../../include/list.h
+testComm.o: /usr/include/stdio.h /usr/include/features.h
+testComm.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+testComm.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+testComm.o: /usr/include/gnu/stubs-32.h /usr/include/bits/types.h
+testComm.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+testComm.o: /usr/include/_G_config.h /usr/include/wchar.h
+testComm.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+testComm.o: /usr/include/stdlib.h /usr/include/sys/types.h
+testComm.o: /usr/include/time.h /usr/include/endian.h
+testComm.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+testComm.o: /usr/include/sys/select.h /usr/include/bits/select.h
+testComm.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+testComm.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+testComm.o: /usr/include/alloca.h /usr/include/pthread.h /usr/include/sched.h
+testComm.o: /usr/include/bits/sched.h /usr/include/signal.h
+testComm.o: /usr/include/bits/setjmp.h /usr/include/error.h
+testComm.o: /usr/include/bits/error.h /usr/include/errno.h
+testComm.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+testComm.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
+testComm.o: /usr/include/asm-generic/errno-base.h /usr/include/unistd.h
+testComm.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+testComm.o: /usr/include/getopt.h /usr/include/string.h
+testComm.o: /usr/include/xlocale.h /usr/include/assert.h ../../include/comm.h
+testComm.o: /usr/include/sys/uio.h /usr/include/bits/uio.h
+testComm.o: ../../include/common.h ../../include/trains.h
 testList.o: /usr/include/stdio.h /usr/include/features.h
 testList.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
 testList.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
