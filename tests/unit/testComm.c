@@ -33,7 +33,7 @@ void *connectionMgt(void *arg) {
       msg = malloc(len);
       assert(msg != NULL);
       msg->header.len=len;
-      nbRead  = comm_read(aComm, msg->payload, msg->header.len - nbRead);
+      nbRead  = comm_read(aComm, ((char*)msg)+nbRead, msg->header.len - nbRead);
       printf("\t...Received message of %d bytes with: \"%s\"\n", msg->header.len, msg->payload);
       free(msg);
     }
