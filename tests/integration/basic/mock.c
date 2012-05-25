@@ -17,7 +17,7 @@ char *addr_2_str(char *s, address ad){
 message *newmsg(int payloadSize){
   static char byteArray[256]; /* 256 to be sure we will never have problems to store this message */
   message *mp = (message*)byteArray;
-  mp->len = sizeof(mp->len)+payloadSize;
+  mp->header.len = sizeof(message_header)+payloadSize;
   return mp;
 }
 

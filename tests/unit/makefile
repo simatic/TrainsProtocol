@@ -1,7 +1,7 @@
 ### Configuration.  ####################################################
 
 # Binaries to build
-BIN		= testBqueue testComm testList
+BIN		= testAddress testApplicationMessage_wagon testBqueue testComm testList
 # C source files for the binaries
 SOURCES		= $(wildcard *.c)
 # Include directory
@@ -18,6 +18,12 @@ VALGRINDFLAGS =--leak-check=yes --leak-resolution=high --num-callers=40 --tool=m
 .PHONY:         all clean cleanall run valgrind
 
 all: depend $(BIN)
+
+testAddress: testAddress.o
+	$(CC) $^ -o $@ $(LDFLAGS)
+
+testApplicationMessage_wagon: testApplicationMessage_wagon.o
+	$(CC) $^ -o $@ $(LDFLAGS)
 
 testBqueue: testBqueue.o
 	$(CC) $^ -o $@ $(LDFLAGS)

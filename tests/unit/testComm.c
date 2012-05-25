@@ -32,9 +32,9 @@ void *connectionMgt(void *arg) {
     if (nbRead > 0){
       msg = malloc(len);
       assert(msg != NULL);
-      msg->len=len;
-      nbRead  = comm_read(aComm, msg->payload, msg->len - nbRead);
-      printf("\t...Received message of %d bytes with: \"%s\"\n", msg->len, msg->payload);
+      msg->header.len=len;
+      nbRead  = comm_read(aComm, msg->payload, msg->header.len - nbRead);
+      printf("\t...Received message of %d bytes with: \"%s\"\n", msg->header.len, msg->payload);
       free(msg);
     }
   } while (nbRead > 0);
@@ -143,22 +143,22 @@ int main() {
   if (commForConnect == NULL)
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newAndConnect");
 
-  len = sizeof(((message*)NULL)->len)+strlen(HW)+sizeof('\0');
+  len = sizeof(message_header)+strlen(HW)+sizeof('\0');
   msg = malloc(len);
   assert(msg != NULL);
-  msg->len = len;
+  msg->header.len = len;
   strcpy(msg->payload, HW);
   printf("\tSend message of %d bytes with: \"%s\"...\n", len, HW);
-  comm_write(commForConnect, msg, msg->len);
+  comm_write(commForConnect, msg, msg->header.len);
   free(msg);
 
-  len = sizeof(((message*)NULL)->len)+strlen(LONG_MESSAGE)+sizeof('\0');
+  len = sizeof(message_header)+strlen(LONG_MESSAGE)+sizeof('\0');
   msg = malloc(len);
   assert(msg != NULL);
-  msg->len = len;
+  msg->header.len = len;
   strcpy(msg->payload, LONG_MESSAGE);
   printf("\tSend message of %d bytes with: \"%s\"...\n", len, LONG_MESSAGE);
-  comm_write(commForConnect, msg, msg->len);
+  comm_write(commForConnect, msg, msg->header.len);
   free(msg);
 
   // We sleep a little to give time to the message to arrive before closing 

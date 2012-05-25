@@ -29,9 +29,9 @@ void *connectionMgt(void *arg) {
     if (nbRead > 0){
       msg = malloc(len);
       assert(msg != NULL);
-      msg->len=len;
-      nbRead  = comm_read(aComm, msg->payload, msg->len - nbRead);
-      printf("\t\t...Received message of %d bytes with: \"%s\"\n", msg->len, msg->payload);
+      msg->header.len=len;
+      nbRead  = comm_read(aComm, msg->payload, msg->header.len - nbRead);
+      printf("\t\t...Received message of %d bytes with: \"%s\"\n", msg->header.len, msg->payload);
       free(msg);
     }
   } while (nbRead > 0);

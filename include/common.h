@@ -8,6 +8,10 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
+#include <stdlib.h>
+#include <pthread.h>
+#include <error.h>
+
 /**
  * @brief Enumeration used to define booleans.
  */
