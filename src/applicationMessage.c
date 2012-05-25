@@ -68,13 +68,13 @@ void *uto_deliveries(void *null){
   do {
     w = bqueue_dequeue(wagonsToDeliver);
 
-    counter_wagons_delivered++;
+    counters.wagons_delivered++;
 
     // We analyze all messages in this wagon
     for (mp = firstmsg(w); mp != NULL ; mp = nextmsg(w, mp)) {
 
-      counter_messages_delivered++;
-      counter_messages_bytes_delivered += payload_size(mp);
+      counters.messages_delivered++;
+      counters.messages_bytes_delivered += payload_size(mp);
 
       switch (mp->header.typ) {
       case AM_BROADCAST:

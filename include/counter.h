@@ -6,53 +6,29 @@
 #define _counters_H
 
 /** 
- * @brief Type used to store counters
+ * @brief Type used to store a single counter
  */
 typedef unsigned long long t_counter;
 
 /** 
- * @brief Counter for bytes received from the network
+ * @brief Type used to store all counters
  */
-extern t_counter counter_bytes_received;
+typedef struct{
+  t_counter bytes_received;               /**< number of bytes received from the network */
+  t_counter messages_delivered;           /**< number of messages delivered to the application */
+  t_counter messages_bytes_delivered;     /**< number of bytes delivered to the application */
+  t_counter recent_trains_bytes_received; /**< number of bytes of recent trains received from the network */
+  t_counter recent_trains_received;       /**< number of recent trains received from the network */
+  t_counter trains_bytes_received;        /**< number of bytes of trains received from the network */
+  t_counter trains_received;              /**< number of trains received from the network */
+  t_counter wagons_delivered;             /**< number of wagons delivered to the application */
+  t_counter wait_states;                  /**< number of times automaton has been in state WAIT */
+} t_counters;
 
 /** 
- * @brief Counter for bytes of trains received from the network
+ * @brief Variable containing all counters
  */
-extern t_counter counter_trains_bytes_received;
+extern t_counters counters;
 
-/** 
- * @brief Counter for number of trains received from the network
- */
-extern t_counter counter_trains_received;
-
-/** 
- * @brief Counter for bytes of recent trains received from the network
- */
-extern t_counter counter_recent_trains_bytes_received;
-
-/** 
- * @brief Counter for number of recent trains received from the network
- */
-extern t_counter counter_recent_trains_received;
-
-/** 
- * @brief Counter for number of wagons delivered to the application
- */
-extern t_counter counter_wagons_delivered;
-
-/** 
- * @brief Counter for number of messages delivered to the application
- */
-extern t_counter counter_messages_delivered;
-
-/** 
- * @brief Counter for number of bytes delivered to the application
- */
-extern t_counter counter_messages_bytes_delivered;
-
-/** 
- * @brief Counter for number of times automaton is in state WAIT
- */
-extern t_counter counter_wait_states;
 
 #endif /* _counters_H */
