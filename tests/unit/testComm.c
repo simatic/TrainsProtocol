@@ -62,7 +62,7 @@ void *acceptMgt(void *arg) {
     if (aComm != NULL){
       // We fork a thread responsible for handling this connection
       pthread_t thread;
-      int rc = pthread_create(&thread, NULL, &connectionMgt, (void *)aComm);
+      int rc = pthread_create(&thread, NULL, connectionMgt, (void *)aComm);
       if (rc < 0)
 	error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
       rc = pthread_detach(thread);
@@ -73,7 +73,6 @@ void *acceptMgt(void *arg) {
 
   if (errno == EINTR){
     printf("\t...comm_accept was aborted\n");
-    comm_free(commForAccept);
   }else
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_accept");
 
@@ -91,7 +90,7 @@ void *acceptMgt2(void *arg) {
   aComm = comm_accept(commForAccept);
   if (aComm != NULL){
     // We fork a thread responsible for handling this connection
-    rc = pthread_create(&thread, NULL, &connectionMgt, (void *)aComm);
+    rc = pthread_create(&thread, NULL, connectionMgt, (void *)aComm);
     if (rc < 0)
       error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
   }else
@@ -129,7 +128,7 @@ int main() {
   if (commForAccept == NULL)
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newForAccept");
 
-  rc = pthread_create(&thread, NULL, &acceptMgt, (void *)commForAccept);
+  rc = pthread_create(&thread, NULL, acceptMgt, (void *)commForAccept);
   if (rc < 0)
     error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
 
@@ -147,6 +146,7 @@ int main() {
   msg = malloc(len);
   assert(msg != NULL);
   msg->header.len = len;
+  msg->header.typ = 0;
   strcpy(msg->payload, HW);
   printf("\tSend message of %d bytes with: \"%s\"...\n", len, HW);
   comm_write(commForConnect, msg, msg->header.len);
@@ -156,6 +156,7 @@ int main() {
   msg = malloc(len);
   assert(msg != NULL);
   msg->header.len = len;
+  msg->header.typ = 0;
   strcpy(msg->payload, LONG_MESSAGE);
   printf("\tSend message of %d bytes with: \"%s\"...\n", len, LONG_MESSAGE);
   comm_write(commForConnect, msg, msg->header.len);
@@ -183,6 +184,7 @@ int main() {
   // We abort the accept to see if this work
   printf("\tAbort comm_accept...\n");
   comm_abort(commForAccept);
+  comm_free(commForAccept);
 
   rc = pthread_join(thread, NULL);
   if(rc)
@@ -196,7 +198,7 @@ int main() {
   if (commForAccept == NULL)
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newForAccept");
 
-  rc = pthread_create(&thread, NULL, &acceptMgt2, (void *)commForAccept);
+  rc = pthread_create(&thread, NULL, acceptMgt2, (void *)commForAccept);
   if (rc < 0)
     error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
 
