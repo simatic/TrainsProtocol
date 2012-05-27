@@ -69,13 +69,12 @@ void comm_longIOBegin(t_comm *aComm){
  * @param[in] aComm Communication handle to work on
  */
 void comm_longIOEnd(t_comm *aComm){
+  aComm->ownerMutexForSynch = pthread_null;
+  aComm->aborted = false;
+
   // We release mutexForSynch, so that if an abort is waiting for
   // us to be done, it may proceed.
   MUTEX_UNLOCK(aComm->mutexForSynch);
-
-  aComm->ownerMutexForSynch = pthread_null;
-
-  aComm->aborted = false;
 }
 
 t_comm *comm_newAndConnect(char *hostname, char *port, int connectTimeout){
