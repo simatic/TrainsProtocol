@@ -27,6 +27,8 @@ int  nbMemberMin;
 int  delayBetweenTwoUtoBroadcast;
 int  nbRecMsgBeforeStop;
 
+bool terminate = false;
+
 void callbackCircuitChange(circuitview *cp){
   char s[MAX_LEN_ADDRESS_AS_STR];
 
@@ -62,10 +64,9 @@ void callbackUtoDeliver(address sender, message *mp){
 
   nbRecMsg++;
   if (nbRecMsg >= nbRecMsgBeforeStop){
-    int rc = sem_post(&semWaitToDie);
-    if (rc){
-      error_at_line(rc, errno, __FILE__, __LINE__, "sem_post()");
-      exit(EXIT_FAILURE);
+    terminate = true;
+    if (sem_post(&semWaitToDie) < 0){
+      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_post()");
     }
   }
 
@@ -122,7 +123,7 @@ int main(int argc, char *argv[]) {
   // Process is member of the protocol
   if (sender){
     // Process sends messages
-    while (1){
+    while (!terminate){
       message *mp = newmsg(PAYLOAD_SIZE);
       if (mp == NULL){
 	tr_error_at_line(rc, tr_errno, __FILE__, __LINE__, "newmsg()");

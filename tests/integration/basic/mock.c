@@ -1,25 +1,36 @@
 /*
- Mock module designed to run the basic test while middleware is not yet ready
+ Mock module designed to run the basic test while only the layer
+ of the middleware doing the interface with the application is ready
  */
 
 #include <stdio.h>
+#include <assert.h>
+#include <unistd.h>
 #include "trains.h"
+#include "wagon.h"
 
-address my_address = 0x01;
-CallbackUtoDeliver lud;
 int tr_errno = 0;
 
-char *addr_2_str(char *s, address ad){
-  sprintf(s, "0x%02x", ad);
-  return s;
+#define MOCK_RANK 0
+#define MOCK_CIRCUIT 0x0003
+extern int automatonState;
+
+void *trainsSimulation(void *null){
+
+  do {
+    MUTEX_LOCK(mutexWagonToSend);
+
+    bqueue_enqueue(wagonsToDeliver, wagonToSend);
+    wagonToSend = newwagon();
+
+    pthread_cond_signal(&condWagonToSend);
+    MUTEX_UNLOCK(mutexWagonToSend);
+    usleep(10000);
+  } while(1);
+
+  return NULL;
 }
 
-message *newmsg(int payloadSize){
-  static char byteArray[256]; /* 256 to be sure we will never have problems to store this message */
-  message *mp = (message*)byteArray;
-  mp->header.len = sizeof(message_header)+payloadSize;
-  return mp;
-}
 
 void tr_error_at_line(int status, int errnum, const char *filename, unsigned int linenum, const char *format){
   fflush(stdout);
@@ -27,23 +38,44 @@ void tr_error_at_line(int status, int errnum, const char *filename, unsigned int
 }
 
 int tr_init(CallbackCircuitChange aCallbackCircuitChange, CallbackUtoDeliver aCallbackUtoDeliver){
-  circuitview cv;
-  cv.cv_nmemb = 1;
-  cv.cv_members[0] = my_address;
-  cv.cv_joined = my_address;
-  cv.cv_departed = 0;
-  (*aCallbackCircuitChange)(&cv);
-  lud = aCallbackUtoDeliver;
+  pthread_t thread;
+  int rc;
+
+  // Initializations which will appear in true tr_init
+  rc= pthread_cond_init(&condWagonToSend, NULL);
+  assert(rc == 0);
+  wagonsToDeliver = bqueue_new();
+  theCallbackCircuitChange = aCallbackCircuitChange;
+  theCallbackUtoDeliver = aCallbackUtoDeliver;
+  wagonToSend = newwagon();
+  rc = pthread_create(&thread, NULL, uto_deliveries, NULL);
+  if (rc)
+    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+  rc = pthread_detach(thread);
+  if (rc)
+    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
+  my_address = rank_2_addr(MOCK_RANK); // In true tr_init, MOCK_RANK
+                                       // must be replaced by computation
+                                       // of the rank of the process
+
+  // Initialisations specific to this mock (it simulates the software
+  // layer taking care of trains protocol
+  signalArrival(wagonToSend, my_address, MOCK_CIRCUIT);
+
+  automatonState = 0x7FFFFFFF; // To be sure that we are not in ALONE state
+
+  rc = pthread_create(&thread, NULL, trainsSimulation, NULL);
+  if (rc)
+    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+  rc = pthread_detach(thread);
+  if (rc)
+    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
+
   return 0;
 }
 
 void tr_perror(int errnum){
   fprintf(stderr, "basic version of tr_perror");
-}
-
-int uto_broadcast(message *mp){
-  (*lud)(my_address,mp);
-  return 0;
 }
 
 int tr_terminate(){
