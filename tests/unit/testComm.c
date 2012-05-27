@@ -142,7 +142,7 @@ int main() {
   if (commForConnect == NULL)
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newAndConnect");
 
-  len = sizeof(message_header)+strlen(HW)+sizeof('\0');
+  len = sizeof(message_header)+strlen(HW)+1; //+1 for '\0'
   msg = malloc(len);
   assert(msg != NULL);
   msg->header.len = len;
@@ -152,7 +152,7 @@ int main() {
   comm_write(commForConnect, msg, msg->header.len);
   free(msg);
 
-  len = sizeof(message_header)+strlen(LONG_MESSAGE)+sizeof('\0');
+  len = sizeof(message_header)+strlen(LONG_MESSAGE)+1; //+1 for '\0'
   msg = malloc(len);
   assert(msg != NULL);
   msg->header.len = len;
