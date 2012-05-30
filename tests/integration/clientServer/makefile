@@ -52,3 +52,22 @@ valgrind: $(BIN)
 	(export LD_LIBRARY_PATH=LD_LIBRARY_PATH:../../../src; valgrind $(VALGRINDFLAGS) ./basicTest y 1 100000 1 2>&1)
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
+
+client.o: /usr/include/stdio.h /usr/include/features.h /usr/include/libio.h
+client.o: /usr/include/_G_config.h /usr/include/wchar.h /usr/include/stdlib.h
+client.o: /usr/include/alloca.h /usr/include/pthread.h /usr/include/endian.h
+client.o: /usr/include/sched.h /usr/include/time.h /usr/include/error.h
+client.o: /usr/include/errno.h /usr/include/unistd.h /usr/include/getopt.h
+client.o: /usr/include/string.h /usr/include/xlocale.h /usr/include/assert.h
+client.o: ../../../include/comm.h ../../../include/common.h
+client.o: ../../../include/trains.h ../../../include/address.h
+client.o: ../../../include/applicationMessage.h
+server.o: /usr/include/stdio.h /usr/include/features.h /usr/include/libio.h
+server.o: /usr/include/_G_config.h /usr/include/wchar.h /usr/include/stdlib.h
+server.o: /usr/include/alloca.h /usr/include/pthread.h /usr/include/endian.h
+server.o: /usr/include/sched.h /usr/include/time.h /usr/include/error.h
+server.o: /usr/include/errno.h /usr/include/unistd.h /usr/include/getopt.h
+server.o: /usr/include/string.h /usr/include/xlocale.h /usr/include/assert.h
+server.o: ../../../include/comm.h ../../../include/common.h
+server.o: ../../../include/trains.h ../../../include/address.h
+server.o: ../../../include/applicationMessage.h
