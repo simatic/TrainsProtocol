@@ -72,6 +72,13 @@ comm.o: /usr/include/_G_config.h /usr/include/wchar.h ../include/comm.h
 comm.o: /usr/include/pthread.h /usr/include/sched.h /usr/include/time.h
 comm.o: ../include/common.h ../include/signalMgt.h /usr/include/signal.h
 counter.o: ../include/counter.h
+iomsg.o: /usr/include/stdlib.h /usr/include/features.h /usr/include/alloca.h
+iomsg.o: ../include/address.h ../include/common.h /usr/include/pthread.h
+iomsg.o: /usr/include/endian.h /usr/include/sched.h /usr/include/time.h
+iomsg.o: /usr/include/error.h ../include/management_addr.h ../include/comm.h
+iomsg.o: ../include/str_train.h ../include/wagon.h
+iomsg.o: ../include/applicationMessage.h ../include/bqueue.h
+iomsg.o: /usr/include/semaphore.h ../include/list.h ../include/msg.h
 list.o: /usr/include/error.h /usr/include/features.h /usr/include/assert.h
 list.o: /usr/include/stdlib.h /usr/include/alloca.h ../include/list.h
 list.o: /usr/include/pthread.h /usr/include/endian.h /usr/include/sched.h
@@ -101,9 +108,9 @@ signalMgt.o: /usr/include/unistd.h /usr/include/getopt.h
 signalMgt.o: ../include/signalMgt.h /usr/include/signal.h ../include/common.h
 str_train.o: ../include/str_train.h /usr/include/pthread.h
 str_train.o: /usr/include/features.h /usr/include/endian.h
-str_train.o: /usr/include/sched.h /usr/include/time.h ../include/msg.h
-str_train.o: ../include/address.h ../include/common.h /usr/include/stdlib.h
-str_train.o: /usr/include/alloca.h /usr/include/error.h ../include/wagon.h
+str_train.o: /usr/include/sched.h /usr/include/time.h ../include/address.h
+str_train.o: ../include/common.h /usr/include/stdlib.h /usr/include/alloca.h
+str_train.o: /usr/include/error.h ../include/wagon.h
 str_train.o: ../include/applicationMessage.h ../include/bqueue.h
 str_train.o: /usr/include/semaphore.h ../include/list.h
 wagon.o: /usr/include/stdlib.h /usr/include/features.h /usr/include/alloca.h

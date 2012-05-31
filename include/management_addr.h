@@ -8,10 +8,13 @@
 #ifndef _MANAGEMENT_ADDRESS_H
 #define _MANAGEMENT_ADDRESS_H
 
+#include "comm.h"
+
 /**
  * @brief Localisation of the file where addresses are written
  */
 #define LOCALISATION "./addr_file" /**<File's here.>*/
+
 
 /**
  * @brief Structure of the file addresses variable
@@ -70,5 +73,11 @@ void add_tcomm(t_comm * tcomm, int i, ADDR * array);
  * </ol>
  */
 int addr_id(char * ip, char * chan, ADDR * array);
+
+/**
+ * @brief Definition of the variable where the addresses will be kept
+ * @note Before the utilisation, one should generate it...
+ */
+ADDR* global_addr_array; 
 
 #endif /* _MANAGEMENT_ADDRESS_H_ */

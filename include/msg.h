@@ -1,8 +1,7 @@
 /**
  * @brief File holding the types' definition for the in/out flux
  * @file msg.h
- * @author Nathan REBOUD
- * @co-author Damien GRAUX
+ * @author Nathan REBOUD & Damien GRAUX
  * @date 30/05/2012
  */
  
@@ -101,7 +100,7 @@ Msg init_msg();
  * @param[in] addr_id The address (short)of the process which is bounded to send the Msg
  * @return The freshly created Msg
  * @warning
- * <li> If an error occured during the creation of the message, the result will be a Msg with a Default body where the problem_id will be -1. In addition, an error will be rised thanks to perror.</li>
+ * <ul><li> If an error occured during the creation of the message, the result will be a Msg with a Default body where the problem_id will be -1. In addition, an error will be rised thanks to perror.</li></ul>
  */
 Msg newMsg(MType mtype, address addr_id);
 
