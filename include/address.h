@@ -8,6 +8,12 @@
 #include "common.h"
 
 /**
+ * @brief Maximal number of participants
+ */
+#define NP 16
+
+
+/**
  * @brief Address of a process in the trains protocol
  */
 typedef unsigned short address;
@@ -111,5 +117,14 @@ void addr_appendGone(address_set *arrivedSet, address_set *goneSet, address ad);
  * @return updated circuit 
  */
 address_set addr_updateCircuit(address_set circuit, address ad, address_set arrivedSet, address_set goneSet);
+
+
+
+/**
+ * @brief Return the prec address
+ * @param[in] ad the address to use
+ * @return the prec address 
+ */
+address addr_prec(address ad);
 
 #endif /* _ADDRESS_H */
