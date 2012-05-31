@@ -84,6 +84,11 @@ management_addr.o: /usr/include/wchar.h ../include/comm.h
 management_addr.o: /usr/include/pthread.h /usr/include/endian.h
 management_addr.o: /usr/include/sched.h /usr/include/time.h
 management_addr.o: ../include/common.h /usr/include/error.h
+msg.o: /usr/include/stdlib.h /usr/include/features.h /usr/include/alloca.h
+msg.o: /usr/include/stdio.h /usr/include/libio.h /usr/include/_G_config.h
+msg.o: /usr/include/wchar.h ../include/address.h ../include/common.h
+msg.o: /usr/include/pthread.h /usr/include/endian.h /usr/include/sched.h
+msg.o: /usr/include/time.h /usr/include/error.h ../include/msg.h
 signalMgt.o: /usr/include/stdio.h /usr/include/features.h
 signalMgt.o: /usr/include/libio.h /usr/include/_G_config.h
 signalMgt.o: /usr/include/wchar.h /usr/include/stdlib.h /usr/include/alloca.h
