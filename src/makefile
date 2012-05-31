@@ -89,6 +89,9 @@ msg.o: /usr/include/stdio.h /usr/include/libio.h /usr/include/_G_config.h
 msg.o: /usr/include/wchar.h ../include/address.h ../include/common.h
 msg.o: /usr/include/pthread.h /usr/include/endian.h /usr/include/sched.h
 msg.o: /usr/include/time.h /usr/include/error.h ../include/msg.h
+msg.o: ../include/str_train.h ../include/wagon.h
+msg.o: ../include/applicationMessage.h ../include/bqueue.h
+msg.o: /usr/include/semaphore.h ../include/list.h
 signalMgt.o: /usr/include/stdio.h /usr/include/features.h
 signalMgt.o: /usr/include/libio.h /usr/include/_G_config.h
 signalMgt.o: /usr/include/wchar.h /usr/include/stdlib.h /usr/include/alloca.h
@@ -96,6 +99,13 @@ signalMgt.o: /usr/include/error.h /usr/include/errno.h /usr/include/pthread.h
 signalMgt.o: /usr/include/endian.h /usr/include/sched.h /usr/include/time.h
 signalMgt.o: /usr/include/unistd.h /usr/include/getopt.h
 signalMgt.o: ../include/signalMgt.h /usr/include/signal.h ../include/common.h
+str_train.o: ../include/str_train.h /usr/include/pthread.h
+str_train.o: /usr/include/features.h /usr/include/endian.h
+str_train.o: /usr/include/sched.h /usr/include/time.h ../include/msg.h
+str_train.o: ../include/address.h ../include/common.h /usr/include/stdlib.h
+str_train.o: /usr/include/alloca.h /usr/include/error.h ../include/wagon.h
+str_train.o: ../include/applicationMessage.h ../include/bqueue.h
+str_train.o: /usr/include/semaphore.h ../include/list.h
 wagon.o: /usr/include/stdlib.h /usr/include/features.h /usr/include/alloca.h
 wagon.o: /usr/include/pthread.h /usr/include/endian.h /usr/include/sched.h
 wagon.o: /usr/include/time.h /usr/include/assert.h ../include/bqueue.h

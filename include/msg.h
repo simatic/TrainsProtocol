@@ -2,7 +2,7 @@
  * @brief File holding the types' definition for the in/out flux
  * @file msg.h
  * @author Nathan REBOUD
- * @contibutor Damien GRAUX
+ * @co-author Damien GRAUX
  * @date 30/05/2012
  */
  
@@ -10,7 +10,7 @@
 #define _MSG_H
  
 #include "address.h"
-//FIXME -> What about train structure [same issue in .c]
+#include "str_train.h"
 
 /**
  * @brief Data structure for Default messages
@@ -85,7 +85,7 @@ typedef struct {
     NewSucc newSucc;
     Disconnect disconnect;
   }body;  
-}Msg;
+} Msg;
 
 /**
  * @brief Initiate an empty Msg with DEFAULT MType

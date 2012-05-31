@@ -3,7 +3,8 @@
 
 #include "address.h"
 #include "msg.h"
-//FIXME -> What about train structure [same issue in .h]
+#include "str_train.h"
+
 
 Msg init_msg(){
   Msg msg;
