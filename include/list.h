@@ -3,6 +3,7 @@
  * @file list.h
  * @author Michel SIMATIC
  * @date  14/04/2012
+ * @note extension 30/05/2012 by Damien GRAUX
  */
 
 #ifndef _LIST_H_
@@ -47,6 +48,19 @@ void *list_removeFirst(t_list *aList);
  * @param[in] anElt Element to add to \a aList
  */
 void list_append(t_list *aList, void *anElt);
+
+/**
+ * @brief Extends @a aList with the @a b_list at queue
+ * @param[in] aList The list which will be extended
+ * @param[in] b_list The list wich will be added at the queue
+ */
+void list_extend(t_list* aList, t_list* b_list);
+
+/**
+ * @brief Removes all the elements from @a aList but let it alive
+ * @param[in] aList The list which is going to be cleaned
+ */
+void list_cleanList(t_list* aList);
 
 /**
  * @brief Frees @a aList

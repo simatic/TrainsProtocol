@@ -59,6 +59,31 @@ void list_append(t_list *aList, void *anElt){
   MUTEX_UNLOCK(aList->listMutex);
 }
 
+void list_extend(t_list* aList, t_list* b_list){
+  LINK *link, *next;
+
+  // We append the elements of b_list in alist
+  link = b_list->first;
+  list_append(aList,link);
+  do{
+    next = link->next;
+    list_append(aList,next);
+    link = next;
+  }while(link != NULL);
+}
+
+//list_clean just remove all the elements from at_list but let it alive
+void list_cleanList(t_list* aList){
+  LINK *link, *next;
+  // We free the remaining LINK elements in the list
+  link = aList->first;
+  do{
+    next = link->next;
+    free(link);
+    link = next;
+  }while(link != NULL);
+}
+
 void list_free(t_list *aList){
   LINK *link, *next;
 
@@ -77,3 +102,4 @@ void list_free(t_list *aList){
 
   free(aList);
 }
+
