@@ -12,3 +12,12 @@ wagon* nextWagon (train_extended* t, wagon* w) {
 }
 
 
+bool is_in_lts(address  ad, lts_array ltsarray) {
+	bool result=false;
+	int i;
+	for (i=0;i<ntr;i++) {
+		result=result && addr_ismember(ad,ltsarray[i].circuit);
+	}
+	return result;
+}
+

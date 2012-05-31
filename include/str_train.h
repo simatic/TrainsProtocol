@@ -73,7 +73,7 @@ typedef struct {
     wagon_watcher* w_w;
     int len;
   } w;/**<The area used to stock wagons>*/
-  wagon_watcher p_wtosend;/**<refers to the wagon which is bouned to be sent>*/
+  wagon_watcher* p_wtosend;/**<refers to the wagon which is bouned to be sent>*/
 }lts_struct;
 
 /**
@@ -91,4 +91,13 @@ typedef lts_struct lts_array[ntr];
  */
 wagon* nextWagon(train_extended* t, wagon* w);
 
+/**
+ * @brief Tests if ad is member of all the circuit of lts. 
+ * @param[in] ad The address to test
+ * @param[in] ltsarray The lts of the protocol
+ * @return A boolean
+ */
+bool is_in_lts(address  ad, lts_array ltsarray);
+
 #endif /* _STR_TRAIN_H */
+
