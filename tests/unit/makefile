@@ -1,7 +1,7 @@
 ### Configuration.  ####################################################
 
 # Binaries to build
-BIN		= testAddress testApplicationMessage_wagon testBqueue testComm testList
+BIN		= testAddress testApplicationMessage_wagon testBqueue testComm testList testManagement_addr
 # C source files for the binaries
 SOURCES		= $(wildcard *.c)
 # Include directory
@@ -32,6 +32,9 @@ testComm: testComm.o
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 testList: testList.o
+	$(CC) $^ -o $@ $(LDFLAGS)
+
+testManagement_addr: testManagement_addr.o
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 clean:

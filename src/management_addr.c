@@ -1,39 +1,20 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
+#include <errno.h>
 
-#include "comm.h"
+#include "management_addr.h"
 
-//Define the localisation of the file where addresses are written
-#define LOCALISATION "./addr_file"
+ADDR* global_addr_array;
 
-//structure of the file addresses variable
-typedef struct addr
-{
-  char* ip;
-  char* chan;
-  t_comm* tcomm;
-}ADDR;
-
-
-//to create an address block with the ip, the channel and the t_comm if it exists
-ADDR init_addr(void){
-  ADDR addr;
-
-  addr.ip=NULL;
-  addr.chan=NULL;
-  addr.tcomm=NULL;
-  return(addr);
-}
+// Max length of a line read in LOCALISATION file
+#define MAX_LEN_LINE_IN_FILE (MAX_LEN_IP + 1 + MAX_LEN_CHAN)
 
 //create an array of addresses
 ADDR* init_addr_list(int length){
-  int i=0;
-  ADDR* result=malloc(length*sizeof(ADDR));
-  
-  for(i=0;i<length;i++){
-    result[i]=init_addr();
-  }
+  ADDR* result=calloc(length+1,sizeof(ADDR));//We calloc one more element, so that the last element of the array is an empty element
+  assert(result != NULL);
   return(result);
 }
 
@@ -47,28 +28,26 @@ void free_addr_list(ADDR* tab){
 ADDR* addr_generator(char* locate, int length){
   FILE * addr_file;
   ADDR * array=init_addr_list(length);
+  char line[MAX_LEN_LINE_IN_FILE];
   char * addr_full=NULL;
   char * ip_only=NULL;
   int i=0;
 
   addr_file = fopen (locate , "r");
-  if (addr_file == NULL) perror ("Error opening file");
+  if (addr_file == NULL) error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "Error opening file");
   else {
     for(i=0;i<length;i++){
-      addr_full=NULL;
-      ip_only=NULL;
-      if ( fgets (addr_full , 100 , addr_file) != NULL )
+      if ( fgets (line, MAX_LEN_LINE_IN_FILE, addr_file) != NULL )
 	{
-	 ip_only =strtok (addr_full,":");
-	 memcpy(array[i].ip,ip_only,strlen(ip_only)+1);
-	 memcpy(array[i].chan,addr_full,strlen(addr_full)+1);
+	 ip_only   = strtok(line, ":");
+	 addr_full = strtok(NULL, ":\n");
+	 strcpy(array[i].ip,ip_only);
+	 strcpy(array[i].chan,addr_full);
 	}
     }
   }
   
   fclose(addr_file);
-  free(addr_full);
-  free(ip_only);
 
   return(array);
 }
@@ -81,14 +60,13 @@ void add_tcomm(t_comm * tcomm, int i, ADDR * array){
 //give the place in the array of a given address
 //return -1 if it's unfound
 int addr_id(char * ip, char * chan, ADDR * array){
-  int length=sizeof(array)/sizeof(ADDR);
   int i=0;
 
-  while((i<length)&&(strcmp(array[i].ip,ip)!=0 || strcmp(array[i].chan,chan)!=0)){
+  while((array[i].ip[0] != '\0')&&(strcmp(array[i].ip,ip)!=0 || strcmp(array[i].chan,chan)!=0)){
     i++;
   }
 
-  if(i<length){
+  if(array[i].ip[0] != '\0'){
     return(i);
   }
   else{

@@ -15,22 +15,25 @@
  */
 #define LOCALISATION "./addr_file" /**<File's here.*/
 
+/**
+ * @brief Max length of an IP address (including '\0')
+ */
+#define MAX_LEN_IP 64
+
+/**
+ * @brief Max length of a channel (including '\0')
+ */
+#define MAX_LEN_CHAN 64
 
 /**
  * @brief Structure of the file addresses variable
  */
 typedef struct addr
 {
-  char* ip;    /**<String holding the ip address*/
-  char* chan;  /**<String holding the channel*/
+  char ip[MAX_LEN_IP];    /**<String holding the ip address*/
+  char chan[MAX_LEN_CHAN];  /**<String holding the channel*/
   t_comm* tcomm;/**<t_comm pointer to have the file descriptor*/
 }ADDR;
-
-/**
- * @brief Create an empty ADDR
- * @return An empty ADDR
- */
-ADDR init_addr(void);
 
 /**
  * @brief Create an array of @a length empty ADDR
@@ -78,6 +81,6 @@ int addr_id(char * ip, char * chan, ADDR * array);
  * @brief Definition of the variable where the addresses will be kept
  * @note Before the utilisation, one should generate it...
  */
-ADDR* global_addr_array; 
+extern ADDR* global_addr_array; 
 
 #endif /* _MANAGEMENT_ADDRESS_H_ */
