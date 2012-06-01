@@ -80,6 +80,8 @@ int main() {
 
   compare("addr_updateCircuit", addr_updateCircuit(0xFFFF, my_address, 0xFF00, 0x00FF), 0xFF00);
 
+  compare("addr_prec", addr_prec(0x8000), 0x4000);
+  compare("addr_prec", addr_prec(0x0001), 0x8000);
   return EXIT_SUCCESS;
 }
 

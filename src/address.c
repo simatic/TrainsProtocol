@@ -27,7 +27,7 @@ void addr_appendArrived(address_set *arrivedSet, address ad){
 void addr_appendGone(address_set *arrivedSet, address_set *goneSet, address ad){
   if (addr_ismember(ad, *arrivedSet))
     // We take out ad from arrivedSet
-    *arrivedSet &= ~ad;
+    *arrivedSet ^= ad;
   else
     // We add ad to goneSet
     *goneSet |= ad;
@@ -39,7 +39,7 @@ bool addr_ismember(address ad, address adSet){
 
 address_set addr_updateCircuit(address_set circuit, address ad, address_set arrivedSet, address_set goneSet){
   // Notice ad is unused
-  return (circuit & ~goneSet) | arrivedSet;
+  return (circuit ^ goneSet) | arrivedSet;
 }
 
 address rank_2_addr(int rank){
@@ -51,7 +51,7 @@ address addr_prec(address ad){
 	if (i==(-1)) {
 		error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"addr not found");
 	}
-	i=(i-1) % NP;
+	i=(i+NP-1) % NP;
 	return rank_2_addr(i);
 }
   
