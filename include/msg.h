@@ -16,35 +16,35 @@
  * @note Use only to init message and to coerce the right type in case of bad use of the functions
  */
 typedef struct {
-  int problem_id; /**<To refer the problem>*/
+  int problem_id; /**<To refer the problem*/
 }Default;
 
 /**
  * @brief Data structure for Insert incoms
  */ 
 typedef struct {
-  address sender; /**<The reference to the sender>*/
+  address sender; /**<The reference to the sender*/
 }Insert;
 
 /**
  * @brief Data structure for AckInsert incoms
  */ 
 typedef struct {
-  address sender;/**<The reference to the sender>*/
+  address sender;/**<The reference to the sender*/
 }AckInsert;
 
 /**
  * @brief Data structure for NakInsert incoms
  */ 
 typedef struct {
-  address sender;/**<The reference to the sender>*/
+  address sender;/**<The reference to the sender*/
 }NakInsert;
 
 /**
  * @brief Data structure for NewSucc incoms
  */ 
 typedef struct {
-  address sender;/**<The reference to the sender>*/
+  address sender;/**<The reference to the sender*/
 }NewSucc;
 
 /**
@@ -58,7 +58,7 @@ typedef struct {
  * @brief Data structure for MType
  */ 
 typedef enum MType {
-  DEFAULT, /**<USe to init message or to raise error>*/
+  DEFAULT, /**<USe to init message or to raise error*/
   TRAIN,
   INSERT,
   ACK_INSERT,
@@ -72,7 +72,7 @@ typedef enum MType {
  */ 
 typedef struct {
   
-  int len;/**<total length of the msg>*/
+  int len;/**<total length of the msg*/
   MType type;
 	
   union {

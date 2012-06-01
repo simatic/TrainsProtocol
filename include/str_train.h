@@ -19,16 +19,21 @@
 
 
 /**
+ * @brief Data structure for stamps
+ */
+typedef struct {
+  char id;
+  char lc;
+  char round;
+}stamp;
+
+/**
  * @brief Data structure for trains
  */
 typedef struct {
-  struct stamp {
-    char id ;
-    char lc ;
-    char round ;
-  } stamp;/**<A stramp for some info>*/
-  address_set circuit;/**<A description of the circuit>*/
-  wagon wagons[];/**<The block of wagons>*/
+  stamp stamp;/**<A stramp for some info*/
+  address_set circuit;/**<A description of the circuit*/
+  wagon wagons[];/**<The block of wagons*/
 } Train;
 
 /**
@@ -36,9 +41,9 @@ typedef struct {
  * @note Holds two parameters : a mutec to control the writting and a counter
  */
 typedef struct{
-  pthread_mutex_t mutex;/**<To make the writting and the reading of the train safe>*/
-  int counter;/**<Count the number of pointers refering to the wagons of the train to know when erase the train>*/
-  int len;/**<Length of the train which is behind the prefix>*/
+  pthread_mutex_t mutex;/**<To make the writting and the reading of the train safe*/
+  int counter;/**<Count the number of pointers refering to the wagons of the train to know when erase the train*/
+  int len;/**<Length of the train which is behind the prefix*/
 } prefix;
 
 /**
@@ -63,17 +68,13 @@ typedef struct {
  * @note lts is for Last Train Send
  */
 typedef struct {
-  struct {
-    char id ;
-    char lc ;
-    char round ;
-  } stamp;
+  stamp stamp;
   address_set circuit;
   struct {
     wagon_watcher* w_w;
     int len;
-  } w;/**<The area used to stock wagons>*/
-  wagon_watcher* p_wtosend;/**<refers to the wagon which is bouned to be sent>*/
+  } w;/**<The area used to stock wagons*/
+  wagon_watcher* p_wtosend;/**<refers to the wagon which is bouned to be sent*/
 }lts_struct;
 
 /**

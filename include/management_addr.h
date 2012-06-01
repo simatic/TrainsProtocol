@@ -13,7 +13,7 @@
 /**
  * @brief Localisation of the file where addresses are written
  */
-#define LOCALISATION "./addr_file" /**<File's here.>*/
+#define LOCALISATION "./addr_file" /**<File's here.*/
 
 
 /**
@@ -21,9 +21,9 @@
  */
 typedef struct addr
 {
-  char* ip;    /**<String holding the ip address>*/
-  char* chan;  /**<String holding the channel>*/
-  t_comm* tcomm;/**<t_comm pointer to have the file descriptor>*/
+  char* ip;    /**<String holding the ip address*/
+  char* chan;  /**<String holding the channel*/
+  t_comm* tcomm;/**<t_comm pointer to have the file descriptor*/
 }ADDR;
 
 /**
@@ -68,9 +68,9 @@ void add_tcomm(t_comm * tcomm, int i, ADDR * array);
  * @param[in] array The ADDR*
  * @return The index of the address
  * @warning
- * <ol>
+ * <ul>
  * <li>If the address caracterized by @a ip and @a chan is not found in @a array, this function will return the integer -1.</li>
- * </ol>
+ * </ul>
  */
 int addr_id(char * ip, char * chan, ADDR * array);
 
