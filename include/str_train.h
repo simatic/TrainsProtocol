@@ -8,11 +8,10 @@
 #ifndef _STR_TRAIN_H
 #define _STR_TRAIN_H
 
-//FIXME -> check the following dependances please
 #include <pthread.h>
 #include "address.h"
 #include "wagon.h"
-
+#include "common.h"
 
 #define ntr 5 //FIXME : waiting for a migration to constant.h
 
@@ -99,6 +98,17 @@ wagon* nextWagon(train_extended* t, wagon* w);
  * @return A boolean
  */
 bool is_in_lts(address  ad, lts_array ltsarray);
+
+/**
+ * @brief Says if the train signalized by @a tr_st is recent or no
+ * @param[in] tr_st The stamp of the train
+ * @param[in] plts_array The last train sent
+ * @param[in] lis The last instance sent
+ * @param[in] nb_train
+ * @return A boolean
+ * @note This fun holds the overflows
+ */
+bool is_recent_train(stamp tr_st, lts_array * plts_array, char lis, int nb_train);
 
 /**
  * @brief Look after the counter and free the Train if it is equal to 0
