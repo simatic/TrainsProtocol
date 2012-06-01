@@ -99,5 +99,11 @@ wagon* nextWagon(train_extended* t, wagon* w);
  */
 bool is_in_lts(address  ad, lts_array ltsarray);
 
+/**
+ * @brief Look after the counter and free the Train if it is equal to 0
+ * @param[in] ww A wagon_watcher used to have prefixe and wagons
+ */
+void free_wagon(wagon_watcher ww);
+
 #endif /* _STR_TRAIN_H */
 

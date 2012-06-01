@@ -21,3 +21,13 @@ bool is_in_lts(address  ad, lts_array ltsarray) {
 	return result;
 }
 
+
+void free_wagon(wagon_watcher ww){
+  pthread_mutex_lock(&(ww.p_pfx->mutex)); //mutex locked
+  ww.p_pfx->counter --; //decrementation of the counter
+  if (ww.p_pfx->counter <= 0)
+    free(ww.p_wagon);
+  pthread_mutex_unlock(&(ww.p_pfx->mutex)); //mutex unlocked
+  free(ww.p_pfx);
+  free(&ww);
+}
