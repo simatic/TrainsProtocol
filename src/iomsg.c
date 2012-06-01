@@ -1,19 +1,21 @@
 #include <stdlib.h>
+#include <assert.h>
+#include <pthread.h>
 
-
+#include "iomsg.h"
 #include "address.h"
 #include "management_addr.h"
 #include "comm.h"
-#include "str_train.h"
 #include "msg.h"
 
 
-Msg * receive(address addr){
-  Msg * msg;
+Msg_extended * receive(address addr){
+  Msg_extended * msg_ext;
   int rank=-1;
   t_comm * aComm;
   int nbRead;
   int length;
+  pthread_mutex_t mut;
 
   rank=addr_2_rank(addr);
   if(rank!=-1)
@@ -22,9 +24,12 @@ Msg * receive(address addr){
       do{
         nbRead = comm_read(aComm, &length, sizeof(length));
         if (nbRead > 0){
-          msg = malloc(length);
-          msg->len=length;
-          nbRead = comm_read(aComm, ((char*)msg)+nbRead, (msg->len-nbRead));
+          msg_ext = calloc(length+sizeof(prefix),sizeof(char));
+	  assert(msg_ext != NULL);
+	  msg_ext->pfx.mutex=mut;
+	  msg_ext->pfx.counter=1; //FIXME -> be careful with this integer... -1?
+          msg_ext->msg.len=length;
+          nbRead = comm_read(aComm, ((char*)msg_ext)+sizeof(prefix)+nbRead, (msg_ext->msg.len-nbRead)); //FIXME -> Nathan can you check it please for the second arg?
         }
       } while (nbRead > 0);
       if(nbRead==0){
@@ -34,11 +39,14 @@ Msg * receive(address addr){
         return(&init_msg());
         */
       }
-      if(nbRead==-1)
-        *msg=init_msg();
-        return(msg);
+      if(nbRead==-1){
+	msg_ext->pfx.mutex=mut;
+	msg_ext->pfx.counter=1; //FIXME -> be careful with this integer... -1?
+        msg_ext->msg=init_msg();
+        return(msg_ext);
+      }
     }
-  return(msg);
+  return(msg_ext);
 }
 
 //Use to sendall the messages Msg, even the TRAIN ones, but in fact, TRAIN messages will never be created for the sending, but use only on reception... Thus, to send TRAIN messages, send_train will be used.
@@ -67,6 +75,7 @@ int send_other(address addr, Msg * msg){
 }
 
 //send a train -> use send_other to send the rest
+//FIXME -> what about wagontosend's structure
 int send_train(address addr, lts_struct lts){
   int global_length=0;
   MType tosend=TRAIN; 

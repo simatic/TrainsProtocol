@@ -8,6 +8,12 @@
 #ifndef _IOMSG_H
 #define _IOMSG_H
 
+#include "address.h"
+#include "management_addr.h"
+#include "comm.h"
+#include "msg.h"
+
+
 /**
  * @brief Fun used to listen the @a addr
  * @param[in] addr The address to listen
@@ -15,7 +21,7 @@
  * @note If an error occured, returns a Msg with the MType DEFAULT
  * @warning Do not forget to free after the Msg returned
  */
-Msg * receive(address addr);
+Msg_extended * receive(address addr);
 
 /**
  * @brief Function used to send @a msg to @a addr
