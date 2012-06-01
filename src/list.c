@@ -60,28 +60,29 @@ void list_append(t_list *aList, void *anElt){
 }
 
 void list_extend(t_list* aList, t_list* b_list){
-  LINK *link, *next;
+  LINK *link;
 
   // We append the elements of b_list in alist
-  link = b_list->first;
-  list_append(aList,link);
-  do{
-    next = link->next;
-    list_append(aList,next);
-    link = next;
-  }while(link != NULL);
+  for (link = b_list->first; link->value != NULL ; link = link->next){
+    list_append(aList,link->value);
+  }
 }
 
 //list_clean just remove all the elements from at_list but let it alive
 void list_cleanList(t_list* aList){
   LINK *link, *next;
-  // We free the remaining LINK elements in the list
+  // We free all the LINK elements which value is not NULL
+  MUTEX_LOCK(aList->listMutex);
   link = aList->first;
-  do{
+  while (link->value != NULL) {
     next = link->next;
     free(link);
     link = next;
-  }while(link != NULL);
+  };
+  // We update a_list pointers
+  aList->first = link;
+  aList->last  = link;
+  MUTEX_UNLOCK(aList->listMutex);
 }
 
 void list_free(t_list *aList){

@@ -18,6 +18,7 @@ void compare(char *testType, void *s, char *target){
 
 int main() {
   t_list *l = list_new();
+  t_list *l2 = list_new();
 
   list_append(l, a);
   list_append(l, b);
@@ -27,11 +28,20 @@ int main() {
   compare("removeFirst", list_removeFirst(l), b);
   compare("removeFirst", list_removeFirst(l), c);
 
-  // Code to check (with valgrind) that list_free frees everything
+  // We now test list_extend and list_cleanList
   list_append(l, a);
-  list_append(l, b);
-  list_append(l, c);
+  list_append(l2, b);
+  list_append(l2, c);
+  list_extend(l,l2);
+  list_cleanList(l2);
+  list_extend(l,l2);
+  compare("removeFirst", list_removeFirst(l), a);
+  compare("removeFirst", list_removeFirst(l), b);
+  compare("removeFirst", list_removeFirst(l), c);
+
+  // Code to check (with valgrind) that list_free frees everything
   list_free(l);
+  list_free(l2);
 
   return EXIT_SUCCESS;
 }
