@@ -9,6 +9,7 @@
 #define _MSG_H
  
 #include <pthread.h>
+#include <assert.h>
 #include "address.h"
 #include "wagon.h"
 #include "common.h"
@@ -118,22 +119,29 @@ typedef struct{
   int counter;/**<Count the number of pointers refering to the wagons of the train to know when erase the train*/
 }prefix;
 
-/**
- * @brief Data structure used to improve the messages with a prefixe
- */
-typedef struct {
-  prefix pfx;
-  Msg msg;
-}Msg_extended;
 
 /**
- * @brief Structure to watch the behaviour or wagon
- * @note It links wagon and the prefixe head-on the train
+ * @brief Data structure used to improve the messages and wagon_to_send with a prefixe 
+ * @note Stand for "Wagon Or Message In Memory"
+ * @note Used only for Messages and WagonToSend. In fact, when wagons are part of a train they do not bring a @a womim structure, they are part of a bigger structure called Msg.
+ */
+typedef struct{
+  prefix pfx;
+  union{
+    wagon wagon;
+    Msg msg;
+  };
+}womim; // womim = Wagon Or Message In Memory
+
+/**
+ * @brief A wagon in a womim
+ * @note Structure to watch the behaviour or wagon_to_send and messages
+ * @note It links wagon_to_send and messages and the prefixe head-on the train
  */
 typedef struct {
-  prefix* p_pfx;
   wagon* p_wagon;
-} wagon_watcher;
+  womim* p_womim;
+}wiw;
 
 /**
  * @brief Data structure for lts
@@ -143,10 +151,10 @@ typedef struct {
   stamp stamp;
   address_set circuit;
   struct {
-    wagon_watcher* w_w;
+    wiw* w_w;
     int len;
   } w;/**<The area used to stock wagons*/
-  wagon_watcher* p_wtosend;/**<refers to the wagon which is bouned to be sent*/
+  wiw* p_wtosend;/**<refers to the wagon which is bouned to be sent*/
 }lts_struct;
 
 /**
@@ -157,12 +165,12 @@ typedef lts_struct lts_array[ntr];
 
 /**
  * @brief Go to the next wagon
- * @param[in] msg_ext A pointer on an extended message
+ * @param[in] msg_ext A pointer on an womim whom union represents a Msg
  * @param[in] w The wagon whom we need the next
  * @return A pointer on the next wagon
  * @note The result NULL is rised if the end is reached
  */
-wagon* nextWagon(Msg_extended* msg_ext, wagon* w);
+wagon* nextWagon(womim* msg_ext, wagon* w);
 
 /**
  * @brief Tests if ad is member of all the circuit of lts.
@@ -184,12 +192,6 @@ bool is_in_lts(address  ad, lts_array ltsarray);
 bool is_recent_train(stamp tr_st,lts_array * plts_array, char last_id, int nb_train);
 
 /**
- * @brief Look after the counter and free the Train if it is equal to 0
- * @param[in] ww A wagon_watcher used to have prefixe and wagons
- */
-void free_wagon(wagon_watcher ww);
-
-/**
  * @brief Initiate an empty Msg with DEFAULT MType
  * @return An empty Msg
  * @note The problem_id is 0
@@ -206,5 +208,25 @@ Msg init_msg();
  * <ul><li> If an error occured during the creation of the message, the result will be a Msg with a Default body where the problem_id will be -1. In addition, an error will be rised thanks to perror.</li></ul>
  */
 Msg newMsg(MType mtype, address addr_id);
+
+/**
+ * @brief Create a new wiw
+ * @return A pointer on a wiw
+ */
+wiw * newwiw();
+
+/**
+ * @brief Allocate a message
+ * @param[in] pw A double pointer on a wiw
+ * @param[in] payloadSize An int
+ * @return A pointer on a message
+ */
+message * mallocwiw(wiw **pw, int payloadSize);
+
+/**
+ * @brief Look after the counter and free the wiw if it is equal to 0
+ * @param[in] ww A pointer on a wiw used to have prefixe and the rest.
+ */
+void free_wiw(wiw * ww);
 
 #endif /* _MSG_H */

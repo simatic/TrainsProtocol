@@ -1,11 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "address.h"
 #include "msg.h"
 
 
-wagon* nextWagon (Msg_extended* msg_ext, wagon* w) {
+wagon* nextWagon (womim* msg_ext, wagon* w) {
   wagon *w2= (wagon*)((char*)w+(w->header.len));
   if ((char*)w2 - (char*)(&(msg_ext->msg)) >= msg_ext->msg.len)
     return NULL;
@@ -37,19 +36,6 @@ bool is_recent_train(stamp tr_st,lts_array * plts_array, char last_id, int nb_tr
   }
   else{ return(false); }
 }
-
-//FIXME -> change free
-void free_wagon(wagon_watcher ww){
-  pthread_mutex_lock(&(ww.p_pfx->mutex)); //mutex locked
-  ww.p_pfx->counter --; //decrementation of the counter
-  if (ww.p_pfx->counter <= 0)
-    free(ww.p_wagon);//FIXME -> help help
-  pthread_mutex_unlock(&(ww.p_pfx->mutex)); //mutex unlocked
-  free(ww.p_pfx);
-  free(&ww);
-}
-//free((char[length+sizeof(pthred_mutex)+sizeof(int)])ww.p_pfx)
-
 
 Msg init_msg(){
   Msg msg;
@@ -101,4 +87,52 @@ Msg newMsg(MType mtype, address addr_id){
   }
 
   return(msg);
+}
+
+wiw * newwiw(){
+  wiw *pp;
+  womim *pw;
+  pw = malloc(sizeof(prefix)+sizeof(wagon_header));
+  assert(pw != NULL);
+  pthread_mutex_init(&(pw->pfx.mutex),NULL);
+  pw->pfx.counter = 1;
+  pw->wagon.header.len = sizeof(wagon_header);
+  pw->wagon.header.sender = my_address;
+  pw->wagon.header.round = 0;
+
+  pp = malloc(sizeof(wiw));
+  assert(pp != NULL);
+  pp->p_wagon = &(pw->wagon);
+  pp->p_womim = pw;
+
+  return pp;
+}
+
+message * mallocwiw(wiw **pw, int payloadSize){
+  message *mp;
+  wagon *w;
+  int newWomimLen = sizeof(prefix) + (*pw)->p_wagon->header.len +
+    sizeof(message_header) + payloadSize;
+  (*pw)->p_womim = realloc((*pw)->p_womim, newWomimLen);
+  assert((*pw)->p_womim != NULL);
+  w = (*pw)->p_wagon;
+  (*pw)->p_wagon = w;
+  mp =(message*)(((char*)w) + w->header.len);
+  mp->header.len = sizeof(message_header) + payloadSize;
+  w->header.len = newWomimLen;
+  return mp;
+}
+
+void free_wiw(wiw * ww){
+  pthread_mutex_lock(&(ww->p_womim->pfx.mutex));
+  ww->p_womim->pfx.counter -= 1;
+  if (ww->p_womim->pfx.counter == 0) {
+    pthread_mutex_unlock(&(ww->p_womim->pfx.mutex));
+    pthread_mutex_destroy(&(ww->p_womim->pfx.mutex));
+    free(ww->p_womim);
+  }
+  else {
+    pthread_mutex_unlock(&(ww->p_womim->pfx.mutex));
+  }
+  free(ww);
 }
