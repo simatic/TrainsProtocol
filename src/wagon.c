@@ -8,10 +8,10 @@
 #include "bqueue.h"
 #include "wagon.h"
 
-wagon *wagonToSend = NULL;
+wagon *wagonToSend_outdated = NULL;
 
-pthread_mutex_t mutexWagonToSend = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
-pthread_cond_t condWagonToSend;
+pthread_mutex_t mutexWagonToSend_outdated = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+pthread_cond_t condWagonToSend_outdated;
 
 t_bqueue *wagonsToDeliver = NULL;
 
@@ -23,7 +23,7 @@ message *firstmsg(wagon *w){
     return w->msgs;
 }
 
-message *mallocmsg(wagon **w, int payloadSize){
+message *mallocmsg_outdated(wagon **w, int payloadSize){
   message *mp;
   int newWagonLen = (*w)->header.len + sizeof(message_header) + payloadSize;
   *w = realloc(*w, newWagonLen);
@@ -42,7 +42,7 @@ message *nextmsg(wagon *w, message *mp){
     return mp2;
 }
 
-wagon *newwagon(){
+wagon *newwagon_outdated(){
   wagon *w;
   w = malloc(sizeof(wagon_header));
   assert(w != NULL);
@@ -59,35 +59,35 @@ wagon *newwagon(){
  * @param[in] ad Address of arrived or gone process
  * @param[in] circuit Circuit into (respectively from) which process come (respectively left)
  */
-static void signalArrivalDepartures(char typ, wagon *w, address ad, address_set circuit){
+static void signalArrivalDepartures_outdated(char typ, wagon *w, address ad, address_set circuit){
   message *mp;
-  MUTEX_LOCK(mutexWagonToSend);
+  MUTEX_LOCK(mutexWagonToSend_outdated);
 
   // This function is called by thread processing the receiving of a train.
   // Thus, we must not call newmsg() as newmsg could get stuck when asking
   // for space in wagonToSend in the case the wagon is already full. If
   // newmsg was stuck, we would be in a dead lock (as only the thread processing
   // the train is able to empty wagonToSend).
-  mp = mallocmsg(&wagonToSend, sizeof(payloadArrivalDeparture));
+  mp = mallocmsg_outdated(&wagonToSend_outdated, sizeof(payloadArrivalDeparture));
 
   mp->header.typ = typ;
   ((payloadArrivalDeparture*)(mp->payload))->ad = ad;
   ((payloadArrivalDeparture*)(mp->payload))->circuit = circuit;
 
-  MUTEX_UNLOCK(mutexWagonToSend);
+  MUTEX_UNLOCK(mutexWagonToSend_outdated);
 }
 
-void signalArrival(wagon *w, address arrived, address_set circuit){
+void signalArrival_outdated(wagon *w, address arrived, address_set circuit){
   circuit |= arrived;
-  signalArrivalDepartures(AM_ARRIVAL, w, arrived, circuit);
+  signalArrivalDepartures_outdated(AM_ARRIVAL, w, arrived, circuit);
 }
 
-void signalDepartures(wagon *w, address_set goneSet, address_set circuit){
+void signalDepartures_outdated(wagon *w, address_set goneSet, address_set circuit){
   address ad;
   circuit &= ~goneSet;
   for (ad = 1; ad != 0; ad <<= 1){
     if (addr_ismember(ad, goneSet)){
-      signalArrivalDepartures(AM_DEPARTURE, w, ad, circuit);
+      signalArrivalDepartures_outdated(AM_DEPARTURE, w, ad, circuit);
     }
   }
 }

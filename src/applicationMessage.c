@@ -3,6 +3,7 @@
 #include "applicationMessage.h"
 #include "trains.h"
 #include "wagon.h"
+#include "msg.h"
 #include "counter.h"
 
 #define ALONE 0 // FIXME
@@ -11,19 +12,20 @@ int automatonState = ALONE; //FIXME
 CallbackCircuitChange theCallbackCircuitChange;
 CallbackUtoDeliver    theCallbackUtoDeliver;
 
+
 message *newmsg(int payloadSize){
   message *mp;
   MUTEX_LOCK(mutexWagonToSend);
 
   // We check that we have enough space for the message the caller wants to allocate
-  while ((wagonToSend->header.len + sizeof(message_header) + payloadSize > WAGON_MAX_LEN)&&
-	 (wagonToSend->header.len != sizeof(wagon_header))){
+  while ((wagonToSend->p_wagon->header.len + sizeof(message_header) + payloadSize > WAGON_MAX_LEN)&&
+	 (wagonToSend->p_wagon->header.len != sizeof(wagon_header))){
     int rc = pthread_cond_wait(&condWagonToSend, &mutexWagonToSend);
     if (rc < 0)								\
       error_at_line(EXIT_FAILURE,rc,__FILE__,__LINE__,"pthread_cond_wait"); \
   }
 
-  mp = mallocmsg(&wagonToSend, payloadSize);
+  mp = mallocwiw(&wagonToSend, payloadSize);
   mp->header.typ = AM_BROADCAST;
 
   // MUTEX_UNLOCK will be done in uto_broadcast
@@ -35,7 +37,7 @@ message *newmsg(int payloadSize){
 int uto_broadcast(message *mp){
   if (automatonState == ALONE) {
     bqueue_enqueue(wagonsToDeliver, wagonToSend);
-    wagonToSend = newwagon();
+    wagonToSend = newwiw();
   }
   // Message is already in wagonToSend. All we have to do is to unlock the mutex.
   // If automatonState is in another state than ALONE, 

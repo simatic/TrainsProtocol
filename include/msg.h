@@ -164,13 +164,21 @@ typedef struct {
 typedef lts_struct lts_array[ntr];
 
 /**
+ * @brief Gives the first wagon of @a msg
+ * @param[in] msg A pointer on message
+ * @return A pointer on first wagon contained in message of train type 
+ * @note If no wagon returns NULL
+ */
+wagon* firstWagon(Msg * msg);
+
+/**
  * @brief Go to the next wagon
  * @param[in] msg_ext A pointer on an womim whom union represents a Msg
  * @param[in] w The wagon whom we need the next
  * @return A pointer on the next wagon
  * @note The result NULL is rised if the end is reached
  */
-wagon* nextWagon(womim* msg_ext, wagon* w);
+wagon* nextWagon(womim* msg_ext, wagon* w); 
 
 /**
  * @brief Tests if ad is member of all the circuit of lts.
@@ -228,5 +236,20 @@ message * mallocwiw(wiw **pw, int payloadSize);
  * @param[in] ww A pointer on a wiw used to have prefixe and the rest.
  */
 void free_wiw(wiw * ww);
+
+/**
+ * @brief Wagon containing the next messages to be uto-broadcasted
+ */
+extern wiw * wagonToSend;
+
+/**
+ * @brief Mutex protecting access to wagonToSend
+ */
+extern pthread_mutex_t mutexWagonToSend;
+
+/**
+ * @brief Condition protecting access to wagonToSend
+ */
+extern pthread_cond_t condWagonToSend;
 
 #endif /* _MSG_H */

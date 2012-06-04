@@ -1,8 +1,33 @@
+//#define to access to definition of PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
+// (Linux specific?)
+#define _GNU_SOURCE 
+
 #include <stdlib.h>
 #include <stdio.h>
+#include <pthread.h>
 
 #include "msg.h"
 
+
+wiw * wagonToSend = NULL;
+pthread_mutex_t mutexWagonToSend = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+pthread_cond_t condWagonToSend;
+
+
+wagon* firstWagon(Msg * msg){
+  if(msg->type==TRAIN){
+    if(msg->len == (sizeof(int)+sizeof(MType)+sizeof(stamp)+sizeof(address_set)) ){
+      return(msg->body.train.wagons);
+    }
+    else {
+      return(NULL);
+    }
+  }
+  else {
+    error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"Bad type of message given to firstWagon");
+    return(NULL);
+  }
+}
 
 wagon* nextWagon (womim* msg_ext, wagon* w) {
   wagon *w2= (wagon*)((char*)w+(w->header.len));
