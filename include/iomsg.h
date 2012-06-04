@@ -17,11 +17,11 @@
 /**
  * @brief Fun used to listen the @a addr
  * @param[in] addr The address to listen
- * @return A pointer of Msg
+ * @return A pointer of womim
  * @note If an error occured, returns a Msg with the MType DEFAULT
  * @warning Do not forget to free after the Msg returned
  */
-Msg_extended * receive(address addr);
+womim * receive(address addr);
 
 /**
  * @brief Function used to send @a msg to @a addr

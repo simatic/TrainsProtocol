@@ -3,14 +3,10 @@
 #include <pthread.h>
 
 #include "iomsg.h"
-#include "address.h"
-#include "management_addr.h"
-#include "comm.h"
-#include "msg.h"
 
 
-Msg_extended * receive(address addr){
-  Msg_extended * msg_ext;
+womim * receive(address addr){
+  womim * msg_ext;
   int rank=-1;
   t_comm * aComm;
   int nbRead;
