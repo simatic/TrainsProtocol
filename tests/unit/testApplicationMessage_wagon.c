@@ -17,12 +17,12 @@
 
 void *functionThread1(void *null) {
   usleep(1000);
-  printf("Purge wagonToSend");
-  MUTEX_LOCK(mutexWagonToSend);
-  free(wagonToSend);
-  wagonToSend = newwagon();
-  pthread_cond_signal(&condWagonToSend);
-  MUTEX_UNLOCK(mutexWagonToSend);
+  printf("Purge wagonToSend_outdated");
+  MUTEX_LOCK(mutexWagonToSend_outdated);
+  free(wagonToSend_outdated);
+  wagonToSend_outdated = newwagon_outdated();
+  pthread_cond_signal(&condWagonToSend_outdated);
+  MUTEX_UNLOCK(mutexWagonToSend_outdated);
   return NULL;
 }
 
@@ -72,60 +72,60 @@ int main(){
   pthread_t thread;
 
   // Miscellaneous initializations
-  rc = pthread_cond_init(&condWagonToSend, NULL);
+  rc = pthread_cond_init(&condWagonToSend_outdated, NULL);
   assert(rc == 0);
   wagonsToDeliver = bqueue_new();
 
-  // Test newwagon
+  // Test newwagon_outdated
   my_address = FAKE_ADDRESS;
-  wagonToSend = newwagon();
-  compare("newwagon",
-	  (wagonToSend->header.len == sizeof(wagon_header)) &&
-	  (wagonToSend->header.sender == FAKE_ADDRESS));
+  wagonToSend_outdated = newwagon_outdated();
+  compare("newwagon_outdated",
+	  (wagonToSend_outdated->header.len == sizeof(wagon_header)) &&
+	  (wagonToSend_outdated->header.sender == FAKE_ADDRESS));
 
-  // Test newmsg (which calls mallocmsg)
+  // Test newmsg (which calls mallocmsg_outdated)
   mp1 = newmsg(SIZE1);
-  MUTEX_UNLOCK(mutexWagonToSend);
+  MUTEX_UNLOCK(mutexWagonToSend_outdated);
   mp2 = newmsg(SIZE2);
-  MUTEX_UNLOCK(mutexWagonToSend);
-  compare("newmsg (which calls mallocmsg) test1",
+  MUTEX_UNLOCK(mutexWagonToSend_outdated);
+  compare("newmsg (which calls mallocmsg_outdated) test1",
 	  (mp1->header.len == sizeof(message_header)+SIZE1) &&
-	  ((unsigned int)mp1 - (unsigned int)wagonToSend ==
+	  ((unsigned int)mp1 - (unsigned int)wagonToSend_outdated ==
 	   sizeof(wagon_header)));
-  compare("newmsg (which calls mallocmsg) test2",
+  compare("newmsg (which calls mallocmsg_outdated) test2",
 	  (mp2->header.len == sizeof(message_header)+SIZE2) &&
 	  ((unsigned int)mp2 - (unsigned int)mp1 ==
 	   sizeof(message_header) + SIZE1));
 
   // Test firstmsg
-  w = newwagon();
+  w = newwagon_outdated();
   mp = firstmsg(w);
   compare("firstmsg test1", mp == NULL);
   free(w);
-  mp = firstmsg(wagonToSend);
+  mp = firstmsg(wagonToSend_outdated);
   compare("firstmsg test2", mp == mp1);
 
   // Test nextmsg
-  mp = nextmsg(wagonToSend, mp);
+  mp = nextmsg(wagonToSend_outdated, mp);
   compare("nextmsg test1", mp == mp2);
-  mp = nextmsg(wagonToSend, mp);
+  mp = nextmsg(wagonToSend_outdated, mp);
   compare("nextmsg test2", mp == NULL);
 
-  // Test signalArrival
-  signalArrival(wagonToSend, FAKE_ADDRESS, FAKE_CIRCUIT);
-  mp = firstmsg(wagonToSend);
-  mp = nextmsg(wagonToSend, mp);
-  mp = nextmsg(wagonToSend, mp);
-  compare("signalArrival (which tests signalArrivalDepartures)",
+  // Test signalArrival_outdated
+  signalArrival_outdated(wagonToSend_outdated, FAKE_ADDRESS, FAKE_CIRCUIT);
+  mp = firstmsg(wagonToSend_outdated);
+  mp = nextmsg(wagonToSend_outdated, mp);
+  mp = nextmsg(wagonToSend_outdated, mp);
+  compare("signalArrival_outdated (which tests signalArrivalDepartures_outdated)",
 	  (mp->header.typ == AM_ARRIVAL) &&
 	  (((payloadArrivalDeparture*)(mp->payload))->ad == FAKE_ADDRESS) &&
 	  (((payloadArrivalDeparture*)(mp->payload))->circuit == (FAKE_CIRCUIT|FAKE_ADDRESS)));
 
-  // Test signalDepartures
-  signalDepartures(wagonToSend, 0x0003, FAKE_CIRCUIT);
-  mp = nextmsg(wagonToSend, mp);
-  mp2 = nextmsg(wagonToSend, mp);
-  compare("signalDeparturesArrival (which tests signalArrivalDepartures)",
+  // Test signalDepartures_outdated
+  signalDepartures_outdated(wagonToSend_outdated, 0x0003, FAKE_CIRCUIT);
+  mp = nextmsg(wagonToSend_outdated, mp);
+  mp2 = nextmsg(wagonToSend_outdated, mp);
+  compare("signalDeparturesArrival_outdated (which tests signalArrivalDepartures_outdated)",
 	  (mp->header.typ == AM_DEPARTURE) &&
 	  (((payloadArrivalDeparture*)(mp->payload))->ad == 0x0001) &&
 	  (((payloadArrivalDeparture*)(mp->payload))->circuit == (FAKE_CIRCUIT&~0x0003))&&
@@ -133,7 +133,7 @@ int main(){
 	  (((payloadArrivalDeparture*)(mp2->payload))->ad == 0x0002) &&
 	   (((payloadArrivalDeparture*)(mp2->payload))->circuit == (FAKE_CIRCUIT&~0x0003)));
 
-  // Test some more newmsg (which calls mallocmsg)
+  // Test some more newmsg (which calls mallocmsg_outdated)
   rc = pthread_create(&thread, NULL, &functionThread1, NULL);
   if (rc < 0)
     error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
@@ -141,9 +141,9 @@ int main(){
   if (rc < 0)
     error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
   mp = newmsg(WAGON_MAX_LEN); // This message is too big to fit into the current wagon. We must wait till the wagon is made empty.
-  MUTEX_UNLOCK(mutexWagonToSend);
-  compare("newmsg (which calls mallocmsg) test3",
-	  mp == firstmsg(wagonToSend));
+  MUTEX_UNLOCK(mutexWagonToSend_outdated);
+  compare("newmsg (which calls mallocmsg_outdated) test3",
+	  mp == firstmsg(wagonToSend_outdated));
 
   rc = pthread_create(&thread, NULL, &functionThread1, NULL);
   if (rc < 0)
@@ -152,9 +152,9 @@ int main(){
   if (rc < 0)
     error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
   mp = newmsg(SIZE1); // This message is too big to fit into the current wagon. We must wait till the wagon is made empty.
-  MUTEX_UNLOCK(mutexWagonToSend);
-  compare("newmsg (which calls mallocmsg) test4",
-	  mp == firstmsg(wagonToSend));
+  MUTEX_UNLOCK(mutexWagonToSend_outdated);
+  compare("newmsg (which calls mallocmsg_outdated) test4",
+	  mp == firstmsg(wagonToSend_outdated));
 
   // Test uto_broadcast when automatonState is ALONE
   uto_broadcast(mp);
@@ -162,7 +162,7 @@ int main(){
   mp2 = firstmsg(w);
   compare("uto_broadcast (when ALONE)",
 	  (mp == mp2) &&
-	  (firstmsg(wagonToSend) == NULL));
+	  (firstmsg(wagonToSend_outdated) == NULL));
 
   // Test uto_deliveries
   theCallbackCircuitChange = aCallbackCircuitChange;
@@ -170,20 +170,20 @@ int main(){
 
   my_address = FAKE_ADDRESS;
 
-  free(wagonToSend);
-  wagonToSend = newwagon();
-  signalArrival(wagonToSend, 0x0001, 0x0007);
-  signalDepartures(wagonToSend, 0x0006, 0x0001);
-  bqueue_enqueue(wagonsToDeliver, wagonToSend);
+  free(wagonToSend_outdated);
+  wagonToSend_outdated = newwagon_outdated();
+  signalArrival_outdated(wagonToSend_outdated, 0x0001, 0x0007);
+  signalDepartures_outdated(wagonToSend_outdated, 0x0006, 0x0001);
+  bqueue_enqueue(wagonsToDeliver, wagonToSend_outdated);
 
-  wagonToSend = newwagon();
+  wagonToSend_outdated = newwagon_outdated();
   mp = newmsg(sizeof(int));
-  MUTEX_UNLOCK(mutexWagonToSend);
+  MUTEX_UNLOCK(mutexWagonToSend_outdated);
   *((int*)(mp->payload)) = DATA;
   mp = newmsg(0);
-  MUTEX_UNLOCK(mutexWagonToSend);
+  MUTEX_UNLOCK(mutexWagonToSend_outdated);
   mp->header.typ = AM_TERMINATE;
-  bqueue_enqueue(wagonsToDeliver, wagonToSend);
+  bqueue_enqueue(wagonsToDeliver, wagonToSend_outdated);
 
   uto_deliveries(NULL);
 

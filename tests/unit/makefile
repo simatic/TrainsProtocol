@@ -1,7 +1,7 @@
 ### Configuration.  ####################################################
 
 # Binaries to build
-BIN		= testAddress testApplicationMessage_wagon_outdated testBqueue testComm testList testManagement_addr
+BIN		= testAddress testApplicationMessage_wagon testBqueue testComm testList testManagement_addr
 # C source files for the binaries
 SOURCES		= $(wildcard *.c)
 # Include directory
@@ -22,7 +22,7 @@ all: depend $(BIN)
 testAddress: testAddress.o
 	$(CC) $^ -o $@ $(LDFLAGS)
 
-testApplicationMessage_wagon_outdated: testApplicationMessage_wagon_outdated.o
+testApplicationMessage_wagon: testApplicationMessage_wagon.o
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 testBqueue: testBqueue.o
