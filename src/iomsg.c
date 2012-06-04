@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <error.h>
+#include <errno.h>
 #include <assert.h>
 #include <pthread.h>
 
@@ -61,11 +63,14 @@ int send_other(address addr, Msg * msg){
       aComm=global_addr_array[rank].tcomm;
       iov[0].iov_base=msg;
       iov[0].iov_len=length;
-      result=comm_writev(aComm,iov,iovcnt);
+      do{
+	result=comm_writev(aComm,iov,iovcnt);
+      }while(result!=length); //FIXME -> do we return an other error in case of several failures
       return(result);
     }
   else{
     //should return an error if the addr is out of rank
+    error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"Sending failure in send_other");
     return(-1);//same error as comm_writev !!
   }
 }
@@ -115,11 +120,14 @@ int send_train(address addr, lts_struct lts){
       iov[7].iov_len=lts.p_wtosend->p_wagon->header.len;
       //sending the whole train with writev
       //returning the number of bytes send
-      result=comm_writev(aComm,iov,iovcnt);
+      do{
+        result=comm_writev(aComm,iov,iovcnt);
+      }while(result!=global_length); //FIXME -> do we return an other error in case of several failures
       return(result);
     }
   else{
     //should return an error if the addr is out of rank
+    error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"Sending failure in send_other");
     return(-1);//same error as comm_writev !!
   }
 }

@@ -27,7 +27,8 @@ womim * receive(address addr);
  * @brief Function used to send @a msg to @a addr
  * @param[in] addr The address where the @a msg will be sent
  * @param[in] msg A pointer on the Msg
- * @return The integer refering to the succeed of the sent
+ * @return The number of bites sent
+ * @note If the number of bites sent is diferent of the size of the msg, the sending is automatically done again (... and again)
  * @note It is -1 if it fails
  * @note It uses the variable "global_addr_array" which is created in management_addr.h
  */
@@ -38,7 +39,8 @@ int send_other(address addr, Msg * msg);
  * @note It's cool because it avoids the creatioin of a heavy train structure... ^^
  * @param[in] addr The address where the train will be sent
  * @param[in] lts The lst_struct used to built the train
- * @return The integer refering to the succeed of the sent
+ * @return The number of bites sent
+ * @note If the number of bites sent is diferent of the size of the msg, the sending is automatically done again (... and again)
  * @note It is -1 if it fails
  * @note It uses the variable "global_addr_array" which is created in management_addr.h
  */
