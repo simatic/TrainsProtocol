@@ -1,5 +1,8 @@
 /**
- * @brief
+ * @brief Manage in the messages the process which participate to the protocol on an applicative level
+ * @file signaArrival.h
+ * @author Damien GRAUX
+ * @date 05/06/2012
  */
 
 #ifndef _SIGNAL_ARRIVAL_H
