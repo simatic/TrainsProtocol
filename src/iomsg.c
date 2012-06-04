@@ -25,9 +25,9 @@ womim * receive(address addr){
           msg_ext = calloc(length+sizeof(prefix),sizeof(char));
 	  assert(msg_ext != NULL);
 	  msg_ext->pfx.mutex=mut;
-	  msg_ext->pfx.counter=1; //FIXME -> be careful with this integer... -1?
+	  msg_ext->pfx.counter=1; 
           msg_ext->msg.len=length;
-          nbRead = comm_read(aComm, ((char*)msg_ext)+sizeof(prefix)+nbRead, (msg_ext->msg.len-nbRead)); //FIXME -> Nathan can you check it please for the second arg?
+          nbRead = comm_read(aComm, ((char*)msg_ext)+sizeof(prefix)+nbRead, (msg_ext->msg.len-nbRead));
         }
       } while (nbRead > 0);
       if(nbRead==0){
@@ -76,7 +76,6 @@ int send_other(address addr, Msg * msg){
 }
 
 //send a train -> use send_other to send the rest
-//FIXME -> what about wagontosend's structure
 int send_train(address addr, lts_struct lts){
   int global_length=0;
   MType tosend=TRAIN; 
