@@ -21,18 +21,36 @@ void *connectionMgt(void *arg) {
   t_comm *aComm = (t_comm*)arg;
   message *msg;
   int nbRead;
+  int i;
 
   printf("\tNew connection\n");
   do{
     int len;
-    nbRead = comm_read(aComm, &len, sizeof(len));
-    if (nbRead > 0){
+    nbRead = comm_readFully(aComm, &len, sizeof(len));
+    if (nbRead == sizeof(len)){
       msg = malloc(len);
       assert(msg != NULL);
       msg->header.len=len;
-      nbRead  = comm_read(aComm, msg->payload, msg->header.len - nbRead);
-      printf("\t\t...Received message of %d bytes with: \"%s\"\n", msg->header.len, msg->payload);
+      nbRead  = comm_readFully(aComm, &(msg->header.typ), msg->header.len - sizeof(len));
+      if (nbRead == msg->header.len - sizeof(len)){
+	if (msg->header.len < 1000) {
+	  printf("\t\t...Received message of %d bytes with: \"%s\"\n", msg->header.len, msg->payload);
+	} else {
+	  printf("\t\t...Received message of %d bytes ", msg->header.len);
+	  // Check contents
+	  for(i=0; i<msg->header.len - sizeof(message_header); i++){
+	    if ((unsigned char)(msg->payload[i]) != i%256){
+	      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "Received long message which contents is incorrect (at %d-th position, found %d instead of %d)\n", i, (unsigned char)(msg->payload[i]), i%256);
+	    }
+	  }
+	  printf("and contents is OK\n");
+	}
+      } else {
+	printf("\t\t...Received only %d/%d bytes (but this could be normal, as the client may have sent on purpose an incomplete message)\n", nbRead, msg->header.len - sizeof(len));
+      }
       free(msg);
+    } else if (nbRead > 0) {
+	error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "Read only %d/%d bytes\n", nbRead, sizeof(len));
     }
   } while (nbRead > 0);
 

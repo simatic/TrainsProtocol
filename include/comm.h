@@ -68,6 +68,16 @@ void comm_abort(t_comm *aComm);
 int comm_read(t_comm *aComm, void *buf, size_t count);
 
 /**
+ * @brief Attempts to read up to \a count bytes from communication handle \a aComm into the buffer starting at \a buf. The difference between \ref comm_read() and comm_readFully() is that comm_readfully() blocks until it has read \a count bytes or there is an interruption or an error. 
+ * @param[in] aComm Communication handle to read
+ * @param[in,out] buf Buffer in which to store the read data
+ * @param[in] count Number of bytes to be read
+ * @return Number of bytes read or 0 in case of interrupted read or error.
+ * @note If 0 is returned, \a errno contains \a EINTR in case \ref comm_abort() has been called on this communication handle or an other value otherwise.
+ */
+int comm_readFully(t_comm *aComm, void *buf, size_t count);
+
+/**
  * @brief Writes up to \a count bytes from the buffer pointed \a buf to the communication handle \a aComm
  * @param[in] aComm Communication handle to write
  * @param[in] buf Buffer in which to read the data to write

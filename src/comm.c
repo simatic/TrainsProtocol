@@ -328,6 +328,25 @@ int comm_read(t_comm *aComm, void *buf, size_t count){
   return nb;
 }
 
+int comm_readFully(t_comm *aComm, void *buf, size_t count){
+  int nb;
+  int nbTotal = 0;
+
+  if (aComm->aborted){
+    aComm->aborted = false;
+    errno = EINTR;
+    return -1;
+  }
+  do {
+    nb = read(aComm->fd, (char*)buf + nbTotal, count - nbTotal);
+    if (nb < 0)
+      break;
+    nbTotal += nb;
+  } while ((nb > 0) && (nbTotal < count) && !aComm->aborted);
+
+  return nbTotal;
+}
+
 int comm_write(t_comm *aComm, const void *buf, size_t count){
   int nb;
 
