@@ -12,6 +12,7 @@
 #include "management_addr.h"
 #include "comm.h"
 #include "msg.h"
+#include "advanced_struct.h"
 
 
 /**

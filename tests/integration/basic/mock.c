@@ -9,6 +9,7 @@
 #include "trains.h"
 #include "wagon.h"
 #include "msg.h"
+#include "advanced_struct.h"
 #include "signalArrival.h"
 
 int tr_errno = 0;

@@ -4,6 +4,7 @@
 #include "trains.h"
 #include "wagon.h"
 #include "msg.h"
+#include "advanced_struct.h"
 #include "counter.h"
 
 #define ALONE 0 // FIXME

@@ -8,14 +8,14 @@
 #ifndef _SIGNAL_ARRIVAL_H
 #define _SIGNAL_ARRIVAL_H
 
-#include "msg.h"
+#include "advanced_struct.h"
 
 /**
  * @brief Adds an application message to wagon @a w about arrival of process @a arrived
  * @param[in] w Wagon to which to add message
  * @param[in] arrived Process which arrived
  * @param[in] circuit Circuit in which process has arrived (@a arrived process can be mentionned in @a circuit, but it is not mandatory)
-*/
+ */
 void signalArrival(wagon *w, address arrived, address_set circuit);
 
 /**
