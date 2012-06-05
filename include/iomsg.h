@@ -27,13 +27,15 @@ womim * receive(address addr);
 /**
  * @brief Function used to send @a msg to @a addr
  * @param[in] addr The address where the @a msg will be sent
- * @param[in] msg A pointer on the Msg
+ * @param[in] type The MType of the message which is bouned to be sent
+ * @param[in] sender The address of the sender
  * @return The number of bites sent
  * @note If the number of bites sent is diferent of the size of the msg, the sending is automatically done again (... and again)
+ * @note If the @a type is TRAIN an error will be given
  * @note It is -1 if it fails
  * @note It uses the variable "global_addr_array" which is created in management_addr.h
  */
-int send_other(address addr, Msg * msg);
+int send_other(address addr, MType type, address sender);
 
 /**
  * @brief Function specialized for sending train with @a lts

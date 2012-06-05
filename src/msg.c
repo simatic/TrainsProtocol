@@ -47,27 +47,27 @@ Msg newMsg(MType mtype, address addr_id){
   case INSERT:
     msg.type=mtype;
     msg.body.insert.sender=addr_id;
-    msg.len=sizeof(msg);
+    msg.len=sizeof(int)+sizeof(MType)+sizeof(address);
     break;
   case ACK_INSERT:
     msg.type=mtype;
     msg.body.ackInsert.sender=addr_id;
-    msg.len=sizeof(msg);
+    msg.len=sizeof(int)+sizeof(MType)+sizeof(address);;
     break;
   case NAK_INSERT:
     msg.type=mtype;
     msg.body.nakInsert.sender=addr_id;
-    msg.len=sizeof(msg);
+    msg.len=sizeof(int)+sizeof(MType)+sizeof(address);;
     break;
   case NEWSUCC:
     msg.type=mtype;
     msg.body.newSucc.sender=addr_id;
-    msg.len=sizeof(msg);
+    msg.len=sizeof(int)+sizeof(MType)+sizeof(address);;
     break;
   case DISCONNECT:
     msg.type=mtype;
     msg.body.disconnect.sender=addr_id;
-    msg.len=sizeof(msg);
+    msg.len=sizeof(int)+sizeof(MType)+sizeof(address);;
     break;
   default:
     msg.body.def.problem_id=-1;

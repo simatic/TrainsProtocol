@@ -49,29 +49,43 @@ womim * receive(address addr){
 
 //Use to sendall the messages Msg, even the TRAIN ones, but in fact, TRAIN messages will never be created for the sending, but use only on reception... Thus, to send TRAIN messages, send_train will be used.
 //use global_addr_array defined in management_addr.h
-int send_other(address addr, Msg * msg){
-  int length=sizeof(msg);
+int send_other(address addr, MType type, address sender){
+//int send_other(address addr, Msg * msg){
+  int length;
   int iovcnt=1;
   struct iovec iov[1];
   int rank=-1;
   t_comm * aComm;
   int result;
+  Msg * msg;
 
-  rank=addr_2_rank(addr);
-  if(rank!=-1)
-    {
-      aComm=global_addr_array[rank].tcomm;
-      iov[0].iov_base=msg;
-      iov[0].iov_len=length;
-      do{
-	result=comm_writev(aComm,iov,iovcnt);
-      }while(result!=length); //FIXME -> do we return an other error in case of several failures
-      return(result);
-    }
+  if(type==TRAIN){
+    error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"Wrong MType given to send_other");
+    return(-1);
+  }
   else{
-    //should return an error if the addr is out of rank
-    error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"Sending failure in send_other");
-    return(-1);//same error as comm_writev !!
+    msg=malloc(newMsg(type,sender).len);
+    *msg=newMsg(type,sender);
+
+    length=msg->len;    
+    rank=addr_2_rank(addr);
+    if(rank!=-1)
+      {
+	aComm=global_addr_array[rank].tcomm;
+	iov[0].iov_base=msg;
+	iov[0].iov_len=length;
+	do{
+	  result=comm_writev(aComm,iov,iovcnt);
+	}while(result!=length); //FIXME -> do we return an other error in case of several failures
+	free(msg);
+	return(result);
+      }
+    else{
+      //should return an error if the addr is out of rank
+      free(msg);
+      error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"Sending failure in send_other");
+      return(-1);//same error as comm_writev !!
+    }
   }
 }
 
