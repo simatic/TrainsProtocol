@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include "trains.h"
 #include "wagon.h"
+#include "msg.h"
+#include "signalArrival.h"
 
 int tr_errno = 0;
 
@@ -21,7 +23,7 @@ void *trainsSimulation(void *null){
     MUTEX_LOCK(mutexWagonToSend);
 
     bqueue_enqueue(wagonsToDeliver, wagonToSend);
-    wagonToSend = newwagon();
+    wagonToSend = newwiw();
 
     pthread_cond_signal(&condWagonToSend);
     MUTEX_UNLOCK(mutexWagonToSend);
@@ -47,7 +49,7 @@ int tr_init(CallbackCircuitChange aCallbackCircuitChange, CallbackUtoDeliver aCa
   wagonsToDeliver = bqueue_new();
   theCallbackCircuitChange = aCallbackCircuitChange;
   theCallbackUtoDeliver = aCallbackUtoDeliver;
-  wagonToSend = newwagon();
+  wagonToSend = newwiw();
   rc = pthread_create(&thread, NULL, uto_deliveries, NULL);
   if (rc)
     error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
@@ -60,7 +62,7 @@ int tr_init(CallbackCircuitChange aCallbackCircuitChange, CallbackUtoDeliver aCa
 
   // Initialisations specific to this mock (it simulates the software
   // layer taking care of trains protocol
-  signalArrival(wagonToSend, my_address, MOCK_CIRCUIT);
+  signalArrival(wagonToSend->p_wagon, my_address, MOCK_CIRCUIT);
 
   automatonState = 0x7FFFFFFF; // To be sure that we are not in ALONE state
 

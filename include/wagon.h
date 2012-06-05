@@ -36,17 +36,17 @@ typedef struct wagon{
 /** 
  * @brief Wagon containing the next messages to be uto-broadcasted
  */
-extern wagon *wagonToSend;
+extern wagon *wagonToSend_outdated;
 
 /** 
- * @brief Mutex protecting access to wagonToSend
+ * @brief Mutex protecting access to wagonToSend_outdated
  */
-extern pthread_mutex_t mutexWagonToSend;
+extern pthread_mutex_t mutexWagonToSend_outdated;
 
 /** 
- * @brief Condition protecting access to wagonToSend
+ * @brief Condition protecting access to wagonToSend_outdated
  */
-extern pthread_cond_t condWagonToSend;
+extern pthread_cond_t condWagonToSend_outdated;
 
 /** 
  * @brief Bqueue containing the wagons (received from trains protocol) which can be delivered
@@ -57,8 +57,9 @@ extern t_bqueue *wagonsToDeliver;
 /**
  * @brief Returns an empty wagon (its header.sender field is initialized to my_address
  * @return pointer to an empty wagon
+ * @warning OUTDATED -- @a newwiw is better !!
  */
-wagon *newwagon();
+wagon *newwagon_outdated();
 
 /**
  * @brief Returns pointer on first message contained in wagon @a w
@@ -80,8 +81,9 @@ message *nextmsg(wagon *w, message *mp);
  * @param[in,out] pw Pointer to wagon in which to allocate the message (this pointer may be changed)
  * @param[in] payloadSize Size of the payload of the message to allocate
  * @return pointer on the allocated message (this function never returns NULL)
+ * @warning OUTDATED -- @a mallocwiw is better !!
  */
-message *mallocmsg(wagon **pw, int payloadSize);
+message *mallocmsg_outdated(wagon **pw, int payloadSize);
 
 /**
  * @brief Adds an application message to wagon @a w about arrival of process @a arrived
@@ -89,7 +91,7 @@ message *mallocmsg(wagon **pw, int payloadSize);
  * @param[in] arrived Process which arrived
  * @param[in] circuit Circuit in which process has arrived (@a arrived process can be mentionned in @a circuit, but it is not mandatory)
  */
-void signalArrival(wagon *w, address arrived, address_set circuit); 
+void signalArrival_outdated(wagon *w, address arrived, address_set circuit); 
 
 /**
  * @brief Adds one application message to wagon @a w per process which adress appears in @a departedSet
@@ -97,6 +99,6 @@ void signalArrival(wagon *w, address arrived, address_set circuit);
  * @param[in] goneSet Set of gone process coded as one bit set per pne process
  * @param[in] circuit Circuit from which processes have gone (Processes in @a departedSet may not appear in @a circuit, but it is not mandatory)
  */
-void signalDepartures(wagon *w, address_set goneSet, address_set circuit); 
+void signalDepartures_outdated(wagon *w, address_set goneSet, address_set circuit); 
 
 #endif /* _wagon_H */
