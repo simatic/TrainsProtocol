@@ -20,14 +20,14 @@ womim * receive(address addr){
     {
       aComm=global_addr_array[rank].tcomm;
       do{
-        nbRead = comm_read(aComm, &length, sizeof(length));
+        nbRead = comm_readFully(aComm, &length, sizeof(length));
         if (nbRead > 0){
           msg_ext = calloc(length+sizeof(prefix),sizeof(char));
 	  assert(msg_ext != NULL);
 	  msg_ext->pfx.mutex=mut;
 	  msg_ext->pfx.counter=1; 
           msg_ext->msg.len=length;
-          nbRead = comm_read(aComm, ((char*)msg_ext)+sizeof(prefix)+nbRead, (msg_ext->msg.len-nbRead));
+          nbRead = comm_readFully(aComm, ((char*)msg_ext)+sizeof(prefix)+nbRead, (msg_ext->msg.len-nbRead));
         }
       } while (nbRead > 0);
       if(nbRead==0){

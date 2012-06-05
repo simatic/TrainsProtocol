@@ -10,6 +10,7 @@
 #include <assert.h>
 
 #include "comm.h"
+#include "common.h" // To have the boolean type :p
 #include "trains.h" // To have message typedef
 
 #define CONNECT_TIMEOUT 2000 // milliseconds
@@ -21,6 +22,8 @@
 #define LONG_MESSAGE "This is a long message: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define AVERAGE_SIZE 32 //This default value is estimated by considering the average size of received message
 
+bool full_or_not=false; // To say if comm_readFully is used instead of comm_read
+
 void *connectionMgt(void *arg) {
   t_comm *aComm = (t_comm*)arg;
   message *msg;
@@ -28,14 +31,27 @@ void *connectionMgt(void *arg) {
 
   do{
     int len;
-    nbRead = comm_read(aComm, &len, sizeof(len));
-    if (nbRead > 0){
-      msg = malloc(len);
-      assert(msg != NULL);
-      msg->header.len=len;
-      nbRead  = comm_read(aComm, ((char*)msg)+nbRead, msg->header.len - nbRead);
-      printf("\t...Received message of %d bytes with: \"%s\"\n", msg->header.len, msg->payload);
-      free(msg);
+    if (full_or_not==false){
+      nbRead = comm_read(aComm, &len, sizeof(len));
+      if (nbRead > 0){
+	msg = malloc(len);
+	assert(msg != NULL);
+	msg->header.len=len;
+	nbRead  = comm_read(aComm, ((char*)msg)+nbRead, msg->header.len - nbRead);
+	printf("\t...Received message of %d bytes with: \"%s\"\n", msg->header.len, msg->payload);
+	free(msg);
+      }
+    }
+    else {
+      nbRead = comm_readFully(aComm, &len, sizeof(len));
+      if (nbRead > 0){
+        msg = malloc(len);
+        assert(msg != NULL);
+        msg->header.len=len;
+        nbRead  = comm_readFully(aComm, ((char*)msg)+nbRead, msg->header.len - nbRead);
+        printf("\t...Received message of %d bytes with: \"%s\"\n", msg->header.len, msg->payload);
+        free(msg);
+      }
     }
   } while (nbRead > 0);
 
@@ -121,8 +137,13 @@ int main() {
   pthread_t thread;
   message *msg;
   int len;
+  char answer;
 
   printf("testing comm...\n");
+  puts("Would you like to test with comm_readFully (Y/n)");
+  answer=getchar();
+  if (answer=='Y'||answer=='y')
+    full_or_not=true;
 
   commForAccept = comm_newForAccept(PORT);
   if (commForAccept == NULL)

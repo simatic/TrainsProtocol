@@ -59,9 +59,9 @@ void *connectionMgt(void *arg) {
   if (nbRead == 0){
     printf("\t...Connection has been closed\n");
   } else if (errno == EINTR){
-    printf("\t...comm_read was aborted\n");
+    printf("\t...comm_readFully was aborted\n");
   } else
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_read");
+    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_readFully");
 
   return NULL;
 }
