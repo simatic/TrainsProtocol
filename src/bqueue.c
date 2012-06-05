@@ -38,6 +38,18 @@ void bqueue_enqueue(t_bqueue *aBQueue, void *anElt){
     error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_post");
 }
 
+void bqueue_extend(t_bqueue *aBQueue, t_list *list){
+  LINK *link, *next;
+
+  link=list->first;
+  do{
+    next=link->next;
+    bqueue_enqueue(aBQueue, link);
+    link=next;
+  }while(link!=NULL);
+
+} 
+
 void bqueue_free(t_bqueue *aBQueue){
   list_free(aBQueue->list);
 

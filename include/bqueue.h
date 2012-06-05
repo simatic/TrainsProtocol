@@ -40,6 +40,13 @@ void *bqueue_dequeue(t_bqueue *aBQueue);
 void bqueue_enqueue(t_bqueue *aBQueue, void *anElt);
 
 /**
+ * @brief Do several enqueue of elements of @a list in @a aBQueue
+ * @param[in] aBQueue The pointer on the t_bqueue wich is bouned to grow
+ * @param[in] list The pointer on the list to enqueue
+ */
+void bqueue_extend(t_bqueue *aBQueue, t_list *list);
+
+/**
  * @brief Frees @a aBQueue
  * @param[in] aBQueue List to work on
  * @warning 
