@@ -9,7 +9,7 @@ OBJECTS		= $(SOURCES:.c=.o)
 # Include directory
 INCLUDEDIRS = -I../include
 # Compilation flags (the -fPIC flag is because the files are compiled for a dynamic library)
-CFLAGS = -g -Wall $(INCLUDEDIRS) -fPIC 
+CFLAGS = -g -Wall $(INCLUDEDIRS) -fPIC -lpthread -lm
 # Link flags
 LDFLAGS = -g -shared
 
