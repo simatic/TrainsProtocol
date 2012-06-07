@@ -121,16 +121,16 @@ int rand_sleep(int nbwait) {
   return rand()%((int)pow(2,nbwait));
 }
 
-void waitAlgo () {
-  if (waitNb>WAIT_NB_MAX) {
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "WAIT_NB_MAX owerflowed");
+void waitBeforConnect () {
+  if (waitNb>wait_nb_max) {
+    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "wait_nb_max owerflowed");
   }
   participation=false; //FIXME : to erase
   close_connection(prec);  //FIXME : à définir
   close_connection(succ);
   prec=0;
   succ=0;
-  usleep(rand_sleep(waitNb)*WAIT_TIME);  
+  usleep(rand_sleep(waitNb)*wait_default_time);  
   waitNb++;
   return;
 }
@@ -149,12 +149,6 @@ void nextstate (State s) {
 	prec=my_address;
 	return;
       }
-    if (addr_isequal(succ,(address)0x1111)) 
-      {
-	waitAlgo();
-	automatonState=OFFLINE_CONNECTION_ATTEMPT; 
-	return;
-      }
     send_other(succ,INSERT, my_address);
     automatonState=OFFLINE_CONNECTION_ATTEMPT;
     break;
@@ -162,7 +156,7 @@ void nextstate (State s) {
     automatonState=OFFLINE_CONFIRMATION_WAIT;
     break;		
   case WAIT :
-    waitAlgo();
+    waitBeforConnect();
     automatonState=OFFLINE_CONNECTION_ATTEMPT;
     break;
   case ALONE_INSERT_WAIT :

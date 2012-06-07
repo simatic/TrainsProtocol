@@ -13,19 +13,14 @@
 #include <unistd.h> //pour la fonction sleep
 #include <time.h> //pour le rand
 #include <math.h> // utiliser -lm à la compilation !
+#include "param.h"
 #include "address.h"
 #include "iomsg.h"
 #include "wagon.h"
 #include "common.h"
 #include "msg.h"
+#include "connect.h"
 #include "signalArrival.h"
-
-#define NR 3
-#define WAIT_NB_MAX 10
-#define WAIT_TIME 1000 //correspond au temps d'attende en microseconde
-//#define ntr 3 done
-
-
 
 
 /**
@@ -108,9 +103,9 @@ void train_handling(womim *p_womim) ;
 int rand_sleep(int nbwait) ;
 
 /**
- * @brief close all connexion and wait.
+ * @brief when a connection abort the automaton closes all connexion and waits.
  */
-void waitAlgo () ;
+void waitBeforConnect () ;
 	
 /**
  * @brief changes state and makes initialisations that go with it.
