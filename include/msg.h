@@ -13,7 +13,8 @@
 #include "address.h"
 #include "wagon.h"
 #include "common.h"
-#include "param.h"
+
+#define ntr 5
 
 
 /**
