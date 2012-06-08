@@ -23,6 +23,15 @@ typedef struct{
   t_counter trains_received;              /**< number of trains received from the network */
   t_counter wagons_delivered;             /**< number of wagons delivered to the application */
   t_counter wait_states;                  /**< number of times automaton has been in state WAIT */
+  t_counter comm_read;                    /**< number of times comm_read() calls */
+  t_counter comm_read_bytes;              /**< number of bytes read by comm_read() calls */
+  t_counter comm_readFully;               /**< number of times comm_readFully() calls */
+  t_counter comm_readFully_bytes;         /**< number of bytes read by comm_readFully() calls */
+  t_counter comm_write;                   /**< number of times comm_write() calls */
+  t_counter comm_write_bytes;             /**< number of bytes written by comm_write() calls */
+  t_counter comm_writev;                  /**< number of times comm_writev() calls */
+  t_counter comm_writev_bytes;            /**< number of bytes written by comm_writev() calls */
+  t_counter flowContrTempol;              /**< number of times there was flow contrTempol when calling newmsg() */
 } t_counters;
 
 /** 
