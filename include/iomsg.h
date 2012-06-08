@@ -16,13 +16,13 @@
 
 
 /**
- * @brief Fun used to listen the @a addr
- * @param[in] addr The address to listen
+ * @brief Fun used to listen on a t_comm
+ * @param[in] aComm id of the connection to listen
  * @return A pointer of womim
  * @note If an error occured, returns a Msg with the MType DEFAULT
  * @warning Do not forget to free after the Msg returned
  */
-womim * receive(address addr);
+womim * receive(t_comm * aComm);
 
 /**
  * @brief Function used to send @a msg to @a addr

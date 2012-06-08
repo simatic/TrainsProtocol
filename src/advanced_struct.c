@@ -21,7 +21,7 @@ wagon* nextWagon (womim* msg_ext, wagon* w) {
     return w2;
 }
 
-bool is_in_lts(address  ad, lts_array ltsarray) {
+bool is_in_lts(address ad, lts_array ltsarray) {
   bool result=false;
   int i;
   for (i=0;i<ntr;i++) {
