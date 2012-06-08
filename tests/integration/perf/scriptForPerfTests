@@ -1,0 +1,66 @@
+#!/bin/bash
+# Script to launch series of perf tests
+#  - on 2 to maxnumber machines 
+#  - with the size listed in listsize
+# The machines used are listed in hostnames
+# It is also possible to specify the following parameters
+#  - warmup
+#  - measurement
+#  - cooldown
+#  - sleepAfterCooldown
+#
+# Each test generates 2 or more file (depending on the number of
+# participants to the protocol) named for instance
+#   perf_cooldown_10_measurement_600_number_5_size_7000_warmup_300_concernedHost
+
+##########################################
+# Parameters of the different tests
+##########################################
+
+# Maximum number of machines for simultaneous launch of perf code
+maxnumber=5
+
+# List of the size of the message
+listsize=10 100 200 300 400 500 1000 2000 3000 5000 7000 10000 15000 20000
+
+# Warmup time in seconds
+warmup=300
+
+# Measure time in seconds
+measurement=600
+
+# Times (in seconds) related to cooldown phase
+cooldown=10 # done by perf program
+sleepAfterCooldown=1 # done by script program. Should be 290 (because cooldown+sleepAfterCooldown must be 300) for real tests
+
+# Array of hostnames on which to launch the test
+# WARNING : if hostnames does not contain any localhost, then in the following ficname definition, 
+#           take off final '_'$i
+#hostnames=('b313-01' 'b313-02' 'b313-03' 'b313-04' 'b313-05')
+hostnames=('localhost' 'localhost' 'localhost' 'localhost' 'localhost')
+
+##########################################
+# Let's go for the different tests
+##########################################
+
+for ((number=2; number<=$maxnumber; number+=1))
+do 
+    for size in 10 100 200 300 400 500 1000 2000 3000 5000 7000 10000 15000 20000
+    do
+	# We build the different ssh commands to be lauched for this iteration
+	cmd=''
+        for ((i=0; i<$number; i+=1))
+	do
+            ficname='perf_cooldown_'$cooldown'_measurement_'$measurement'_number_'$number'_size_'$size'_warmup_'$warmup'_'${hostnames[$i]}'_'$i
+            cmd="$cmd (ssh ${hostnames[$i]} `pwd`/perf --broadcasters $number --cooldown $cooldown --measurement $measurement --number $number --size $size --trainsNumber $number --warmup $warmup >$ficname 2>&1 &) ;"
+        done
+
+	# we launch the test
+	echo $cmd
+	eval "$cmd"
+
+	# we do the sleep after cooldown
+        sleep $sleepAfterCooldown;
+    done
+done
+
