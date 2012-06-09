@@ -21,9 +21,7 @@
 #include <pthread.h>
 #include "trains.h"
 #include "counter.h"
-
-/* The following declaration should be ioncluded in train.h */
-extern int ntr;
+#include "param.h"
 
 /* Semaphore used to block main thread until there are enough participants */
 static sem_t semWaitEnoughMembers;

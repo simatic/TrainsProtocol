@@ -12,9 +12,9 @@ address succ;
 address_set cameProc=0;
 address_set goneProc=0;
 int waitNb=0;
-int lis=ntr-1; //last id sent
+int lis; //last id sent
 lts_array lts; //last trains sent
-t_list* unstableWagons[ntr][NR];
+t_list* unstableWagons[MAX_NTR][NR];
 t_bqueue* wagonsToDeliver;
 bool participation=false; // FIXME : to erase
 
@@ -27,6 +27,7 @@ bool participation=false; // FIXME : to erase
 void automatonInit () {
   int id;
   int round;
+  lis=ntr-1;
   for (id=0;id<ntr;id++){
     (lts[id]).stamp.id=id;
     (lts[id]).stamp.lc=0;

@@ -60,9 +60,9 @@ typedef struct {
 
 /**
  * @brief Definition of an array of lts_struct
- * @note @a ntr refers to maximal number of trains possible -> Define in constant.h
+ * @note @a MAX_NTR refers to maximal number of trains possible -> Define in constant.h
  */
-typedef lts_struct lts_array[ntr];
+typedef lts_struct lts_array[MAX_NTR];
 
 /**
  * @brief Go to the next wagon

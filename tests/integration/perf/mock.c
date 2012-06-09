@@ -17,8 +17,6 @@ int tr_errno = 0;
 #define MOCK_CIRCUIT 0x0003
 extern int automatonState;
 
-int ntr;
-
 void *trainsSimulation(void *null){
 
   do {

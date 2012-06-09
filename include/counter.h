@@ -31,7 +31,7 @@ typedef struct{
   t_counter comm_write_bytes;             /**< number of bytes written by comm_write() calls */
   t_counter comm_writev;                  /**< number of times comm_writev() calls */
   t_counter comm_writev_bytes;            /**< number of bytes written by comm_writev() calls */
-  t_counter flowContrTempol;              /**< number of times there was flow contrTempol when calling newmsg() */
+  t_counter flowControl;                  /**< number of times there was flow control when calling newmsg() */
 } t_counters;
 
 /** 

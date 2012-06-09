@@ -8,7 +8,7 @@
 #define _PARAM_H
 
 #define NR 3
-#define ntr 3
+#define MAX_NTR 16 // 16, because we can code at most 16 addresses in the circuit
 
 
 #define LOCAL_HOST "localhost"
@@ -16,6 +16,7 @@
 #define CONNECT_TIMEOUT 2000
 
 
+extern int ntr;
 extern int wait_nb_max;
 extern int wait_default_time; /**<in microsecond*/
 
