@@ -72,12 +72,12 @@ static const char* const usage_template =
   "  -b, --broadcasters number       Number of broadcasting processes.\n"
   "  -c, --cooldown seconds          Duration of cool-down phase (default = 10).\n"
   "  -h, --help                      Print this information.\n"
-  "  -m, --measurement               Duration of measurement phase (default = 600).\n"
+  "  -m, --measurement seconds       Duration of measurement phase (default = 600).\n"
   "  -n, --number                    Number of participating processes.\n"
   "  -s, --size bytes                Bytes contained in each application message uto-broadcasted.\n"
   "  -t, --trainsNumber              Number of trains which should be used by the protocol.\n"
   "  -v, --verbose                   Print verbose messages.\n"
-  "  -w, --warmup                    Duration of warm-up phase (default = 300).\n"
+  "  -w, --warmup seconds            Duration of warm-up phase (default = 300).\n"
 ;
 
 /* Print usage information and exit.  If IS_ERROR is non-zero, write to
@@ -120,7 +120,7 @@ void check(int value, char *name){
 void printDiffTimeval(char *msg, struct timeval stop, struct timeval start){
   struct timeval diffTimeval;
   timersub(&stop, &start, &diffTimeval);
-  printf("%s ; %8d.%6d s\n", msg, (int)diffTimeval.tv_sec, (int)diffTimeval.tv_usec);
+  printf("%s ; %d.%06d\n", msg, (int)diffTimeval.tv_sec, (int)diffTimeval.tv_usec);
 }
 
 /* Callback for circuit changes */
@@ -202,7 +202,7 @@ void *timeKeeper(void *null) {
   usleep(cooldown * 1000000);
 
   // We display the results
-  printf("%s --broadcasters %d --cooldown %d --measurement %d --number %d --size %d --trainsNumber %d  --warmup %d\n\n", 
+  printf("%s --broadcasters %d --cooldown %d --measurement %d --number %d --size %d --trainsNumber %d  --warmup %d\n", 
 	 program_name, broadcasters, cooldown, measurement, number, size, trainsNumber,  warmup);
 
   printDiffTimeval("time for tr_init (in sec)", timeTrInitEnd, timeTrInitBegin);
@@ -216,24 +216,25 @@ void *timeKeeper(void *null) {
   timeradd(&rusageEnd.ru_utime, &rusageEnd.ru_stime, &stopSomme);
   printDiffTimeval("ru_utime+ru_stime (in sec)", stopSomme, startSomme);
 
-  printf("number of bytes received from the network;%llud\n", countersEnd.bytes_received - countersBegin.bytes_received);
-  printf("number of messages delivered to the application;%llud\n", countersEnd.messages_delivered - countersBegin.messages_delivered);
-  printf("number of bytes delivered to the application;%llud\n", countersEnd.messages_bytes_delivered - countersBegin.messages_bytes_delivered);
-  printf("number of bytes of recent trains received from the network;%llud\n", countersEnd.recent_trains_bytes_received - countersBegin.recent_trains_bytes_received);
-  printf("number of recent trains received from the network;%llud\n", countersEnd.recent_trains_received - countersBegin.recent_trains_received);
-  printf("number of bytes of trains received from the network;%llud\n", countersEnd.trains_bytes_received - countersBegin.trains_bytes_received);
-  printf("number of trains received from the network;%llud\n", countersEnd.trains_received - countersBegin.trains_received);
-  printf("number of wagons delivered to the application;%llud\n", countersEnd.wagons_delivered - countersBegin.wagons_delivered);
-  printf("number of times automaton has been in state WAIT;%llud\n", countersEnd.wait_states - countersBegin.wait_states);
-  printf("number of times comm_read() calls;%llud\n", countersEnd.comm_read - countersBegin.comm_read);
-  printf("number of bytes read by comm_read() calls;%llud\n", countersEnd.comm_read_bytes - countersBegin.comm_read_bytes);
-  printf("number of times comm_readFully() calls;%llud\n", countersEnd.comm_readFully - countersBegin.comm_readFully);
-  printf("number of bytes read by comm_readFully() calls;%llud\n", countersEnd.comm_readFully_bytes - countersBegin.comm_readFully_bytes);
-  printf("number of times comm_write() calls;%llud\n", countersEnd.comm_write - countersBegin.comm_write);
-  printf("number of bytes written by comm_write() calls;%llud\n", countersEnd.comm_write_bytes - countersBegin.comm_write_bytes);
-  printf("number of times comm_writev() calls;%llud\n", countersEnd.comm_writev - countersBegin.comm_writev);
-  printf("number of bytes written by comm_writev() calls;%llud\n", countersEnd.comm_writev_bytes - countersBegin.comm_writev_bytes);
-  printf("number of times there was flow control when calling newmsg();%llud\n\n", countersEnd.flowControl - countersBegin.flowControl);
+  printf("number of bytes received from the network ; %llu\n", countersEnd.bytes_received - countersBegin.bytes_received);
+  printf("number of messages delivered to the application ; %llu\n", countersEnd.messages_delivered - countersBegin.messages_delivered);
+  printf("number of bytes delivered to the application ; %llu\n", countersEnd.messages_bytes_delivered - countersBegin.messages_bytes_delivered);
+  printf("number of bytes of recent trains received from the network ; %llu\n", countersEnd.recent_trains_bytes_received - countersBegin.recent_trains_bytes_received);
+  printf("number of recent trains received from the network ; %llu\n", countersEnd.recent_trains_received - countersBegin.recent_trains_received);
+  printf("number of bytes of trains received from the network ; %llu\n", countersEnd.trains_bytes_received - countersBegin.trains_bytes_received);
+  printf("number of trains received from the network ; %llu\n", countersEnd.trains_received - countersBegin.trains_received);
+  printf("number of wagons delivered to the application ; %llu\n", countersEnd.wagons_delivered - countersBegin.wagons_delivered);
+  printf("number of times automaton has been in state WAIT ; %llu\n", countersEnd.wait_states - countersBegin.wait_states);
+  printf("number of calls to comm_read() ; %llu\n", countersEnd.comm_read - countersBegin.comm_read);
+  printf("number of bytes read by comm_read() calls ; %llu\n", countersEnd.comm_read_bytes - countersBegin.comm_read_bytes);
+  printf("number of calls to comm_readFully() ; %llu\n", countersEnd.comm_readFully - countersBegin.comm_readFully);
+  printf("number of bytes read by comm_readFully() calls ; %llu\n", countersEnd.comm_readFully_bytes - countersBegin.comm_readFully_bytes);
+  printf("number of calls to comm_write() ; %llu\n", countersEnd.comm_write - countersBegin.comm_write);
+  printf("number of bytes written by comm_write() calls ; %llu\n", countersEnd.comm_write_bytes - countersBegin.comm_write_bytes);
+  printf("number of calls to comm_writev() ; %llu\n", countersEnd.comm_writev - countersBegin.comm_writev);
+  printf("number of bytes written by comm_writev() calls ; %llu\n", countersEnd.comm_writev_bytes - countersBegin.comm_writev_bytes);
+  printf("number of calls to newmsg() ; %llu\n", countersEnd.newmsg - countersBegin.newmsg);
+  printf("number of times there was flow control when calling newmsg() ; %llu\n", countersEnd.flowControl - countersBegin.flowControl);
 
   timersub(&timeEnd, &timeBegin, &diffTimeval);
   printf("Broadcasters / number / size / ntr / Average msg per wagon / Throughput of uto-broadcasts in Mbps ; %d ; %d ; %d ; %d ; %g ; %g\n", 
