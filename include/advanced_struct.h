@@ -98,12 +98,11 @@ bool is_recent_train(stamp tr_st,lts_array * plts_array, char last_id, int nb_tr
 wiw * newwiw();
 
 /**
- * @brief Allocate a message
- * @param[in] pw A double pointer on a wiw
+ * @brief Allocate a message in @a wagonToSend
  * @param[in] payloadSize An int
  * @return A pointer on a message
  */
-message * mallocwiw(wiw **pw, int payloadSize);
+message * mallocwiw(int payloadSize);
 
 /**
  * @brief Look after the counter and free the wiw if it is equal to 0

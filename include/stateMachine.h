@@ -75,12 +75,6 @@ extern t_list* unstableWagons[MAX_NTR][NR];
 extern t_bqueue* wagonsToDeliver;
 
 
-// extern wiw* wagonToSend : done in msg
-
-extern bool participation; // FIXME : to erase
-
-
-
 /**
 * @brief initializes the automaton.
 */
@@ -115,6 +109,6 @@ void nextstate (State s) ;
 * @brief handles the reception of a womim depending on the state of the automaton.
 * @param[in] p_womim womim to handle
 */
-int stateMachine (womim* p_womim) ;
+void stateMachine (womim* p_womim) ;
 
 #endif

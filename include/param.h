@@ -16,8 +16,8 @@
 #define MAX_NTR 16 // 16, because we can code at most 16 addresses in the circuit
 
 
-#define LOCAL_HOST "localhost"
-#define PORT "4242" //FIXME -> Are you sure?
+#define LOCAL_HOST "localhost" // FIXME !!!!
+#define PORT "2000" 
 #define CONNECT_TIMEOUT 2000
 
 

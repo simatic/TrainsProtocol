@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <error.h>
 #include <errno.h>
 #include <assert.h>
@@ -31,7 +32,7 @@ womim * receive(t_comm * aComm){
     j=search_tcomm(aComm,global_addr_array);
     if(j==-1){
       msg_ext->pfx.mutex=mut;
-      msg_ext->pfx.counter=1; //FIXME -> be careful with this integer... -1?
+      msg_ext->pfx.counter=1;
       msg_ext->msg=init_msg();
       return(msg_ext);
     }
@@ -40,7 +41,7 @@ womim * receive(t_comm * aComm){
       msg_ext = calloc(sizeof(prefix)+sizeof(int)+sizeof(MType)+sizeof(address),sizeof(char));
       msg_ext->pfx.mutex=mut;
       msg_ext->pfx.counter=1;
-      msg_ext->msg=newMsg(DISCONNECT,rank_2_addr(j));//FIXME -> my_adress is a fake address for the moment
+      msg_ext->msg=newMsg(DISCONNECT,rank_2_addr(j));
       //close the connection
       close_connection(rank_2_addr(j));
       return(msg_ext);
@@ -48,7 +49,7 @@ womim * receive(t_comm * aComm){
   }
   if(nbRead==-1){
     msg_ext->pfx.mutex=mut;
-    msg_ext->pfx.counter=1; //FIXME -> be careful with this integer... -1?
+    msg_ext->pfx.counter=1;
     msg_ext->msg=init_msg();
     return(msg_ext);
   }
@@ -82,9 +83,9 @@ int send_other(address addr, MType type, address sender){
 	aComm=global_addr_array[rank].tcomm;
 	iov[0].iov_base=msg;
 	iov[0].iov_len=length;
-	do{
-	  result=comm_writev(aComm,iov,iovcnt);
-	}while(result!=length); //FIXME -> do we return an other error in case of several failures
+	result=comm_writev(aComm,iov,iovcnt);
+	if(result!=length)
+	  fprintf(stderr, "result!=length\n");
 	free(msg);
 	return(result);
       }
@@ -141,9 +142,9 @@ int send_train(address addr, lts_struct lts){
       iov[7].iov_len=lts.p_wtosend->p_wagon->header.len;
       //sending the whole train with writev
       //returning the number of bytes send
-      do{
-        result=comm_writev(aComm,iov,iovcnt);
-      }while(result!=global_length); //FIXME -> do we return an other error in case of several failures
+      result=comm_writev(aComm,iov,iovcnt);
+      if(result!=global_length)
+	fprintf(stderr, "result!=length (bis)\n");
       return(result);
     }
   else{

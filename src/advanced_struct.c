@@ -63,18 +63,18 @@ wiw * newwiw(){
   return pp;
 }
 
-message * mallocwiw(wiw **pw, int payloadSize){
+message * mallocwiw(int payloadSize){
   message *mp;
   wagon *w;
-  int newWomimLen = sizeof(prefix) + (*pw)->p_wagon->header.len +
+  int newWomimLen = sizeof(prefix) + wagonToSend->p_wagon->header.len +
     sizeof(message_header) + payloadSize;
-  (*pw)->p_womim = realloc((*pw)->p_womim, newWomimLen);
-  assert((*pw)->p_womim != NULL);
-  w = (*pw)->p_wagon;
-  (*pw)->p_wagon = w;
+  wagonToSend->p_womim = realloc(wagonToSend->p_womim, newWomimLen);
+  assert(wagonToSend->p_womim != NULL);
+  w = &(wagonToSend->p_womim->wagon);
+  wagonToSend->p_wagon = w;
   mp =(message*)(((char*)w) + w->header.len);
   mp->header.len = sizeof(message_header) + payloadSize;
-  w->header.len = newWomimLen;
+  w->header.len += mp->header.len;
   return mp;
 }
 

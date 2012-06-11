@@ -3,8 +3,9 @@
 #define _GNU_SOURCE
 
 #include "stateMachine.h"
+#include "interface.h"
 
-//State automatonState=OFFLINE_CONNECTION_ATTEMPT;
+State automatonState=OFFLINE_CONNECTION_ATTEMPT;
 pthread_mutex_t state_machine_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 address my_address;
 address prec;
@@ -16,12 +17,62 @@ int lis; //last id sent
 lts_array lts; //last trains sent
 t_list* unstableWagons[MAX_NTR][NR];
 t_bqueue* wagonsToDeliver;
-bool participation=false; // FIXME : to erase
+
+void stateMachine (womim* p_womim);
+void nextstate (State s);
+
+void *connectionMgt(void *arg) {
+  t_comm *aComm = (t_comm*)arg;
+  womim * msg_ext;
+
+  do{
+    msg_ext = receive(aComm);
+    stateMachine(msg_ext);
+  } while (msg_ext->msg.type != DISCONNECT);
+
+  return NULL;
+}
+
+void *acceptMgt(void *arg) {
+  t_comm *commForAccept = (t_comm*)arg;
+  t_comm *aComm;
+
+  do{
+    aComm = comm_accept(commForAccept);
+    if (aComm != NULL){
+      // We fork a thread responsible for handling this connection
+      pthread_t thread;
+      int rc = pthread_create(&thread, NULL, &connectionMgt, (void *)aComm);
+      if (rc < 0)
+	error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+      rc = pthread_detach(thread);
+      if (rc < 0)
+	error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
+    }
+  } while (aComm != NULL);
+
+  return NULL;
+}
 
 
+void participate(bool b){
+  static t_comm *commForAccept = NULL;
+  pthread_t thread;
 
-
-
+  if (b){
+    commForAccept = comm_newForAccept(global_addr_array[addr_2_rank(my_address)].chan);
+    if (commForAccept == NULL)
+      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newForAccept");
+    int rc = pthread_create(&thread, NULL, &acceptMgt, (void *)commForAccept);
+    if (rc < 0)
+      error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+    rc = pthread_detach(thread);
+    if (rc < 0)
+      error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
+  } else {
+    comm_free(commForAccept);
+  }
+}
 
 
 void automatonInit () {
@@ -33,7 +84,7 @@ void automatonInit () {
     (lts[id]).stamp.lc=0;
     (lts[id]).stamp.round=0;
     (lts[id]).circuit=0;
-    (lts[id]).w.w_w=newwiw(); //FIXME : check newwiw
+    (lts[id]).w.w_w=newwiw();
     (lts[id]).w.len=0;
     for (round=0;round<NR;round++) {
       unstableWagons[id][round]=list_new();
@@ -46,7 +97,7 @@ void automatonInit () {
     
   prec=0;
   succ=0;
-
+  nextstate(OFFLINE_CONNECTION_ATTEMPT);
 }
 
 void train_handling(womim *p_womim) {
@@ -62,7 +113,7 @@ void train_handling(womim *p_womim) {
     {
       (lts)[0].circuit = addr_updateCircuit(p_womim->msg.body.train.circuit,my_address,cameProc,goneProc);
       cameProc=0;
-      signalDepartures(wagonToSend->p_wagon, goneProc, lts[0].circuit);
+      signalDepartures(goneProc, lts[0].circuit);
       goneProc=0;
     }
   else
@@ -126,8 +177,8 @@ void waitBeforConnect () {
   if (waitNb>wait_nb_max) {
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "wait_nb_max owerflowed");
   }
-  participation=false; //FIXME : to erase
-  close_connection(prec); //FIXME : à définir
+  participate(false);
+  close_connection(prec);
   close_connection(succ);
   prec=0;
   succ=0;
@@ -139,14 +190,17 @@ void waitBeforConnect () {
 void nextstate (State s) {
   switch (s) {
   case OFFLINE_CONNECTION_ATTEMPT :
-    participation=true; // FIXME : to erase
-    succ=searchSucc(my_address); //FIXME : à coder
+    participate(true);
+    succ=searchSucc(my_address);
     if (addr_ismine(succ))
       {
-	signalArrival(wagonToSend->p_wagon, my_address, (address_set)my_address);
+	signalArrival(my_address, (address_set)my_address);
 	bqueue_enqueue(wagonsToDeliver,wagonToSend);
 	wagonToSend=newwiw();
 	automatonState=ALONE_INSERT_WAIT;
+	int rc=sem_post(&sem_init_done);
+	if (rc)
+	  error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"error in sem_post");
 	prec=my_address;
 	return;
       }
@@ -176,7 +230,7 @@ void nextstate (State s) {
   }
 }
 
-int stateMachine (womim* p_womim) {
+void stateMachine (womim* p_womim) {
   MUTEX_LOCK(state_machine_mutex);
   switch (automatonState)
     {
@@ -187,7 +241,6 @@ int stateMachine (womim* p_womim) {
 	case DISCONNECT :
 	  nextstate(WAIT);
 	  MUTEX_UNLOCK(state_machine_mutex);
-	  return 1;
 	  break;
 	case INSERT :
 	  send_other(p_womim->msg.body.insert.sender,NAK_INSERT, my_address);
@@ -196,6 +249,7 @@ int stateMachine (womim* p_womim) {
 	  prec=p_womim->msg.body.ackInsert.sender;
 	  open_connection(prec);
 	  send_other(prec,NEWSUCC, my_address);
+	  nextstate(OFFLINE_CONFIRMATION_WAIT);
 	default :
 	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : %d while OFFLINE_CONNECTION_ATTEMPT",p_womim->msg.type);
 	  break;
@@ -209,7 +263,6 @@ int stateMachine (womim* p_womim) {
 	case DISCONNECT :
 	  nextstate(WAIT);
 	  MUTEX_UNLOCK(state_machine_mutex);
-	  return 1;
 	  break;
 	case INSERT :
 	  send_other(p_womim->msg.body.insert.sender,NAK_INSERT, my_address);
@@ -223,8 +276,11 @@ int stateMachine (womim* p_womim) {
 	  if (is_in_lts(my_address,lts))
 	    {
 	      lis=p_womim->msg.body.train.stamp.id;
-	      signalArrival(wagonToSend->p_wagon, my_address, lts[lis].circuit);
+	      signalArrival(my_address, lts[lis].circuit);
 	      nextstate(SEVERAL);
+	      int rc=sem_post(&sem_init_done);
+	      if (rc)
+		error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"error in sem_post");
 	    }
 	  break;
 	default :
@@ -266,7 +322,7 @@ int stateMachine (womim* p_womim) {
 	    int id=((lis+i) % ntr);
 	    (lts[(int)id]).stamp.lc++;
 	    (lts[(int)id]).circuit=my_address | prec;
-	    (lts[(int)id]).w.w_w=newwiw(); //FIXME : check newwiw
+	    (lts[(int)id]).w.w_w=newwiw();
 	    (lts[(int)id]).w.len=0;
 	    send_train(succ,lts[(int)id]);
 	  }
@@ -297,13 +353,13 @@ int stateMachine (womim* p_womim) {
 	    }
 	  break;
 	case INSERT :
-	  close_connection(prec); // FIXME : proto
+	  close_connection(prec);
 	  send_other(p_womim->msg.body.insert.sender,ACK_INSERT, my_address);
 	  prec=p_womim->msg.body.insert.sender;
 	  addr_appendArrived(&cameProc,prec);
 	  break;
 	case NEWSUCC :
-	  close_connection(succ); // FIXME : proto
+	  close_connection(succ);
 	  succ=p_womim->msg.body.newSucc.sender;
 	  int i;
 	  for (i=1;i<=ntr;i++)
@@ -316,17 +372,16 @@ int stateMachine (womim* p_womim) {
 	    {
 	      while (!(addr_isequal(prec,my_address)))
 		{
-		  if (open_connection(prec)!=(-1)) //FIXME : proto
+		  if (open_connection(prec)!=(-1))
 		    {
 		      send_other(prec,NEWSUCC, my_address);
 		      nextstate(SEVERAL);
 		      MUTEX_UNLOCK(state_machine_mutex);
-		      return 1;
 		    }
 		  addr_appendGone(&cameProc,&goneProc,prec);
 		  prec=addr_prec(prec);
 		}
-	      signalDepartures(wagonToSend->p_wagon, goneProc, lts[(int)lis].circuit);
+	      signalDepartures(goneProc, lts[(int)lis].circuit);
 	      goneProc=0;
 	      int aRound;
 	      int i;
@@ -344,7 +399,6 @@ int stateMachine (womim* p_womim) {
 	      wagonToSend=newwiw();
 	      nextstate(ALONE_INSERT_WAIT);
 	      MUTEX_UNLOCK(state_machine_mutex);
-	      return 1;
 	    }
 	  else // connection lost with succ
 	    {
@@ -360,5 +414,4 @@ int stateMachine (womim* p_womim) {
       error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__, "unexpected state : %d",automatonState);
     }
   MUTEX_UNLOCK(state_machine_mutex);
-  return 1;
 }

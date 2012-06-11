@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #include "connect.h"
+#include "param.h"
 
 int open_connection(address addr){
   int rank;
@@ -12,7 +13,7 @@ int open_connection(address addr){
     return(-1);
   }
   else{
-    tcomm=comm_newAndConnect(global_addr_array[rank].ip,global_addr_array[rank].chan,1000);//FIXME -> Time connect out param
+    tcomm=comm_newAndConnect(global_addr_array[rank].ip,global_addr_array[rank].chan,CONNECT_TIMEOUT);
     if (tcomm==NULL)
       return(-1);
     else{
@@ -52,12 +53,12 @@ address searchSucc(address add){
   else{
     i=(rank+1)%NP;
     while(i!=rank && watch){
-      if(open_connection(i)==1){
+      if(open_connection(rank_2_addr(i))==1){
 	result=rank_2_addr(i);
 	watch=0;
       }
       else{
-	i++;
+	i = (i+1)%NP;
       }
     }
   }

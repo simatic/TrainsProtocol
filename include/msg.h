@@ -23,7 +23,7 @@ typedef struct {
   char id;
   char lc;
   char round;
-}stamp;
+}__attribute__((packed)) stamp;
 
 /**
 * @brief Data structure for trains
@@ -32,7 +32,7 @@ typedef struct {
   stamp stamp;/**<A stramp for some info*/
   address_set circuit;/**<A description of the circuit*/
   wagon wagons[];/**<The block of wagons*/
-} Train;
+} __attribute__((packed)) Train;
 
 /**
 * @brief Data structure for Default messages
@@ -107,7 +107,7 @@ typedef struct {
     NewSucc newSucc;
     Disconnect disconnect;
   }body;
-}Msg;
+}__attribute__((packed)) Msg;
 
 /**
 * @brief Gives the first wagon of @a msg

@@ -6,13 +6,10 @@
 #include "msg.h"
 #include "advanced_struct.h"
 #include "counter.h"
-
-#define ALONE 0 // FIXME
-int automatonState = ALONE; //FIXME
+#include "stateMachine.h"
 
 CallbackCircuitChange theCallbackCircuitChange;
 CallbackUtoDeliver    theCallbackUtoDeliver;
-
 
 message *newmsg(int payloadSize){
   message *mp;
@@ -26,7 +23,7 @@ message *newmsg(int payloadSize){
       error_at_line(EXIT_FAILURE,rc,__FILE__,__LINE__,"pthread_cond_wait"); \
   }
 
-  mp = mallocwiw(&wagonToSend, payloadSize);
+  mp = mallocwiw(payloadSize);
   mp->header.typ = AM_BROADCAST;
 
   // MUTEX_UNLOCK will be done in uto_broadcast
@@ -36,10 +33,13 @@ message *newmsg(int payloadSize){
 }
 
 int uto_broadcast(message *mp){
-  if (automatonState == ALONE) {
+  MUTEX_LOCK(state_machine_mutex);
+  if (automatonState == ALONE_INSERT_WAIT) {
     bqueue_enqueue(wagonsToDeliver, wagonToSend);
     wagonToSend = newwiw();
   }
+  MUTEX_UNLOCK(state_machine_mutex);
+  
   // Message is already in wagonToSend. All we have to do is to unlock the mutex.
   // If automatonState is in another state than ALONE, 
   MUTEX_UNLOCK(mutexWagonToSend);
@@ -63,13 +63,15 @@ static void fillCv(circuitview *cp, address_set circuit){
 }
 
 void *uto_deliveries(void *null){
+  wiw *wi;
   wagon *w;
   message *mp;
   circuitview cv;
   bool terminate = false;
 
   do {
-    w = bqueue_dequeue(wagonsToDeliver);
+    wi = bqueue_dequeue(wagonsToDeliver);
+    w = wi->p_wagon;
 
     counters.wagons_delivered++;
 
@@ -102,7 +104,7 @@ void *uto_deliveries(void *null){
       }
     }
 
-    free(w);
+    free_wiw(wi);
 
   } while(!terminate);
 
