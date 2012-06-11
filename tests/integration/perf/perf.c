@@ -140,7 +140,7 @@ void callbackCircuitChange(circuitview *cp){
 
   if(cp->cv_nmemb >= number){
     // We compute the rank of the process in the group
-    for (rank=0; (rank<cp->cv_nmemb) && addr_ismine(cp->cv_members[rank]); rank++);
+    for (rank=0; (rank<cp->cv_nmemb) && !addr_ismine(cp->cv_members[rank]); rank++);
     // We can start the experience
     printf("!!! ******** enough members to start utoBroadcasting\n");
     int rc = sem_post(&semWaitEnoughMembers);
