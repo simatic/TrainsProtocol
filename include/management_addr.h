@@ -9,11 +9,8 @@
 #define _MANAGEMENT_ADDRESS_H
 
 #include "comm.h"
-
-/**
- * @brief Localisation of the file where addresses are written
- */
-#define LOCALISATION "./addr_file" /**<File's here.*/
+#include "param.h"
+#include "address.h"
 
 /**
  * @brief Max length of an IP address (including '\0')
@@ -63,6 +60,15 @@ ADDR* addr_generator(char* locate, int length);
  * @param[in] array The ADDR*
  */
 void add_tcomm(t_comm * tcomm, int i, ADDR * array);
+
+/**
+ * @brief Search if a @a tcomm is present in @a array
+ * @param[in] tcomm The t_comm to search for
+ * @param[in] array The ADDR array to crowl
+ * @return The rank in the array
+ * @note Return -1 if unfound
+ */
+int search_tcomm(t_comm * tcomm, ADDR * array);
 
 /**
  * @brief Give the place in the @a array of a given address

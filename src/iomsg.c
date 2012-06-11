@@ -7,11 +7,13 @@
 #include "iomsg.h"
 
 
+
 womim * receive(t_comm * aComm){
   womim * msg_ext;
   int nbRead;
   int length;
   pthread_mutex_t mut;
+  int j;
 
   do{
     nbRead = comm_readFully(aComm, &length, sizeof(length));
@@ -24,12 +26,25 @@ womim * receive(t_comm * aComm){
       nbRead = comm_readFully(aComm, ((char*)msg_ext)+sizeof(prefix)+nbRead, (msg_ext->msg.len-nbRead));
     }
   } while (nbRead > 0);
-  if(nbRead==0){
-    /* FIXME -> enhance for Nathan
-    //Connection has been closed
-    comm_free(aComm);
-    return(&init_msg());
-    */
+  if(nbRead==0){//Connection has been closed
+    //search the address which has vanished
+    j=search_tcomm(aComm,global_addr_array);
+    if(j==-1){
+      msg_ext->pfx.mutex=mut;
+      msg_ext->pfx.counter=1; //FIXME -> be careful with this integer... -1?
+      msg_ext->msg=init_msg();
+      return(msg_ext);
+    }
+    else{
+      //create the DICONNECT to return
+      msg_ext = calloc(sizeof(prefix)+sizeof(int)+sizeof(MType)+sizeof(address),sizeof(char));
+      msg_ext->pfx.mutex=mut;
+      msg_ext->pfx.counter=1;
+      msg_ext->msg=newMsg(DISCONNECT,rank_2_addr(j));//FIXME -> my_adress is a fake address for the moment
+      //close the connection
+      close_connection(rank_2_addr(j));
+      return(msg_ext);
+    }
   }
   if(nbRead==-1){
     msg_ext->pfx.mutex=mut;

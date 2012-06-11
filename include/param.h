@@ -7,6 +7,11 @@
 #ifndef _PARAM_H
 #define _PARAM_H
 
+/**
+ * @brief Localisation of the file where addresses are written
+ */
+#define LOCALISATION "./addr_file"/**<File's here.*/
+
 #define NR 3
 #define MAX_NTR 16 // 16, because we can code at most 16 addresses in the circuit
 

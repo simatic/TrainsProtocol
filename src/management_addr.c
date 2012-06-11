@@ -57,6 +57,18 @@ void add_tcomm(t_comm * tcomm, int i, ADDR * array){
   array[i].tcomm=tcomm;
 }
 
+//search a t_comm in an array
+int search_tcomm(t_comm * tcomm, ADDR * array){
+	int i=0;
+	int result=-1;
+	
+	for(i=0;i<NP;i++){
+		if(array[i].tcomm->fd==tcomm->fd)
+			result=i;
+	}
+	return(result);
+}
+
 //give the place in the array of a given address
 //return -1 if it's unfound
 int addr_id(char * ip, char * chan, ADDR * array){

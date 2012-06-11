@@ -77,32 +77,32 @@ void train_handling(womim *p_womim) {
     {
       bool listupdated=false; //booleen de tricheur
       do
-{
-if (addr_ismember(p_wag->header.sender,lts[(int)id].circuit)
-&& !(addr_ismember(p_wag->header.sender,goneProc))
-&& !(addr_ismine(p_wag->header.sender)))
-{
-list_append(unstableWagons[(int)id][(int)round],p_wag);
-if(addr_cmp(my_address,p_wag->header.sender))
-{
-if(!(listupdated))
-{
-listupdated=true;
-// lts is updated
-lts[(int)id].w.w_w=newwiw();
-lts[(int)id].w.w_w->p_wagon=p_wag;
-lts[(int)id].w.w_w->p_womim=p_womim;
-MUTEX_LOCK(lts[(int)id].w.w_w->p_womim->pfx.mutex);
-lts[(int)id].w.w_w->p_womim->pfx.counter++;
-MUTEX_UNLOCK(lts[(int)id].w.w_w->p_womim->pfx.mutex);
-}
-//len is updated
-lts[(int)id].w.len+=p_wag->header.len;
-}
-}
-}
+	{
+	  if (addr_ismember(p_wag->header.sender,lts[(int)id].circuit)
+	      && !(addr_ismember(p_wag->header.sender,goneProc))
+	      && !(addr_ismine(p_wag->header.sender)))
+	    {
+	      list_append(unstableWagons[(int)id][(int)round],p_wag);
+	      if(addr_cmp(my_address,p_wag->header.sender))
+		{
+		  if(!(listupdated))
+		    {
+		      listupdated=true;
+		      // lts is updated
+		      lts[(int)id].w.w_w=newwiw();
+		      lts[(int)id].w.w_w->p_wagon=p_wag;
+		      lts[(int)id].w.w_w->p_womim=p_womim;
+		      MUTEX_LOCK(lts[(int)id].w.w_w->p_womim->pfx.mutex);
+		      lts[(int)id].w.w_w->p_womim->pfx.counter++;
+		      MUTEX_UNLOCK(lts[(int)id].w.w_w->p_womim->pfx.mutex);
+		    }
+		  //len is updated
+		  lts[(int)id].w.len+=p_wag->header.len;
+		}
+	    }
+	}
       while(((p_wag=nextWagon(p_womim,p_wag))!=NULL));
-}
+    }
   lts[(int)id].stamp.round=round;
   wagonToSend->p_wagon->header.round=round;
   list_append(unstableWagons[(int)id][(int)round],wagonToSend);
@@ -143,12 +143,12 @@ void nextstate (State s) {
     succ=searchSucc(my_address); //FIXME : à coder
     if (addr_ismine(succ))
       {
-signalArrival(wagonToSend->p_wagon, my_address, (address_set)my_address);
-bqueue_enqueue(wagonsToDeliver,wagonToSend);
-wagonToSend=newwiw();
-automatonState=ALONE_INSERT_WAIT;
-prec=my_address;
-return;
+	signalArrival(wagonToSend->p_wagon, my_address, (address_set)my_address);
+	bqueue_enqueue(wagonsToDeliver,wagonToSend);
+	wagonToSend=newwiw();
+	automatonState=ALONE_INSERT_WAIT;
+	prec=my_address;
+	return;
       }
     send_other(succ,INSERT, my_address);
     automatonState=OFFLINE_CONNECTION_ATTEMPT;
@@ -182,55 +182,55 @@ int stateMachine (womim* p_womim) {
     {
     case OFFLINE_CONNECTION_ATTEMPT :
       switch (p_womim->msg.type)
-{
-case NAK_INSERT :
-case DISCONNECT :
-nextstate(WAIT);
-MUTEX_UNLOCK(state_machine_mutex);
-return 1;
-break;
-case INSERT :
-send_other(p_womim->msg.body.insert.sender,NAK_INSERT, my_address);
-break;
-case ACK_INSERT :
-prec=p_womim->msg.body.ackInsert.sender;
-open_connection(prec);
-send_other(prec,NEWSUCC, my_address);
-default :
-error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : %d while OFFLINE_CONNECTION_ATTEMPT",p_womim->msg.type);
-break;
-}
+	{
+	case NAK_INSERT :
+	case DISCONNECT :
+	  nextstate(WAIT);
+	  MUTEX_UNLOCK(state_machine_mutex);
+	  return 1;
+	  break;
+	case INSERT :
+	  send_other(p_womim->msg.body.insert.sender,NAK_INSERT, my_address);
+	  break;
+	case ACK_INSERT :
+	  prec=p_womim->msg.body.ackInsert.sender;
+	  open_connection(prec);
+	  send_other(prec,NEWSUCC, my_address);
+	default :
+	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : %d while OFFLINE_CONNECTION_ATTEMPT",p_womim->msg.type);
+	  break;
+	}
       break;
 
     case OFFLINE_CONFIRMATION_WAIT :
       switch (p_womim->msg.type)
-{
-case NEWSUCC :
-case DISCONNECT :
-nextstate(WAIT);
-MUTEX_UNLOCK(state_machine_mutex);
-return 1;
-break;
-case INSERT :
-send_other(p_womim->msg.body.insert.sender,NAK_INSERT, my_address);
-break;
-case TRAIN :
-if (addr_ismember(my_address,p_womim->msg.body.train.circuit))
-{
-p_womim->msg.body.train.stamp.lc++;
-}
-send_train(succ,lts[(int)p_womim->msg.body.train.stamp.id]);
-if (is_in_lts(my_address,lts))
-{
-lis=p_womim->msg.body.train.stamp.id;
-signalArrival(wagonToSend->p_wagon, my_address, lts[lis].circuit);
-nextstate(SEVERAL);
-}
-break;
-default :
-error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : %d while OFFLINE_CONFIRMATION_WAIT",p_womim->msg.type);
-break;
-}
+	{
+	case NEWSUCC :
+	case DISCONNECT :
+	  nextstate(WAIT);
+	  MUTEX_UNLOCK(state_machine_mutex);
+	  return 1;
+	  break;
+	case INSERT :
+	  send_other(p_womim->msg.body.insert.sender,NAK_INSERT, my_address);
+	  break;
+	case TRAIN :
+	  if (addr_ismember(my_address,p_womim->msg.body.train.circuit))
+	    {
+	      p_womim->msg.body.train.stamp.lc++;
+	    }
+	  send_train(succ,lts[(int)p_womim->msg.body.train.stamp.id]);
+	  if (is_in_lts(my_address,lts))
+	    {
+	      lis=p_womim->msg.body.train.stamp.id;
+	      signalArrival(wagonToSend->p_wagon, my_address, lts[lis].circuit);
+	      nextstate(SEVERAL);
+	    }
+	  break;
+	default :
+	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : %d while OFFLINE_CONFIRMATION_WAIT",p_womim->msg.type);
+	  break;
+	}
       break;
     case WAIT :
       error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected reception while WAIT");
@@ -238,122 +238,122 @@ break;
       
     case ALONE_INSERT_WAIT :
       switch (p_womim->msg.type)
-{
-case INSERT :
-send_other(p_womim->msg.body.insert.sender,ACK_INSERT, my_address);
-prec=p_womim->msg.body.insert.sender;
-nextstate(ALONE_CONNECTION_WAIT);
-break;
-default :
-error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : %d while ALONE_INSERT_WAIT",p_womim->msg.type);
-break;
-}
+	{
+	case INSERT :
+	  send_other(p_womim->msg.body.insert.sender,ACK_INSERT, my_address);
+	  prec=p_womim->msg.body.insert.sender;
+	  nextstate(ALONE_CONNECTION_WAIT);
+	  break;
+	default :
+	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : %d while ALONE_INSERT_WAIT",p_womim->msg.type);
+	  break;
+	}
       break;
 
     case ALONE_CONNECTION_WAIT :
       switch (p_womim->msg.type)
-{
-case DISCONNECT :
-prec=my_address;
-break;
-case INSERT :
-send_other(p_womim->msg.body.insert.sender,NAK_INSERT, my_address);
-break;
-case NEWSUCC :
-succ=p_womim->msg.body.newSucc.sender;
-int i;
-for (i=1;i<=ntr;i++) {
-int id=((lis+i) % ntr);
-(lts[(int)id]).stamp.lc++;
-(lts[(int)id]).circuit=my_address | prec;
-(lts[(int)id]).w.w_w=newwiw(); //FIXME : check newwiw
-(lts[(int)id]).w.len=0;
-send_train(succ,lts[(int)id]);
-}
-nextstate(SEVERAL);
-break;
-default :
-error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : %d while ALONE_CONNECTION_WAIT",p_womim->msg.type);
-break;
-}
+	{
+	case DISCONNECT :
+	  prec=my_address;
+	  break;
+	case INSERT :
+	  send_other(p_womim->msg.body.insert.sender,NAK_INSERT, my_address);
+	  break;
+	case NEWSUCC :
+	  succ=p_womim->msg.body.newSucc.sender;
+	  int i;
+	  for (i=1;i<=ntr;i++) {
+	    int id=((lis+i) % ntr);
+	    (lts[(int)id]).stamp.lc++;
+	    (lts[(int)id]).circuit=my_address | prec;
+	    (lts[(int)id]).w.w_w=newwiw(); //FIXME : check newwiw
+	    (lts[(int)id]).w.len=0;
+	    send_train(succ,lts[(int)id]);
+	  }
+	  nextstate(SEVERAL);
+	  break;
+	default :
+	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : %d while ALONE_CONNECTION_WAIT",p_womim->msg.type);
+	  break;
+	}
       break;
       
     case SEVERAL :
       switch (p_womim->msg.type)
-{
-case TRAIN :
-if (addr_ismember(my_address,p_womim->msg.body.train.circuit))
-{
-if (is_recent_train(p_womim->msg.body.train.stamp,&lts,lis,ntr))
-{
-train_handling(p_womim);
-lis=p_womim->msg.body.train.stamp.id;
-send_train(succ,lts[lis]);
-}
-}
-else
-{
-error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__, "my_address not in the circuit");
-}
-break;
-case INSERT :
-close_connection(prec); // FIXME : proto
-send_other(p_womim->msg.body.insert.sender,ACK_INSERT, my_address);
-prec=p_womim->msg.body.insert.sender;
-addr_appendArrived(&cameProc,prec);
-break;
-case NEWSUCC :
-close_connection(succ); // FIXME : proto
-succ=p_womim->msg.body.newSucc.sender;
-int i;
-for (i=1;i<=ntr;i++)
-{
-send_train(succ,lts[(lis+i) % ntr]);
-}
-break;
-case DISCONNECT :
-if (addr_isequal(p_womim->msg.body.disconnect.sender,prec))
-{
-while (!(addr_isequal(prec,my_address)))
-{
-if (open_connection(prec)!=(-1)) //FIXME : proto
-{
-send_other(prec,NEWSUCC, my_address);
-nextstate(SEVERAL);
-MUTEX_UNLOCK(state_machine_mutex);
-return 1;
-}
-addr_appendGone(&cameProc,&goneProc,prec);
-prec=addr_prec(prec);
-}
-signalDepartures(wagonToSend->p_wagon, goneProc, lts[(int)lis].circuit);
-goneProc=0;
-int aRound;
-int i;
-for (aRound=1;aRound<=NR;aRound++)
-{
-for (i=1;i<=ntr;i++)
-{
-int id=(lis+i) % ntr;
-char round=(lts[id].stamp.round + aRound) % NR;
-bqueue_extend(wagonsToDeliver,unstableWagons[id][(int)round]);
-list_cleanList(unstableWagons[id][(int)round]);
-}
-}
-bqueue_enqueue(wagonsToDeliver,wagonToSend);
-wagonToSend=newwiw();
-nextstate(ALONE_INSERT_WAIT);
-MUTEX_UNLOCK(state_machine_mutex);
-return 1;
-}
-else // connection lost with succ
-{
-succ=0;
-}
-break;
-default:
-error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__, "unexpected case : %d in SEVERAL",p_womim->msg.type);
-}
+	{
+	case TRAIN :
+	  if (addr_ismember(my_address,p_womim->msg.body.train.circuit))
+	    {
+	      if (is_recent_train(p_womim->msg.body.train.stamp,&lts,lis,ntr))
+		{
+		  train_handling(p_womim);
+		  lis=p_womim->msg.body.train.stamp.id;
+		  send_train(succ,lts[lis]);
+		}
+	    }
+	  else
+	    {
+	      error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__, "my_address not in the circuit");
+	    }
+	  break;
+	case INSERT :
+	  close_connection(prec); // FIXME : proto
+	  send_other(p_womim->msg.body.insert.sender,ACK_INSERT, my_address);
+	  prec=p_womim->msg.body.insert.sender;
+	  addr_appendArrived(&cameProc,prec);
+	  break;
+	case NEWSUCC :
+	  close_connection(succ); // FIXME : proto
+	  succ=p_womim->msg.body.newSucc.sender;
+	  int i;
+	  for (i=1;i<=ntr;i++)
+	    {
+	      send_train(succ,lts[(lis+i) % ntr]);
+	    }
+	  break;
+	case DISCONNECT :
+	  if (addr_isequal(p_womim->msg.body.disconnect.sender,prec))
+	    {
+	      while (!(addr_isequal(prec,my_address)))
+		{
+		  if (open_connection(prec)!=(-1)) //FIXME : proto
+		    {
+		      send_other(prec,NEWSUCC, my_address);
+		      nextstate(SEVERAL);
+		      MUTEX_UNLOCK(state_machine_mutex);
+		      return 1;
+		    }
+		  addr_appendGone(&cameProc,&goneProc,prec);
+		  prec=addr_prec(prec);
+		}
+	      signalDepartures(wagonToSend->p_wagon, goneProc, lts[(int)lis].circuit);
+	      goneProc=0;
+	      int aRound;
+	      int i;
+	      for (aRound=1;aRound<=NR;aRound++)
+		{
+		  for (i=1;i<=ntr;i++)
+		    {
+		      int id=(lis+i) % ntr;
+		      char round=(lts[id].stamp.round + aRound) % NR;
+		      bqueue_extend(wagonsToDeliver,unstableWagons[id][(int)round]);
+		      list_cleanList(unstableWagons[id][(int)round]);
+		    }
+		}
+	      bqueue_enqueue(wagonsToDeliver,wagonToSend);
+	      wagonToSend=newwiw();
+	      nextstate(ALONE_INSERT_WAIT);
+	      MUTEX_UNLOCK(state_machine_mutex);
+	      return 1;
+	    }
+	  else // connection lost with succ
+	    {
+	      succ=0;
+	    }
+	  break;
+	default:
+	  error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__, "unexpected case : %d in SEVERAL",p_womim->msg.type);
+	}
       nextstate(SEVERAL);
       break;
     default :

@@ -13,7 +13,7 @@
 #include "comm.h"
 #include "msg.h"
 #include "advanced_struct.h"
-
+#include "connect.h"
 
 /**
  * @brief Fun used to listen on a t_comm
