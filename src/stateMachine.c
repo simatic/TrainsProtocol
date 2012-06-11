@@ -4,6 +4,8 @@
 
 #include "stateMachine.h"
 #include "interface.h"
+#include "advanced_struct.h"
+#include "connect.h"
 
 State automatonState=OFFLINE_CONNECTION_ATTEMPT;
 pthread_mutex_t state_machine_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
@@ -20,18 +22,6 @@ t_bqueue* wagonsToDeliver;
 
 void stateMachine (womim* p_womim);
 void nextstate (State s);
-
-void *connectionMgt(void *arg) {
-  t_comm *aComm = (t_comm*)arg;
-  womim * msg_ext;
-
-  do{
-    msg_ext = receive(aComm);
-    stateMachine(msg_ext);
-  } while (msg_ext->msg.type != DISCONNECT);
-
-  return NULL;
-}
 
 void *acceptMgt(void *arg) {
   t_comm *commForAccept = (t_comm*)arg;
@@ -86,6 +76,7 @@ void automatonInit () {
     (lts[id]).circuit=0;
     (lts[id]).w.w_w=newwiw();
     (lts[id]).w.len=0;
+    (lts[id]).p_wtosend=NULL;
     for (round=0;round<NR;round++) {
       unstableWagons[id][round]=list_new();
     }

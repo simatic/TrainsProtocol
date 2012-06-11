@@ -1,7 +1,33 @@
 #include <stdlib.h>
+#include <pthread.h>
 
 #include "connect.h"
+#include "advanced_struct.h"
+#include "iomsg.h"
+#include "stateMachine.h"
 #include "param.h"
+
+void *connectionMgt(void *arg) {
+  t_comm *aComm = (t_comm*)arg;
+  womim * msg_ext;
+
+  do{
+    msg_ext = receive(aComm);
+    switch(msg_ext->msg.type){
+    case INSERT:
+      add_tcomm(aComm, addr_2_rank(msg_ext->msg.body.insert.sender), global_addr_array);
+      break;
+    case NEWSUCC:
+      add_tcomm(aComm, addr_2_rank(msg_ext->msg.body.newSucc.sender), global_addr_array);
+      break;
+    default:
+      break;
+    }
+    stateMachine(msg_ext);
+  } while (msg_ext->msg.type != DISCONNECT);
+
+  return NULL;
+}
 
 int open_connection(address addr){
   int rank;
@@ -17,7 +43,15 @@ int open_connection(address addr){
     if (tcomm==NULL)
       return(-1);
     else{
-      global_addr_array[rank].tcomm=tcomm;
+      pthread_t thread;
+      int rc;
+      add_tcomm(tcomm,rank,global_addr_array);
+      rc = pthread_create(&thread, NULL, &connectionMgt, (void *)tcomm);
+      if (rc < 0)
+	error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+      rc = pthread_detach(thread);
+      if (rc < 0)
+	error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
       return(1);
     }
   }

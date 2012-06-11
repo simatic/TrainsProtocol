@@ -33,4 +33,6 @@ void close_connection(address addr);
  */
 address searchSucc(address add);
 
+void *connectionMgt(void *arg);
+
 #endif /* _CONNECT_H */

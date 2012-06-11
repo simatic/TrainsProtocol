@@ -63,7 +63,7 @@ int search_tcomm(t_comm * tcomm, ADDR * array){
 	int result=-1;
 	
 	for(i=0;i<NP;i++){
-		if(array[i].tcomm->fd==tcomm->fd)
+		if(array[i].tcomm == tcomm)
 			result=i;
 	}
 	return(result);

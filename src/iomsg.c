@@ -11,48 +11,38 @@
 
 womim * receive(t_comm * aComm){
   womim * msg_ext;
-  int nbRead;
+  int nbRead, nbRead2;
   int length;
-  pthread_mutex_t mut;
   int j;
 
-  do{
-    nbRead = comm_readFully(aComm, &length, sizeof(length));
-    if (nbRead > 0){
-      msg_ext = calloc(length+sizeof(prefix),sizeof(char));
-      assert(msg_ext != NULL);
-      msg_ext->pfx.mutex=mut;
+  nbRead = comm_readFully(aComm, &length, sizeof(length));
+  if (nbRead == sizeof(length)){
+    msg_ext = calloc(length+sizeof(prefix),sizeof(char));
+    assert(msg_ext != NULL);
+    nbRead2 = comm_readFully(aComm, ((char*)msg_ext)+sizeof(prefix)+nbRead, (length-nbRead));
+    if (nbRead2 == length-nbRead) {
+      pthread_mutex_init(&(msg_ext->pfx.mutex),NULL);
       msg_ext->pfx.counter=1; 
       msg_ext->msg.len=length;
-      nbRead = comm_readFully(aComm, ((char*)msg_ext)+sizeof(prefix)+nbRead, (msg_ext->msg.len-nbRead));
-    }
-  } while (nbRead > 0);
-  if(nbRead==0){//Connection has been closed
-    //search the address which has vanished
-    j=search_tcomm(aComm,global_addr_array);
-    if(j==-1){
-      msg_ext->pfx.mutex=mut;
-      msg_ext->pfx.counter=1;
-      msg_ext->msg=init_msg();
       return(msg_ext);
-    }
-    else{
-      //create the DICONNECT to return
-      msg_ext = calloc(sizeof(prefix)+sizeof(int)+sizeof(MType)+sizeof(address),sizeof(char));
-      msg_ext->pfx.mutex=mut;
-      msg_ext->pfx.counter=1;
-      msg_ext->msg=newMsg(DISCONNECT,rank_2_addr(j));
-      //close the connection
-      close_connection(rank_2_addr(j));
-      return(msg_ext);
+    } else {
+      free(msg_ext);
     }
   }
-  if(nbRead==-1){
-    msg_ext->pfx.mutex=mut;
-    msg_ext->pfx.counter=1;
-    msg_ext->msg=init_msg();
-    return(msg_ext);
+
+  //Connection has been closed
+  //search the address which has vanished
+  j=search_tcomm(aComm,global_addr_array);
+  if(j==-1){
+    error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"search_tcomm() return unexpected -1");
   }
+  //create the DICONNECT to return
+  msg_ext = calloc(sizeof(prefix)+sizeof(newMsg(DISCONNECT,rank_2_addr(j))),sizeof(char));
+  pthread_mutex_init(&(msg_ext->pfx.mutex),NULL);
+  msg_ext->pfx.counter=1;
+  msg_ext->msg=newMsg(DISCONNECT,rank_2_addr(j));
+  //close the connection
+  close_connection(rank_2_addr(j));
   return(msg_ext);
 }
 
@@ -73,7 +63,7 @@ int send_other(address addr, MType type, address sender){
     return(-1);
   }
   else{
-    msg=malloc(newMsg(type,sender).len);
+    msg=malloc(sizeof(newMsg(type,sender)));
     *msg=newMsg(type,sender);
 
     length=msg->len;    
@@ -117,8 +107,7 @@ int send_train(address addr, lts_struct lts){
 	sizeof(MType)+
 	3*sizeof(char)+
 	sizeof(address_set)+
-	lts.w.len+
-	lts.p_wtosend->p_wagon->header.len;
+	lts.w.len;
       //to begin, let's enter the length of the message
       iov[0].iov_base=&global_length;
       iov[0].iov_len=sizeof(int);
@@ -138,11 +127,19 @@ int send_train(address addr, lts_struct lts){
       iov[6].iov_base=lts.w.w_w->p_wagon;
       iov[6].iov_len=lts.w.len;
       //finally loading the wagon which is waiting to be sent
-      iov[7].iov_base=lts.p_wtosend->p_wagon;
-      iov[7].iov_len=lts.p_wtosend->p_wagon->header.len;
-      //sending the whole train with writev
-      //returning the number of bytes send
-      result=comm_writev(aComm,iov,iovcnt);
+      if(lts.p_wtosend == NULL){
+	iov[7].iov_base=NULL;
+	iov[7].iov_len=0;
+	result=comm_writev(aComm,iov,iovcnt);
+      }
+      else {
+	global_length = global_length + lts.p_wtosend->p_wagon->header.len;
+	iov[7].iov_base=lts.p_wtosend->p_wagon;
+	iov[7].iov_len=lts.p_wtosend->p_wagon->header.len;
+	//sending the whole train with writev
+	//returning the number of bytes send
+	result=comm_writev(aComm,iov,iovcnt);
+      }
       if(result!=global_length)
 	fprintf(stderr, "result!=length (bis)\n");
       return(result);

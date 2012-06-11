@@ -16,6 +16,8 @@ int tr_errno;
 int tr_init(CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver callbackUtoDeliver){
   int rc;
   pthread_t thread;
+  char *trainsHost;
+  char *trainsPort;
 
   rc = sem_init(&sem_init_done,0,0);
   if(rc)
@@ -28,7 +30,14 @@ int tr_init(CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver call
   theCallbackUtoDeliver = callbackUtoDeliver;
 
   global_addr_array = addr_generator(LOCALISATION, NP);
-  my_address=rank_2_addr(addr_id(LOCAL_HOST,PORT,global_addr_array));
+
+  trainsHost = getenv("TRAINS_HOST");
+  if (trainsHost == NULL)
+    error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"TRAINS_HOST environment variable is not defined");
+  trainsPort = getenv("TRAINS_PORT");
+  if (trainsPort == NULL)
+    error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"TRAINS_PORT environment variable is not defined");
+  my_address=rank_2_addr(addr_id(trainsHost,trainsPort,global_addr_array));
 
   automatonInit();
   do {
