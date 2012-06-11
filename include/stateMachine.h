@@ -11,8 +11,6 @@
 #include <errno.h>
 #include <error.h>
 #include <unistd.h> //pour la fonction sleep
-#include <time.h> //pour le rand
-#include <math.h> // utiliser -lm à la compilation !
 #include "param.h"
 #include "address.h"
 #include "iomsg.h"

@@ -11,7 +11,7 @@ INCLUDEDIRS = -I../../../include
 # Compilation flags
 CFLAGS = -Wall -g $(INCLUDEDIRS)
 # Link flags
-LDFLAGS = -L../../../src -ltrains -pthread -lm
+LDFLAGS = -L../../../src -ltrains -pthread
 # Valgrind options
 VALGRINDFLAGS =--leak-check=yes --leak-resolution=high --num-callers=40 --tool=memcheck --show-reachable=yes
 

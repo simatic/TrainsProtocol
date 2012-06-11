@@ -119,7 +119,7 @@ void train_handling(womim *p_womim) {
 
 int rand_sleep(int nbwait) {
   srand(time(NULL));
-  return rand()%((int)pow(2,nbwait));
+  return rand()%(1<<(nbwait-1));
 }
 
 void waitBeforConnect () {
