@@ -3,6 +3,7 @@
 #define _GNU_SOURCE
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <pthread.h>
 
 #include "advanced_struct.h"
@@ -37,12 +38,21 @@ bool is_recent_train(stamp tr_st,lts_array * plts_array, char last_id, int nb_tr
 
   waiting_id=(last_id++)%ntr;
   if(tr_st.id==waiting_id){
+
+    printf("id of the stamp given %d\n",tr_st.id);
+    printf("logical clock of stamp in the is_recent_train %d\n",tr_st.lc);
+    printf("logical clock in lts %d\n",((*plts_array)[waiting_id]).stamp.lc);
+
     diff=tr_st.lc - ((*plts_array)[waiting_id]).stamp.lc;
     if(diff>0)
-      return(diff<((1+NP)/2));
-    else{ return(diff<((1-NP)/2)); }
+      return(diff<((1+256)/2));//FIXME
+    else{ 
+      return(diff<((1-256)/2));
+    }
   }
-  else{ return(false); }
+  else{
+    return(false);
+  }
 }
 
 wiw * newwiw(){
