@@ -78,17 +78,18 @@ typedef struct {
 }Disconnect;
 
 /**
-* @brief Data structure for MType
+* @brief Data structure for MType (not defined as an enum in order to use only
+* one byte instead of four
 */
-typedef enum {
-  DEFAULT, /**<USe to init message or to raise error*/
-  TRAIN,
-  INSERT,
-  ACK_INSERT,
-  NAK_INSERT,
-  DISCONNECT,
-  NEWSUCC
-}MType;
+typedef char MType;
+
+#define DEFAULT    0 /**<USe to init message or to raise error*/
+#define TRAIN      1
+#define INSERT     2
+#define ACK_INSERT 3
+#define NAK_INSERT 4
+#define DISCONNECT 5
+#define NEWSUCC    6
 
 /**
 * @brief Data structure for Msg
