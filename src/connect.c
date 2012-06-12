@@ -13,6 +13,9 @@ void *connectionMgt(void *arg) {
 
   do{
     msg_ext = receive(aComm);
+    if (msg_ext == NULL) {
+      break;
+    }
     switch(msg_ext->msg.type){
     case INSERT:
       add_tcomm(aComm, addr_2_rank(msg_ext->msg.body.insert.sender), global_addr_array);
@@ -65,12 +68,10 @@ void close_connection(address addr){
   if (rank==-1)
     error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"Wrong address %d sent to close_connection",addr);
   else{
-    tcomm=global_addr_array[rank].tcomm;
-    if(tcomm==NULL)
-      error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"Wrong address sent to close_connection");
-    else{
+    tcomm=get_tcomm(rank,global_addr_array);
+    if(tcomm!=NULL){
       comm_abort(tcomm);
-      global_addr_array[rank].tcomm=NULL;
+      remove_tcomm(tcomm, rank, global_addr_array);
     }
   }           
 }

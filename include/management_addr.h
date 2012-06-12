@@ -29,7 +29,7 @@ typedef struct addr
 {
   char ip[MAX_LEN_IP];    /**<String holding the ip address*/
   char chan[MAX_LEN_CHAN];  /**<String holding the channel*/
-  t_comm* tcomm;/**<t_comm pointer to have the file descriptor*/
+  t_comm* tcomm[2];/**<t_comm pointers to have the file descriptor (we need to store 2 t_comm pointers as a process may have 2 connections with another process)*/
 }ADDR;
 
 /**
@@ -60,6 +60,22 @@ ADDR* addr_generator(char* locate, int length);
  * @param[in] array The ADDR*
  */
 void add_tcomm(t_comm * tcomm, int i, ADDR * array);
+
+/**
+ * @brief Tries to return a non-NULL @a tcomm from @a array at the @a i place
+ * @param[in] i The place where @a tcomm will be add
+ * @param[in] array The ADDR*
+ * @return tcomm[0] if it is non-NULL and tcomm[1] otherwise (so if tcomm[1] is NULL, return NULL)
+ */
+t_comm *get_tcomm(int i, ADDR * array);
+
+/**
+ * @brief Remove a @a tcomm from @a array at the @a i place
+ * @param[in] tcomm The t_comm
+ * @param[in] i The place from where @a tcomm will be removed
+ * @param[in] array The ADDR*
+ */
+void remove_tcomm(t_comm * tcomm, int i, ADDR * array);
 
 /**
  * @brief Search if a @a tcomm is present in @a array

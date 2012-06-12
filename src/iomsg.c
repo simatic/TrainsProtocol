@@ -34,7 +34,10 @@ womim * receive(t_comm * aComm){
   //search the address which has vanished
   j=search_tcomm(aComm,global_addr_array);
   if(j==-1){
-    error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"search_tcomm() return unexpected -1");
+    // It may happen when automaton has closed all the connections (thus
+    // has erased aComm from global_addr_array). As we are already aware of
+    // this connection loss, there is nothing to do.
+    return NULL;
   }
   //create the DICONNECT to return
   msg_ext = calloc(sizeof(prefix)+sizeof(newMsg(DISCONNECT,rank_2_addr(j))),sizeof(char));
@@ -70,7 +73,7 @@ int send_other(address addr, MType type, address sender){
     rank=addr_2_rank(addr);
     if(rank!=-1)
       {
-	aComm=global_addr_array[rank].tcomm;
+	aComm=get_tcomm(rank,global_addr_array);
 	iov[0].iov_base=msg;
 	iov[0].iov_len=length;
 	result=comm_writev(aComm,iov,iovcnt);
@@ -101,7 +104,7 @@ int send_train(address addr, lts_struct lts){
   rank=addr_2_rank(addr);
   if(rank!=-1)
     {
-      aComm=global_addr_array[rank].tcomm;
+      aComm = get_tcomm(rank,global_addr_array);
       global_length=
 	sizeof(int)+
 	sizeof(MType)+
