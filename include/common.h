@@ -37,4 +37,15 @@ typedef enum {false, true} bool;
       error_at_line(EXIT_FAILURE,rc,__FILE__,__LINE__,"pthread_mutex_lock"); \
   }
 
+/**
+ * @brief Macro to destroy a mutex (and check that everything went right)
+ */
+#define MUTEX_DESTROY(m) \
+  {						      \
+    int rc=pthread_mutex_destroy(&(m));					\
+    if (rc < 0)								\
+      error_at_line(EXIT_FAILURE,rc,__FILE__,__LINE__,"pthread_mutex_destroy"); \
+  }
+
+
 #endif /* _COMMON_H_ */

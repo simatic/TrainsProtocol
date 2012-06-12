@@ -52,7 +52,6 @@ womim * receive(t_comm * aComm){
 //Use to sendall the messages Msg, even the TRAIN ones, but in fact, TRAIN messages will never be created for the sending, but use only on reception... Thus, to send TRAIN messages, send_train will be used.
 //use global_addr_array defined in management_addr.h
 int send_other(address addr, MType type, address sender){
-  //int send_other(address addr, Msg * msg){
   int length;
   int iovcnt=1;
   struct iovec iov[1];
@@ -113,8 +112,7 @@ int send_train(address addr, lts_struct lts){
 	sizeof(int)+
 	sizeof(MType)+
 	3*sizeof(char)+//refers to a stamp
-	sizeof(address_set)+
-	lts.w.len;
+	sizeof(address_set);
       //to begin, let's enter the length of the message
       iov[0].iov_base=&global_length;
       iov[0].iov_len=sizeof(int);
@@ -131,24 +129,41 @@ int send_train(address addr, lts_struct lts){
       iov[5].iov_base=&(lts.circuit);
       iov[5].iov_len=sizeof(address_set);
       //after loading the wagons
-      iov[6].iov_base=lts.w.w_w->p_wagon;
-      iov[6].iov_len=lts.w.len;
+      //look after to be sure there are wagons to send...
+      if(lts.w.len!=0){//check if there are wagons
+	global_length+=lts.w.len;
+	iov[6].iov_base=lts.w.w_w->p_wagon;
+	iov[6].iov_len=lts.w.len;
+      }
+      else{
+	iov[6].iov_base=NULL;
+	iov[6].iov_len=0;
+      }
       //finally loading the wagon which is waiting to be sent
-      if(lts.p_wtosend == NULL){
+      //look after to be sure that p_wtosend exists or not...
+      if(lts.p_wtosend == NULL){//check if p_wtosend is NULL
 	iov[7].iov_base=NULL;
 	iov[7].iov_len=0;
 	result=comm_writev(aComm,iov,iovcnt);
       }
       else {
-	global_length = global_length + lts.p_wtosend->p_wagon->header.len;
-	iov[7].iov_base=lts.p_wtosend->p_wagon;
-	iov[7].iov_len=lts.p_wtosend->p_wagon->header.len;
-	//sending the whole train with writev
-	//returning the number of bytes send
-	result=comm_writev(aComm,iov,iovcnt);
+	if(firstmsg(lts.p_wtosend->p_wagon) == NULL){//check if p_wtosend is not just a header
+	  printf("wagonToSend is just a header \n");
+	  iov[7].iov_base=NULL;
+	  iov[7].iov_len=0;
+	  result=comm_writev(aComm,iov,iovcnt);
+	}
+	else{
+	  global_length += lts.p_wtosend->p_wagon->header.len;
+	  iov[7].iov_base=lts.p_wtosend->p_wagon;
+	  iov[7].iov_len=lts.p_wtosend->p_wagon->header.len;
+	  //sending the whole train with writev
+	  //returning the number of bytes send
+	  result=comm_writev(aComm,iov,iovcnt);
+	}
       }
       if(result!=global_length)
-	fprintf(stderr, "result!=length (bis)\n");
+	fprintf(stderr, "result!=length (bis) with result=%i and length=%i\n",result,global_length);
       return(result);
     }
   else{

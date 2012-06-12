@@ -6,6 +6,7 @@
 #include <pthread.h>
 
 #include "advanced_struct.h"
+#include "common.h"
 
 wiw * wagonToSend = NULL;
 pthread_mutex_t mutexWagonToSend = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
@@ -22,10 +23,10 @@ wagon* nextWagon (womim* msg_ext, wagon* w) {
 }
 
 bool is_in_lts(address ad, lts_array ltsarray) {
-  bool result=false;
+  bool result=true;
   int i;
   for (i=0;i<ntr;i++) {
-    result=result && addr_ismember(ad,ltsarray[i].circuit);
+    result=result & addr_ismember(ad,ltsarray[i].circuit);
   }
   return result;
 }
@@ -79,15 +80,15 @@ message * mallocwiw(int payloadSize){
 }
 
 void free_wiw(wiw * ww){
-  pthread_mutex_lock(&(ww->p_womim->pfx.mutex));
+  MUTEX_LOCK(ww->p_womim->pfx.mutex);
   ww->p_womim->pfx.counter -= 1;
   if (ww->p_womim->pfx.counter == 0) {
-    pthread_mutex_unlock(&(ww->p_womim->pfx.mutex));
-    pthread_mutex_destroy(&(ww->p_womim->pfx.mutex));
+    MUTEX_UNLOCK(ww->p_womim->pfx.mutex);
+    MUTEX_DESTROY(ww->p_womim->pfx.mutex);
     free(ww->p_womim);
   }
   else {
-    pthread_mutex_unlock(&(ww->p_womim->pfx.mutex));
+    MUTEX_UNLOCK(ww->p_womim->pfx.mutex);
   }
   free(ww);
 }

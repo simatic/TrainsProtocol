@@ -193,7 +193,7 @@ void train_handling(womim *p_womim) {
 	}
       while(((p_wag=nextWagon(p_womim,p_wag))!=NULL));
     }
-  lts[(int)id].stamp.round=round;
+  lts[(int)id].stamp.round=round;  
   wagonToSend->p_wagon->header.round=round;
   list_append(unstableWagons[(int)id][(int)round],wagonToSend);
   wiw *wiwtoadd=newwiw();
@@ -202,7 +202,13 @@ void train_handling(womim *p_womim) {
   MUTEX_LOCK(wiwtoadd->p_womim->pfx.mutex);
   wiwtoadd->p_womim->pfx.counter++;
   MUTEX_UNLOCK(wiwtoadd->p_womim->pfx.mutex);
-  lts[(int)id].p_wtosend=wiwtoadd;
+  if(firstmsg(wiwtoadd->p_wagon)!=NULL){
+    lts[(int)id].p_wtosend=wiwtoadd;
+  }
+  else{
+    lts[(int)id].p_wtosend=NULL;
+    free_wiw(wiwtoadd);
+  }
   wagonToSend=newwiw();
   lts[(int)id].stamp.lc++;
 }
@@ -291,15 +297,18 @@ void stateMachine (womim* p_womim) {
 	{
 	case NAK_INSERT :
 	case DISCONNECT :
+	  free(p_womim);
 	  nextstate(WAIT);
 	  break;
 	case INSERT :
 	  send_other(p_womim->msg.body.insert.sender,NAK_INSERT, my_address);
+	  free(p_womim);
 	  break;
 	case ACK_INSERT :
 	  prec=p_womim->msg.body.ackInsert.sender;
 	  open_connection(prec);
 	  send_other(prec,NEWSUCC, my_address);
+	  free(p_womim);	  
 	  nextstate(OFFLINE_CONFIRMATION_WAIT);
 	  break;
 	default :
@@ -313,10 +322,12 @@ void stateMachine (womim* p_womim) {
 	{
 	case NEWSUCC :
 	case DISCONNECT :
+	  free(p_womim);	  
 	  nextstate(WAIT);
 	  break;
 	case INSERT :
 	  send_other(p_womim->msg.body.insert.sender,NAK_INSERT, my_address);
+	  free(p_womim);	  
 	  break;
 	case TRAIN :
 	  if (addr_ismember(my_address,p_womim->msg.body.train.circuit))
@@ -344,11 +355,13 @@ void stateMachine (womim* p_womim) {
 	  break;
 	default :
 	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : received message %s in state %s",mtype2str(p_womim->msg.type),state2str(automatonState));
+	  free(p_womim);	  
 	  break;
 	}
       break;
     case WAIT :
       error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected reception while WAIT");
+      free(p_womim);	  
       break;
       
     case ALONE_INSERT_WAIT :
@@ -357,10 +370,12 @@ void stateMachine (womim* p_womim) {
 	case INSERT :
 	  send_other(p_womim->msg.body.insert.sender,ACK_INSERT, my_address);
 	  prec=p_womim->msg.body.insert.sender;
+	  free(p_womim);	  
 	  nextstate(ALONE_CONNECTION_WAIT);
 	  break;
 	default :
 	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : received message %s in state %s",mtype2str(p_womim->msg.type),state2str(automatonState));
+	  free(p_womim);	  
 	  break;
 	}
       break;
@@ -370,9 +385,11 @@ void stateMachine (womim* p_womim) {
 	{
 	case DISCONNECT :
 	  prec=my_address;
+	  free(p_womim);	  
 	  break;
 	case INSERT :
 	  send_other(p_womim->msg.body.insert.sender,NAK_INSERT, my_address);
+	  free(p_womim);	  
 	  break;
 	case NEWSUCC :
 	  succ=p_womim->msg.body.newSucc.sender;
@@ -385,10 +402,12 @@ void stateMachine (womim* p_womim) {
 	    (lts[(int)id]).w.len=0;
 	    send_train(succ,lts[(int)id]);
 	  }
+	  free(p_womim);	  
 	  nextstate(SEVERAL);
 	  break;
 	default :
 	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : received message %s in state %s",mtype2str(p_womim->msg.type),state2str(automatonState));
+	  free(p_womim);	  
 	  break;
 	}
       break;
@@ -416,6 +435,7 @@ void stateMachine (womim* p_womim) {
 	  send_other(p_womim->msg.body.insert.sender,ACK_INSERT, my_address);
 	  prec=p_womim->msg.body.insert.sender;
 	  addr_appendArrived(&cameProc,prec);
+	  free(p_womim);	  
 	  break;
 	case NEWSUCC :
 	  close_connection(succ);
@@ -425,6 +445,7 @@ void stateMachine (womim* p_womim) {
 	    {
 	      send_train(succ,lts[(lis+i) % ntr]);
 	    }
+	  free(p_womim);	  
 	  break;
 	case DISCONNECT :
 	  if (addr_isequal(p_womim->msg.body.disconnect.sender,prec))
@@ -434,8 +455,10 @@ void stateMachine (womim* p_womim) {
 		  if (open_connection(prec)!=(-1))
 		    {
 		      send_other(prec,NEWSUCC, my_address);
+		      free(p_womim);	  
 		      nextstate(SEVERAL);
 		      MUTEX_UNLOCK(state_machine_mutex);
+		      return;
 		    }
 		  addr_appendGone(&cameProc,&goneProc,prec);
 		  prec=addr_prec(prec);
@@ -456,21 +479,25 @@ void stateMachine (womim* p_womim) {
 		}
 	      bqueue_enqueue(wagonsToDeliver,wagonToSend);
 	      wagonToSend=newwiw();
+	      free(p_womim);	  
 	      nextstate(ALONE_INSERT_WAIT);
 	      MUTEX_UNLOCK(state_machine_mutex);
+	      return;
 	    }
 	  else // connection lost with succ
 	    {
 	      succ=0;
+	      free(p_womim);	  
 	    }
 	  break;
 	default:
 	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : received message %s in state %s",mtype2str(p_womim->msg.type),state2str(automatonState));
 	}
-      nextstate(SEVERAL);
-      break;
+       break;
     default :
       error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__, "Unknown state : %d",automatonState);
+      free(p_womim);	  
+      break;
     }
   MUTEX_UNLOCK(state_machine_mutex);
 }
