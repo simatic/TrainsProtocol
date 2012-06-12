@@ -3,6 +3,7 @@
 #define _GNU_SOURCE
 
 #include <stdio.h>
+#include <time.h>
 #include "stateMachine.h"
 #include "interface.h"
 #include "advanced_struct.h"
@@ -133,7 +134,9 @@ void automatonInit () {
     
   prec=0;
   succ=0;
+  MUTEX_LOCK(state_machine_mutex);
   nextstate(OFFLINE_CONNECTION_ATTEMPT);
+  MUTEX_UNLOCK(state_machine_mutex);
 }
 
 void train_handling(womim *p_womim) {
@@ -206,7 +209,8 @@ void train_handling(womim *p_womim) {
 
 int rand_sleep(int nbwait) {
   srand(time(NULL));
-  return rand()%(1<<(nbwait-1));
+  int i = rand()%(1<<(nbwait));
+  return i;
 }
 
 void waitBeforConnect () {
@@ -218,16 +222,15 @@ void waitBeforConnect () {
   close_connection(succ);
   prec=0;
   succ=0;
-  usleep(rand_sleep(waitNb)*wait_default_time);
+  int sleep=rand_sleep(waitNb)*wait_default_time;
+  printf("waiting time : %d\n",sleep);
+  usleep(sleep);
   waitNb++;
   return;
 }
 
-void nextstate (State s) {
-  printf("Nextstate = %s\n", state2str(s));
-  switch (s) {
-  case OFFLINE_CONNECTION_ATTEMPT :
-    participate(true);
+void offline_init () {
+participate(true);
     succ=searchSucc(my_address);
     if (addr_ismine(succ))
       {
@@ -235,6 +238,7 @@ void nextstate (State s) {
 	bqueue_enqueue(wagonsToDeliver,wagonToSend);
 	wagonToSend=newwiw();
 	automatonState=ALONE_INSERT_WAIT;
+	printf("Nextstate(fake) = %s\n", state2str(automatonState));
 	int rc=sem_post(&sem_init_done);
 	if (rc)
 	  error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"error in sem_post");
@@ -243,13 +247,23 @@ void nextstate (State s) {
       }
     send_other(succ,INSERT, my_address);
     automatonState=OFFLINE_CONNECTION_ATTEMPT;
+    printf("Nextstate(fake) = %s\n", state2str(automatonState));
+    return;
+}
+
+
+void nextstate (State s) {
+  printf("Nextstate = %s\n", state2str(s));
+  switch (s) {
+  case OFFLINE_CONNECTION_ATTEMPT :
+    offline_init();
     break;
   case OFFLINE_CONFIRMATION_WAIT :
     automatonState=OFFLINE_CONFIRMATION_WAIT;
     break;
   case WAIT :
     waitBeforConnect();
-    automatonState=OFFLINE_CONNECTION_ATTEMPT;
+    offline_init();
     break;
   case ALONE_INSERT_WAIT :
     prec=my_address;
@@ -278,7 +292,6 @@ void stateMachine (womim* p_womim) {
 	case NAK_INSERT :
 	case DISCONNECT :
 	  nextstate(WAIT);
-	  MUTEX_UNLOCK(state_machine_mutex);
 	  break;
 	case INSERT :
 	  send_other(p_womim->msg.body.insert.sender,NAK_INSERT, my_address);
@@ -301,7 +314,6 @@ void stateMachine (womim* p_womim) {
 	case NEWSUCC :
 	case DISCONNECT :
 	  nextstate(WAIT);
-	  MUTEX_UNLOCK(state_machine_mutex);
 	  break;
 	case INSERT :
 	  send_other(p_womim->msg.body.insert.sender,NAK_INSERT, my_address);
@@ -310,6 +322,14 @@ void stateMachine (womim* p_womim) {
 	  if (addr_ismember(my_address,p_womim->msg.body.train.circuit))
 	    {
 	      p_womim->msg.body.train.stamp.lc++;
+	      wagon * w=firstWagon(&(p_womim->msg));
+	      free_wiw(lts[(int)p_womim->msg.body.train.stamp.id].w.w_w);
+	      lts[(int)p_womim->msg.body.train.stamp.id].w.w_w=newwiw();
+	      lts[(int)p_womim->msg.body.train.stamp.id].w.w_w->p_wagon=w;
+	      lts[(int)p_womim->msg.body.train.stamp.id].w.w_w->p_womim=p_womim;
+	      lts[(int)p_womim->msg.body.train.stamp.id].w.len=(p_womim->msg.len-sizeof(stamp)-sizeof(int)-sizeof(MType)-sizeof(address));
+	      lts[(int)p_womim->msg.body.train.stamp.id].circuit=p_womim->msg.body.train.circuit;
+	      lts[(int)p_womim->msg.body.train.stamp.id].stamp=p_womim->msg.body.train.stamp;
 	    }
 	  send_train(succ,lts[(int)p_womim->msg.body.train.stamp.id]);
 	  if (is_in_lts(my_address,lts))
@@ -359,7 +379,7 @@ void stateMachine (womim* p_womim) {
 	  int i;
 	  for (i=1;i<=ntr;i++) {
 	    int id=((lis+i) % ntr);
-	    (lts[(int)id]).stamp.lc++;
+	    (lts[(int)id]).stamp.lc+=1;
 	    (lts[(int)id]).circuit=my_address | prec;
 	    (lts[(int)id]).w.w_w=newwiw();
 	    (lts[(int)id]).w.len=0;

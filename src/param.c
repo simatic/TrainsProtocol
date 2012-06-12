@@ -4,4 +4,4 @@
 
 int ntr=1;
 int wait_nb_max=10 ;
-int wait_default_time=500 ;
+int wait_default_time=2 ;

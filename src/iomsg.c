@@ -101,6 +101,10 @@ int send_train(address addr, lts_struct lts){
   t_comm * aComm;
   int result;
   
+  //Log to say what train is sent
+  printf("the train %d is sent to %d\n",lts.stamp.id,addr);
+  //
+
   rank=addr_2_rank(addr);
   if(rank!=-1)
     {
@@ -108,7 +112,7 @@ int send_train(address addr, lts_struct lts){
       global_length=
 	sizeof(int)+
 	sizeof(MType)+
-	3*sizeof(char)+
+	3*sizeof(char)+//refers to a stamp
 	sizeof(address_set)+
 	lts.w.len;
       //to begin, let's enter the length of the message

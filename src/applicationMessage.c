@@ -72,41 +72,42 @@ void *uto_deliveries(void *null){
   do {
     wi = bqueue_dequeue(wagonsToDeliver);
     w = wi->p_wagon;
-
-    counters.wagons_delivered++;
-
-    // We analyze all messages in this wagon
-    for (mp = firstmsg(w); mp != NULL ; mp = nextmsg(w, mp)) {
-
-      counters.messages_delivered++;
-      counters.messages_bytes_delivered += payload_size(mp);
-
-      switch (mp->header.typ) {
-      case AM_BROADCAST:
-	(*theCallbackUtoDeliver)(w->header.sender, mp);
-	break;
-      case AM_ARRIVAL:
-	fillCv(&cv, ((payloadArrivalDeparture*)(mp->payload))->circuit);
-	cv.cv_joined = ((payloadArrivalDeparture*)(mp->payload))->ad;
-	(*theCallbackCircuitChange)(&cv);
-	break;
-      case AM_DEPARTURE:
-	fillCv(&cv, ((payloadArrivalDeparture*)(mp->payload))->circuit);
-	cv.cv_departed = ((payloadArrivalDeparture*)(mp->payload))->ad;
-	(*theCallbackCircuitChange)(&cv);
-	break;
-      case AM_TERMINATE:
-	terminate = true;
-	break;
-      default:
-	fprintf(stderr, "Received a message with unknown typ \"%d\"\n", mp->header.typ);
-	break;
+  
+    if(w!=NULL){
+      counters.wagons_delivered++;
+      
+      // We analyze all messages in this wagon
+      for (mp = firstmsg(w); mp != NULL ; mp = nextmsg(w, mp)) {
+	
+	counters.messages_delivered++;
+	counters.messages_bytes_delivered += payload_size(mp);
+	
+	switch (mp->header.typ) {
+	case AM_BROADCAST:
+	  (*theCallbackUtoDeliver)(w->header.sender, mp);
+	  break;
+	case AM_ARRIVAL:
+	  fillCv(&cv, ((payloadArrivalDeparture*)(mp->payload))->circuit);
+	  cv.cv_joined = ((payloadArrivalDeparture*)(mp->payload))->ad;
+	  (*theCallbackCircuitChange)(&cv);
+	  break;
+	case AM_DEPARTURE:
+	  fillCv(&cv, ((payloadArrivalDeparture*)(mp->payload))->circuit);
+	  cv.cv_departed = ((payloadArrivalDeparture*)(mp->payload))->ad;
+	  (*theCallbackCircuitChange)(&cv);
+	  break;
+	case AM_TERMINATE:
+	  terminate = true;
+	  break;
+	default:
+	  fprintf(stderr, "Received a message with unknown typ \"%d\"\n", mp->header.typ);
+	  break;
+	}
       }
+      
+      free_wiw(wi);
     }
-
-    free_wiw(wi);
-
   } while(!terminate);
-
+  
   return NULL;
 }

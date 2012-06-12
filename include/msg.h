@@ -32,7 +32,7 @@ typedef struct {
   stamp stamp;/**<A stramp for some info*/
   address_set circuit;/**<A description of the circuit*/
   wagon wagons[];/**<The block of wagons*/
-} __attribute__((packed)) Train;
+}__attribute__((packed)) Train;
 
 /**
 * @brief Data structure for Default messages
