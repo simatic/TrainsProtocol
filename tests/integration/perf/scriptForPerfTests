@@ -52,7 +52,10 @@ do
         for ((i=0; i<$number; i+=1))
 	do
             ficname='perf_cooldown_'$cooldown'_measurement_'$measurement'_number_'$number'_size_'$size'_warmup_'$warmup'_'${hostnames[$i]}'_'$i
-            cmd="$cmd (ssh ${hostnames[$i]} `pwd`/perf --broadcasters $number --cooldown $cooldown --measurement $measurement --number $number --size $size --trainsNumber $number --warmup $warmup >$ficname 2>&1 &) ;"
+	    # NB : About the 'export FAKE=toAVoidBug' hereafter, if it is not here, the 
+	    # export TRAINS_HOST=${hostnames[$i]} which follows is not taken into account. I did not
+	    # find why :-(
+            cmd="$cmd (ssh ${hostnames[$i]} export FAKE=toAvoidBug ; export TRAINS_HOST=${hostnames[$i]} ; export TRAINS_PORT=2000 ; `pwd`/perf --broadcasters $number --cooldown $cooldown --measurement $measurement --number $number --size $size --trainsNumber $number --warmup $warmup >$ficname 2>&1 &) ;"
         done
 
 	# we launch the test
