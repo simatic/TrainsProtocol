@@ -2,6 +2,7 @@
 // (Linux specific?)
 #define _GNU_SOURCE
 
+#include <stdio.h>
 #include "stateMachine.h"
 #include "interface.h"
 #include "advanced_struct.h"
@@ -22,6 +23,50 @@ t_bqueue* wagonsToDeliver;
 
 void stateMachine (womim* p_womim);
 void nextstate (State s);
+
+char *state2str(State state) {
+  static char s[64];
+  switch(state){
+  case OFFLINE_CONNECTION_ATTEMPT:
+    return "OFFLINE_CONNECTION_ATTEMPT";
+  case OFFLINE_CONFIRMATION_WAIT:
+    return "OFFLINE_CONFIRMATION_WAIT";
+  case ALONE_INSERT_WAIT:
+    return "ALONE_INSERT_WAIT";
+  case ALONE_CONNECTION_WAIT:
+    return "ALONE_CONNECTION_WAIT";
+  case SEVERAL:
+    return "SEVERAL";
+  case   WAIT:
+    return "WAIT";
+  default:
+    sprintf(s, "Unknown (value = %d)", state);
+    return s;
+  }
+}
+
+char *mtype2str(MType mtype){
+  static char s[64];
+  switch(mtype){
+  case DEFAULT:
+    return "DEFAULT";
+  case TRAIN:
+    return "TRAIN";
+  case INSERT:
+    return "INSERT";
+  case ACK_INSERT:
+    return "ACK_INSERT";
+  case NAK_INSERT:
+    return "NAK_INSERT";
+  case DISCONNECT:
+    return "DISCONNECT";
+  case NEWSUCC:
+    return "NEWSUCC";
+  default:
+    sprintf(s, "Unknown (value = %d)", mtype);
+    return s;
+  }
+}
 
 void *acceptMgt(void *arg) {
   t_comm *commForAccept = (t_comm*)arg;
@@ -179,6 +224,7 @@ void waitBeforConnect () {
 }
 
 void nextstate (State s) {
+  printf("Nextstate = %s\n", state2str(s));
   switch (s) {
   case OFFLINE_CONNECTION_ATTEMPT :
     participate(true);
@@ -222,6 +268,7 @@ void nextstate (State s) {
 }
 
 void stateMachine (womim* p_womim) {
+  printf("State = %s, receive message = %s\n", state2str(automatonState), mtype2str(p_womim->msg.type));
   MUTEX_LOCK(state_machine_mutex);
   switch (automatonState)
     {
@@ -241,8 +288,9 @@ void stateMachine (womim* p_womim) {
 	  open_connection(prec);
 	  send_other(prec,NEWSUCC, my_address);
 	  nextstate(OFFLINE_CONFIRMATION_WAIT);
+	  break;
 	default :
-	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : %d while OFFLINE_CONNECTION_ATTEMPT",p_womim->msg.type);
+	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : received message %s in state %s",mtype2str(p_womim->msg.type),state2str(automatonState));
 	  break;
 	}
       break;
@@ -275,7 +323,7 @@ void stateMachine (womim* p_womim) {
 	    }
 	  break;
 	default :
-	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : %d while OFFLINE_CONFIRMATION_WAIT",p_womim->msg.type);
+	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : received message %s in state %s",mtype2str(p_womim->msg.type),state2str(automatonState));
 	  break;
 	}
       break;
@@ -292,7 +340,7 @@ void stateMachine (womim* p_womim) {
 	  nextstate(ALONE_CONNECTION_WAIT);
 	  break;
 	default :
-	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : %d while ALONE_INSERT_WAIT",p_womim->msg.type);
+	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : received message %s in state %s",mtype2str(p_womim->msg.type),state2str(automatonState));
 	  break;
 	}
       break;
@@ -320,7 +368,7 @@ void stateMachine (womim* p_womim) {
 	  nextstate(SEVERAL);
 	  break;
 	default :
-	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : %d while ALONE_CONNECTION_WAIT",p_womim->msg.type);
+	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : received message %s in state %s",mtype2str(p_womim->msg.type),state2str(automatonState));
 	  break;
 	}
       break;
@@ -397,12 +445,12 @@ void stateMachine (womim* p_womim) {
 	    }
 	  break;
 	default:
-	  error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__, "unexpected case : %d in SEVERAL",p_womim->msg.type);
+	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : received message %s in state %s",mtype2str(p_womim->msg.type),state2str(automatonState));
 	}
       nextstate(SEVERAL);
       break;
     default :
-      error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__, "unexpected state : %d",automatonState);
+      error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__, "Unknown state : %d",automatonState);
     }
   MUTEX_UNLOCK(state_machine_mutex);
 }
