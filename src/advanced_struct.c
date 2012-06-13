@@ -32,22 +32,22 @@ bool is_in_lts(address ad, lts_array ltsarray) {
   return result;
 }
 
-bool is_recent_train(stamp tr_st,lts_array * plts_array, char last_id, int nb_train){
+bool is_recent_train(stamp tr_st,lts_array lts, char last_id){
   int waiting_id;
   int diff;
 
-  waiting_id=(last_id++)%ntr;
+  waiting_id=(last_id+1)%ntr;
   if(tr_st.id==waiting_id){
 
-    printf("id of the stamp given %d\n",tr_st.id);
-    printf("logical clock of stamp in the is_recent_train %d\n",tr_st.lc);
-    printf("logical clock in lts %d\n",((*plts_array)[waiting_id]).stamp.lc);
+    //printf("id of the stamp given %d\n",tr_st.id);
+    //printf("logical clock of stamp in the is_recent_train %d\n",tr_st.lc);
+    //printf("logical clock in lts %d\n",lts[waiting_id].stamp.lc);
 
-    diff=tr_st.lc - ((*plts_array)[waiting_id]).stamp.lc;
+    diff=tr_st.lc - lts[waiting_id].stamp.lc;
     if(diff>0)
-      return(diff<((1+256)/2));//FIXME
+      return(diff<((1+M)/2));
     else{ 
-      return(diff<((1-256)/2));
+      return(diff<((1-M)/2));
     }
   }
   else{
@@ -89,8 +89,8 @@ message * mallocwiw(int payloadSize){
   return mp;
 }
 
-void free_wiw(wiw * ww){
-  if(ww->p_womim != NULL){
+void release_wiw(wiw * ww){
+  if((ww !=NULL) && (ww->p_womim != NULL)){
     MUTEX_LOCK(ww->p_womim->pfx.mutex);
     ww->p_womim->pfx.counter -= 1;
     if (ww->p_womim->pfx.counter == 0) {
@@ -101,6 +101,24 @@ void free_wiw(wiw * ww){
     else {
       MUTEX_UNLOCK(ww->p_womim->pfx.mutex);
     }
+    ww->p_wagon = NULL;
+    ww->p_womim = NULL;
   }
+}
+
+void free_wiw(wiw * ww){
+  release_wiw(ww);
   free(ww);
+}
+
+void free_womim(womim *wo){
+  MUTEX_LOCK(wo->pfx.mutex);
+  wo->pfx.counter--;
+  if (wo->pfx.counter == 0) {
+    MUTEX_UNLOCK(wo->pfx.mutex);
+    MUTEX_DESTROY(wo->pfx.mutex);
+    free(wo);
+  } else {
+    MUTEX_UNLOCK(wo->pfx.mutex);
+  }
 }

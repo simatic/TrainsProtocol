@@ -39,14 +39,13 @@ void bqueue_enqueue(t_bqueue *aBQueue, void *anElt){
 }
 
 void bqueue_extend(t_bqueue *aBQueue, t_list *list){
-  LINK *link, *next;
+  LINK *link;
 
   link=list->first;
-  do{
-    next=link->next;
-    bqueue_enqueue(aBQueue, link);
-    link=next;
-  }while(link!=NULL);
+  while (link && link->value) {
+    bqueue_enqueue(aBQueue, link->value);
+    link=link->next;
+  }
 
 } 
 

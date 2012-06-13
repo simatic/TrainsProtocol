@@ -10,6 +10,7 @@
 void *connectionMgt(void *arg) {
   t_comm *aComm = (t_comm*)arg;
   womim * msg_ext;
+  bool theEnd = false;
 
   do{
     msg_ext = receive(aComm);
@@ -23,11 +24,16 @@ void *connectionMgt(void *arg) {
     case NEWSUCC:
       add_tcomm(aComm, addr_2_rank(msg_ext->msg.body.newSucc.sender), global_addr_array);
       break;
+    case DISCONNECT:
+      theEnd = true;
     default:
       break;
     }
     stateMachine(msg_ext);
-  } while (msg_ext->msg.type != DISCONNECT);
+  } while (!theEnd);
+  // NB : The test cannot be 
+  //} while (msg_ext->msg.type != DISCONNECT);
+  // because msg.typ is freed inside stateMachine()
 
   return NULL;
 }

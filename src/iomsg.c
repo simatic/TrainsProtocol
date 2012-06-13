@@ -92,78 +92,60 @@ int send_other(address addr, MType type, address sender){
 
 //send a train -> use send_other to send the rest
 int send_train(address addr, lts_struct lts){
-  int global_length=0;
-  MType tosend=TRAIN; 
-  int iovcnt=8;
-  struct iovec iov[8];
+  int iovcnt=3;
+  struct iovec iov[iovcnt];
   int rank=-1;
   t_comm * aComm;
   int result;
   
-  //Log to say what train is sent
-  printf("the train %d is sent to %d\n",lts.stamp.id,addr);
-  //
+  //printf("the train %d is sent to %d\n",lts.stamp.id,addr);
 
   rank=addr_2_rank(addr);
   if(rank!=-1)
     {
       aComm = get_tcomm(rank,global_addr_array);
-      global_length=
-	sizeof(int)+
-	sizeof(MType)+
-	3*sizeof(char)+//refers to a stamp
-	sizeof(address_set);
+      lts.lng =
+	sizeof(lts.lng)+
+	sizeof(lts.type)+
+	sizeof(lts.stamp)+
+	sizeof(lts.circuit);
       //to begin, let's enter the length of the message
-      iov[0].iov_base=&global_length;
-      iov[0].iov_len=sizeof(int);
-      //first loading the type of Message (MType)
-      iov[1].iov_base=&tosend;
-      iov[1].iov_len=sizeof(MType);
-      //then loading of the train's stramp and circuit
-      iov[2].iov_base=&(lts.stamp.id);
-      iov[2].iov_len=sizeof(char);
-      iov[3].iov_base=&(lts.stamp.lc);
-      iov[3].iov_len=sizeof(char);
-      iov[4].iov_base=&(lts.stamp.round);
-      iov[4].iov_len=sizeof(char);
-      iov[5].iov_base=&(lts.circuit);
-      iov[5].iov_len=sizeof(address_set);
+      iov[0].iov_base=&(lts);
+      iov[0].iov_len=lts.lng;
       //after loading the wagons
       //look after to be sure there are wagons to send...
       if(lts.w.len!=0){//check if there are wagons
-	global_length+=lts.w.len;
-	iov[6].iov_base=lts.w.w_w->p_wagon;
-	iov[6].iov_len=lts.w.len;
+	lts.lng += lts.w.len;
+	iov[1].iov_base=lts.w.w_w.p_wagon;
+	iov[1].iov_len=lts.w.len;
       }
       else{
-	iov[6].iov_base=NULL;
-	iov[6].iov_len=0;
+	iov[1].iov_base=NULL;
+	iov[1].iov_len=0;
       }
       //finally loading the wagon which is waiting to be sent
       //look after to be sure that p_wtosend exists or not...
       if(lts.p_wtosend == NULL){//check if p_wtosend is NULL
-	iov[7].iov_base=NULL;
-	iov[7].iov_len=0;
-	result=comm_writev(aComm,iov,iovcnt);
+	iov[2].iov_base=NULL;
+	iov[2].iov_len=0;
       }
       else {
 	if(firstmsg(lts.p_wtosend->p_wagon) == NULL){//check if p_wtosend is not just a header
 	  printf("wagonToSend is just a header \n");
-	  iov[7].iov_base=NULL;
-	  iov[7].iov_len=0;
-	  result=comm_writev(aComm,iov,iovcnt);
+	  iov[2].iov_base=NULL;
+	  iov[2].iov_len=0;
 	}
 	else{
-	  global_length += lts.p_wtosend->p_wagon->header.len;
-	  iov[7].iov_base=lts.p_wtosend->p_wagon;
-	  iov[7].iov_len=lts.p_wtosend->p_wagon->header.len;
-	  //sending the whole train with writev
-	  //returning the number of bytes send
-	  result=comm_writev(aComm,iov,iovcnt);
+	  lts.lng += lts.p_wtosend->p_wagon->header.len;
+	  iov[2].iov_base=lts.p_wtosend->p_wagon;
+	  iov[2].iov_len=lts.p_wtosend->p_wagon->header.len;
 	}
       }
-      if(result!=global_length)
-	fprintf(stderr, "result!=length (bis) with result=%i and length=%i\n",result,global_length);
+      //sending the whole train with writev
+      //returning the number of bytes sent
+      result=comm_writev(aComm,iov,iovcnt);
+      if(result!=lts.lng)
+	fprintf(stderr, "result!=lts.lng (bis) with result=%i and length=%i\n",result,lts.lng);
       return(result);
     }
   else{

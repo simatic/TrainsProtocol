@@ -4,6 +4,7 @@
 #include <error.h>
 
 #include "bqueue.h"
+#include "list.h"
 
 t_bqueue *q;
 
@@ -28,6 +29,7 @@ void compare(void *s, char *target){
 int main() {
   int rc;
   pthread_t thread;
+  t_list *l;
 
   q = bqueue_new();
 
@@ -50,6 +52,24 @@ int main() {
   compare(bqueue_dequeue(q), b);
   compare(bqueue_dequeue(q), c);
 
+  l = list_new();
+  bqueue_extend(q,l);
+  list_append(l,a);
+  list_append(l,b);
+  list_append(l,c);
+  bqueue_extend(q,l);
+  list_cleanList(l);
+  list_append(l,a);
+  list_append(l,b);
+  list_append(l,c);
+  bqueue_extend(q,l);
+
+  compare(bqueue_dequeue(q), a);
+  compare(bqueue_dequeue(q), b);
+  compare(bqueue_dequeue(q), c);
+  compare(bqueue_dequeue(q), a);
+  compare(bqueue_dequeue(q), b);
+  compare(bqueue_dequeue(q), c);
   
   // free memory 
   rc = pthread_join(thread, NULL);

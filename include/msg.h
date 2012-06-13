@@ -17,11 +17,21 @@
 
 
 /**
+* @brief Data structure containing Logicial clocks
+*/
+typedef unsigned char t_lc;
+
+/**
+ * Number of possible values for t_lc
+ */
+#define M 256 // Because we can have 256 values in an unsigned char
+
+/**
 * @brief Data structure for stamps
 */
 typedef struct {
   char id;
-  char lc;
+  t_lc lc;
   char round;
 }__attribute__((packed)) stamp;
 

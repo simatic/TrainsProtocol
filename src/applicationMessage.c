@@ -33,12 +33,12 @@ message *newmsg(int payloadSize){
 }
 
 int uto_broadcast(message *mp){
-  MUTEX_LOCK(state_machine_mutex);
+  //  MUTEX_LOCK(state_machine_mutex);
   if (automatonState == ALONE_INSERT_WAIT) {
     bqueue_enqueue(wagonsToDeliver, wagonToSend);
     wagonToSend = newwiw();
   }
-  MUTEX_UNLOCK(state_machine_mutex);
+  //MUTEX_UNLOCK(state_machine_mutex);
   
   // Message is already in wagonToSend. All we have to do is to unlock the mutex.
   // If automatonState is in another state than ALONE, 
@@ -73,40 +73,37 @@ void *uto_deliveries(void *null){
     wi = bqueue_dequeue(wagonsToDeliver);
     w = wi->p_wagon;
   
-    if(w!=NULL){
-      counters.wagons_delivered++;
+    counters.wagons_delivered++;
       
-      // We analyze all messages in this wagon
-      for (mp = firstmsg(w); mp != NULL ; mp = nextmsg(w, mp)) {
+    // We analyze all messages in this wagon
+    for (mp = firstmsg(w); mp != NULL ; mp = nextmsg(w, mp)) {
 	
-	counters.messages_delivered++;
-	counters.messages_bytes_delivered += payload_size(mp);
+      counters.messages_delivered++;
+      counters.messages_bytes_delivered += payload_size(mp);
 	
-	switch (mp->header.typ) {
-	case AM_BROADCAST:
-	  (*theCallbackUtoDeliver)(w->header.sender, mp);
-	  break;
-	case AM_ARRIVAL:
-	  fillCv(&cv, ((payloadArrivalDeparture*)(mp->payload))->circuit);
-	  cv.cv_joined = ((payloadArrivalDeparture*)(mp->payload))->ad;
-	  (*theCallbackCircuitChange)(&cv);
-	  break;
-	case AM_DEPARTURE:
-	  fillCv(&cv, ((payloadArrivalDeparture*)(mp->payload))->circuit);
-	  cv.cv_departed = ((payloadArrivalDeparture*)(mp->payload))->ad;
-	  (*theCallbackCircuitChange)(&cv);
-	  break;
-	case AM_TERMINATE:
-	  terminate = true;
-	  break;
-	default:
-	  fprintf(stderr, "Received a message with unknown typ \"%d\"\n", mp->header.typ);
-	  break;
-	}
+      switch (mp->header.typ) {
+      case AM_BROADCAST:
+	(*theCallbackUtoDeliver)(w->header.sender, mp);
+	break;
+      case AM_ARRIVAL:
+	fillCv(&cv, ((payloadArrivalDeparture*)(mp->payload))->circuit);
+	cv.cv_joined = ((payloadArrivalDeparture*)(mp->payload))->ad;
+	(*theCallbackCircuitChange)(&cv);
+	break;
+      case AM_DEPARTURE:
+	fillCv(&cv, ((payloadArrivalDeparture*)(mp->payload))->circuit);
+	cv.cv_departed = ((payloadArrivalDeparture*)(mp->payload))->ad;
+	(*theCallbackCircuitChange)(&cv);
+	break;
+      case AM_TERMINATE:
+	terminate = true;
+	break;
+      default:
+	fprintf(stderr, "Received a message with unknown typ \"%d\"\n", mp->header.typ);
+	break;
       }
-      
-      free_wiw(wi);
     }
+    free_wiw(wi);
   } while(!terminate);
   
   return NULL;

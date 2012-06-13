@@ -49,10 +49,12 @@ typedef struct {
  * @note lts is for Last Train Send
  */
 typedef struct {
+  int   lng;
+  MType type;
   stamp stamp;
   address_set circuit;
   struct {
-    wiw* w_w;
+    wiw w_w;
     int len;
   } w;/**<The area used to stock wagons*/
   wiw* p_wtosend;/**<refers to the wagon which is bouned to be sent*/
@@ -84,13 +86,12 @@ bool is_in_lts(address  ad, lts_array ltsarray);
 /**
  * @brief Says if the train signalized by @a tr_st is recent or no
  * @param[in] tr_st The stamp of the train
- * @param[in] plts_array The last train sent
+ * @param[in] lts Array of last trains sent
  * @param[in] last_id The last id sent
- * @param[in] nb_train
  * @return A boolean
  * @note This fun holds the overflows
  */
-bool is_recent_train(stamp tr_st,lts_array * plts_array, char last_id, int nb_train);
+bool is_recent_train(stamp tr_st,lts_array lts, char last_id);
 /**
  * @brief Create a new wiw
  * @return A pointer on a wiw
@@ -105,10 +106,22 @@ wiw * newwiw();
 message * mallocwiw(int payloadSize);
 
 /**
+ * @brief Look after the counter and decrements it (does not free the wiw)
+ * @param[in] ww A pointer on a wiw used to have prefixe and the rest.
+ */
+void release_wiw(wiw * ww);
+
+/**
  * @brief Look after the counter and free the wiw if it is equal to 0
  * @param[in] ww A pointer on a wiw used to have prefixe and the rest.
  */
 void free_wiw(wiw * ww);
+
+/**
+ * @brief Decreases counter of womim @a wo and frees it if it is 0.
+ * @param[in] wo A pointer to the womim
+ */
+void free_womim(womim *wo);
 
 /**
  * @brief Wagon containing the next messages to be uto-broadcasted

@@ -13,7 +13,7 @@
 
 wagon* firstWagon(Msg * msg){
   if(msg->type==TRAIN){
-    if(msg->len == (sizeof(int)+sizeof(MType)+sizeof(stamp)+sizeof(address_set)) ){
+    if(msg->len > (sizeof(int)+sizeof(MType)+sizeof(stamp)+sizeof(address_set)) ){
       return(msg->body.train.wagons);
     }
     else {
