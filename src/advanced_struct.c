@@ -90,15 +90,17 @@ message * mallocwiw(int payloadSize){
 }
 
 void free_wiw(wiw * ww){
-  MUTEX_LOCK(ww->p_womim->pfx.mutex);
-  ww->p_womim->pfx.counter -= 1;
-  if (ww->p_womim->pfx.counter == 0) {
-    MUTEX_UNLOCK(ww->p_womim->pfx.mutex);
-    MUTEX_DESTROY(ww->p_womim->pfx.mutex);
-    free(ww->p_womim);
-  }
-  else {
-    MUTEX_UNLOCK(ww->p_womim->pfx.mutex);
+  if(ww->p_womim != NULL){
+    MUTEX_LOCK(ww->p_womim->pfx.mutex);
+    ww->p_womim->pfx.counter -= 1;
+    if (ww->p_womim->pfx.counter == 0) {
+      MUTEX_UNLOCK(ww->p_womim->pfx.mutex);
+      MUTEX_DESTROY(ww->p_womim->pfx.mutex);
+      free(ww->p_womim);
+    }
+    else {
+      MUTEX_UNLOCK(ww->p_womim->pfx.mutex);
+    }
   }
   free(ww);
 }

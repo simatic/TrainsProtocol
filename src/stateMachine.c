@@ -210,7 +210,7 @@ void train_handling(womim *p_womim) {
     free_wiw(wiwtoadd);
   }
   wagonToSend=newwiw();
-  lts[(int)id].stamp.lc++;
+  lts[(int)id].stamp.lc=p_womim->msg.body.train.stamp.lc+1;
 }
 
 int rand_sleep(int nbwait) {
