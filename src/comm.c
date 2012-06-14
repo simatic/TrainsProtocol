@@ -13,6 +13,7 @@
 
 #include "comm.h"
 #include "signalMgt.h"
+#include "counter.h"
 
 /**
  * @brief Variable to hold a null thread identifier
@@ -325,6 +326,9 @@ int comm_read(t_comm *aComm, void *buf, size_t count){
 
   comm_longIOEnd(aComm);
 
+  counters.comm_read++;
+  counters.comm_read_bytes += nb;
+
   return nb;
 }
 
@@ -338,11 +342,14 @@ int comm_readFully(t_comm *aComm, void *buf, size_t count){
     return -1;
   }
   do {
-    nb = read(aComm->fd, (char*)buf + nbTotal, count - nbTotal);
+    nb = comm_read(aComm, (char*)buf + nbTotal, count - nbTotal);
     if (nb < 0)
       break;
     nbTotal += nb;
   } while ((nb > 0) && (nbTotal < count) && !aComm->aborted);
+
+  counters.comm_readFully++;
+  counters.comm_readFully_bytes += nbTotal;
 
   return nbTotal;
 }
@@ -364,6 +371,9 @@ int comm_write(t_comm *aComm, const void *buf, size_t count){
 
   comm_longIOEnd(aComm);
 
+  counters.comm_write++;
+  counters.comm_write_bytes += nb;
+
   return nb;
 }
 
@@ -383,6 +393,9 @@ int comm_writev(t_comm *aComm, const struct iovec *iov, int iovcnt){
   } while ((nb < 0) && (errno == EINTR) && !aComm->aborted);
 
   comm_longIOEnd(aComm);
+
+  counters.comm_writev++;
+  counters.comm_writev_bytes += nb;
 
   return nb;
 }

@@ -13,11 +13,13 @@ CallbackUtoDeliver    theCallbackUtoDeliver;
 
 message *newmsg(int payloadSize){
   message *mp;
+  counters.newmsg++;
   MUTEX_LOCK(mutexWagonToSend);
 
   // We check that we have enough space for the message the caller wants to allocate
   while ((wagonToSend->p_wagon->header.len + sizeof(message_header) + payloadSize > WAGON_MAX_LEN)&&
 	 (wagonToSend->p_wagon->header.len != sizeof(wagon_header))){
+    counters.flowControl++;
     int rc = pthread_cond_wait(&condWagonToSend, &mutexWagonToSend);
     if (rc < 0)								\
       error_at_line(EXIT_FAILURE,rc,__FILE__,__LINE__,"pthread_cond_wait"); \

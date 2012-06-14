@@ -3,6 +3,8 @@
 
 address my_address;
 
+address null_address = 0;
+
 int addr_2_rank(address ad){
   int rank = 0;
   while (((ad & 0x0001) == 0) && (rank < MAX_MEMB)){
