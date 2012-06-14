@@ -471,6 +471,7 @@ void stateMachine (womim* p_womim) {
 	    {
 	      error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__, "my_address not in the circuit ==> Suicide");
 	    }
+	  free_womim(p_womim);	  
 	  break;
 	case INSERT :
 	  close_connection(prec,true);
