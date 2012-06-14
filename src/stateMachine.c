@@ -361,10 +361,11 @@ void stateMachine (womim* p_womim) {
 	      p_womim->msg.body.train.stamp.lc++;
 	    }
 	  release_wiw(&(lts[id].w.w_w));
-	  lts[id].w.w_w.p_wagon=firstWagon(&(p_womim->msg));
-	  lts[id].w.w_w.p_womim=p_womim;
-	  lts[id].w.len=(p_womim->msg.len-sizeof(stamp)-sizeof(int)-sizeof(MType)-sizeof(address));
-	  if (lts[id].w.w_w.p_wagon != NULL) {
+	  lts[id].w.len = 0;
+	  if (firstWagon(&(p_womim->msg)) != NULL) {
+	    lts[id].w.w_w.p_wagon=firstWagon(&(p_womim->msg));
+	    lts[id].w.w_w.p_womim=p_womim;
+	    lts[id].w.len=(p_womim->msg.len-sizeof(stamp)-sizeof(int)-sizeof(MType)-sizeof(address));
 	    // We do not need to lock the p_womim->pfx.mutex as we are the only thread
 	    // accessing to counter
 	    p_womim->pfx.counter++;
@@ -372,7 +373,6 @@ void stateMachine (womim* p_womim) {
 	  lts[id].circuit=p_womim->msg.body.train.circuit;
 	  lts[id].stamp=p_womim->msg.body.train.stamp;
 	  send_train(succ,false,lts[id]);
-	  free_womim(p_womim);
 	  if (is_in_lts(my_address,lts))
 	    {
 	      lis=p_womim->msg.body.train.stamp.id;
@@ -382,6 +382,7 @@ void stateMachine (womim* p_womim) {
 	      if (rc)
 		error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"error in sem_post");
 	    }
+	  free_womim(p_womim);
 	  break;
 	default :
 	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : received message %s in state %s",mtype2str(p_womim->msg.type),state2str(automatonState));
