@@ -48,13 +48,15 @@ address rank_2_addr(int rank){
   return 1<<rank;
 }
 
-address addr_prec(address ad){
-	int i=addr_2_rank(ad);
-	if (i==(-1)) {
-		error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"addr not found");
-	}
-	i=(i+NP-1) % NP;
-	return rank_2_addr(i);
+address addr_prec(address ad, address_set circuit){
+  int i=addr_2_rank(ad);
+  if (i==(-1)) {
+    error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"addr not found");
+  }
+  do {
+    i=(i+NP-1) % NP;
+  } while (!addr_ismember(rank_2_addr(i), circuit));
+  return rank_2_addr(i);
 }
   
 

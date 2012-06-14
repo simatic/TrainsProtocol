@@ -121,10 +121,12 @@ address_set addr_updateCircuit(address_set circuit, address ad, address_set arri
 
 
 /**
- * @brief Return the prec address
- * @param[in] ad the address to use
+ * @brief Return the prec address of process @a ad among processes of
+ *        circuit @a circuit
+ * @param[in] ad the address from which to search the predecessor
+ * @param[in] circuit the set of addresses in which to search the predecessor
  * @return the prec address 
  */
-address addr_prec(address ad);
+address addr_prec(address ad, address_set circuit);
 
 #endif /* _ADDRESS_H */

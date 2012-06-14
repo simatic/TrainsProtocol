@@ -495,9 +495,9 @@ void stateMachine (womim* p_womim) {
 		      return;
 		    }
 		  addr_appendGone(&cameProc,&goneProc,prec);
-		  prec=addr_prec(prec);
+		  prec=addr_prec(prec, lts[lis].circuit);
 		}
-	      signalDepartures(goneProc, lts[(int)lis].circuit);
+	      signalDepartures(goneProc, lts[lis].circuit);
 	      goneProc=0;
 	      int aRound;
 	      int i;
