@@ -15,15 +15,19 @@
 /**
  * @brief Open the connection
  * @param[in] addr The address to connect to
+ * @param[in] isPred Indicates if this connection is opened towards
+ *            a future predecessor
  * @return -1 if it fails and 1 if not
  */
-int open_connection(address addr);
+int open_connection(address addr, bool isPred);
 
 /**
  * @brief Close the connection
  * @param[in] addr The address to diconnect
+ * @param[in] isPred Indicates if this connection is opened towards
+ *            a future predecessor
  */
-void close_connection(address addr);
+void close_connection(address addr, bool isPred);
 
 /**
  * @brief Search a successor in @a global_addr_array related to @a add and create the connectcion if possible

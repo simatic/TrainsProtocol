@@ -53,20 +53,24 @@ ADDR* addr_generator(char* locate, int length){
 }
 
 //add a tcomm to a place in an ADDR*
-void add_tcomm(t_comm * tcomm, int i, ADDR * array){
+void add_tcomm(t_comm * tcomm, int i, ADDR * array, bool isPred){
   if (array[i].tcomm[0] == NULL) {
     array[i].tcomm[0]=tcomm;
+    array[i].isPred[0]=isPred;
   } else {
     array[i].tcomm[1]=tcomm;
+    array[i].isPred[1]=isPred;
   }
 }
 
 //Tries to return a non-NULL t_comm at place i in an ADDR*
-t_comm *get_tcomm(int i, ADDR * array){
-  if (array[i].tcomm[0] != NULL) {
+t_comm *get_tcomm(int i, bool isPred, ADDR * array){
+  if ((array[i].tcomm[0] != NULL) && (array[i].isPred[0] == isPred)) {
     return array[i].tcomm[0];
-  } else {
+  } else if (array[i].isPred[1] == isPred) {
     return array[i].tcomm[1];
+  } else {
+    return NULL;
   }
 }
 
@@ -80,15 +84,21 @@ void remove_tcomm(t_comm * tcomm, int i, ADDR * array){
 }
 
 //search a t_comm in an array
-int search_tcomm(t_comm * tcomm, ADDR * array){
+void search_tcomm(t_comm * tcomm, ADDR * array, int *prank, bool *pisPred){
   int i=0;
-  int result=-1;
-  
+
+  *prank=-1;
   for(i=0;i<NP;i++){
-    if((array[i].tcomm[0] == tcomm) || (array[i].tcomm[1] == tcomm))
-      result=i;
+    if(array[i].tcomm[0] == tcomm){
+      *prank=i;
+      *pisPred=array[i].isPred[0];
+      return;
+    } else if(array[i].tcomm[1] == tcomm){
+      *prank=i;
+      *pisPred=array[i].isPred[1];
+      return;
+    }
   }
-  return(result);
 }
 
 //give the place in the array of a given address

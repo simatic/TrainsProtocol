@@ -64,7 +64,8 @@ Msg newMsg(MType mtype, address addr_id){
     msg.body.newSucc.sender=addr_id;
     msg.len=sizeof(int)+sizeof(MType)+sizeof(address);;
     break;
-  case DISCONNECT:
+  case DISCONNECT_PRED:
+  case DISCONNECT_SUCC:
     msg.type=mtype;
     msg.body.disconnect.sender=addr_id;
     msg.len=sizeof(int)+sizeof(MType)+sizeof(address);;

@@ -14,6 +14,7 @@ womim * receive(t_comm * aComm){
   int nbRead, nbRead2;
   int length;
   int j;
+  bool isPred;
 
   nbRead = comm_readFully(aComm, &length, sizeof(length));
   if (nbRead == sizeof(length)){
@@ -32,7 +33,7 @@ womim * receive(t_comm * aComm){
 
   //Connection has been closed
   //search the address which has vanished
-  j=search_tcomm(aComm,global_addr_array);
+  search_tcomm(aComm,global_addr_array,&j,&isPred);
   if(j==-1){
     // It may happen when automaton has closed all the connections (thus
     // has erased aComm from global_addr_array). As we are already aware of
@@ -40,18 +41,24 @@ womim * receive(t_comm * aComm){
     return NULL;
   }
   //create the DICONNECT to return
-  msg_ext = calloc(sizeof(prefix)+sizeof(newMsg(DISCONNECT,rank_2_addr(j))),sizeof(char));
+  MType disconnectType;
+  if (isPred){
+    disconnectType = DISCONNECT_PRED;
+  } else {
+    disconnectType = DISCONNECT_SUCC;
+  }    
+  msg_ext = calloc(sizeof(prefix)+sizeof(newMsg(disconnectType,rank_2_addr(j))),sizeof(char));
   pthread_mutex_init(&(msg_ext->pfx.mutex),NULL);
   msg_ext->pfx.counter=1;
-  msg_ext->msg=newMsg(DISCONNECT,rank_2_addr(j));
+  msg_ext->msg=newMsg(disconnectType,rank_2_addr(j));
   //close the connection
-  close_connection(rank_2_addr(j));
+  close_connection(rank_2_addr(j),isPred);
   return(msg_ext);
 }
 
 //Use to sendall the messages Msg, even the TRAIN ones, but in fact, TRAIN messages will never be created for the sending, but use only on reception... Thus, to send TRAIN messages, send_train will be used.
 //use global_addr_array defined in management_addr.h
-int send_other(address addr, MType type, address sender){
+int send_other(address addr, bool isPred, MType type, address sender){
   int length;
   int iovcnt=1;
   struct iovec iov[1];
@@ -72,7 +79,8 @@ int send_other(address addr, MType type, address sender){
     rank=addr_2_rank(addr);
     if(rank!=-1)
       {
-	aComm=get_tcomm(rank,global_addr_array);
+	aComm=get_tcomm(rank,isPred,global_addr_array);
+	//printf("Send message = %s on comm %p\n", mtype2str(type), aComm);
 	iov[0].iov_base=msg;
 	iov[0].iov_len=length;
 	result=comm_writev(aComm,iov,iovcnt);
@@ -91,19 +99,19 @@ int send_other(address addr, MType type, address sender){
 }
 
 //send a train -> use send_other to send the rest
-int send_train(address addr, lts_struct lts){
+int send_train(address addr, bool isPred, lts_struct lts){
   int iovcnt=3;
   struct iovec iov[iovcnt];
   int rank=-1;
   t_comm * aComm;
   int result;
   
-  //printf("the train %d is sent to %d\n",lts.stamp.id,addr);
-
   rank=addr_2_rank(addr);
   if(rank!=-1)
     {
-      aComm = get_tcomm(rank,global_addr_array);
+      aComm = get_tcomm(rank,isPred,global_addr_array);
+      //printf("The train %d/%d is sent to %d on comm %p\n",lts.stamp.id,lts.stamp.lc,addr, aComm);
+
       lts.lng =
 	sizeof(lts.lng)+
 	sizeof(lts.type)+

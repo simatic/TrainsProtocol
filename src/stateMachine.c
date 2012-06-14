@@ -8,6 +8,7 @@
 #include "interface.h"
 #include "advanced_struct.h"
 #include "connect.h"
+#include "counter.h"
 
 State automatonState=OFFLINE_CONNECTION_ATTEMPT;
 pthread_mutex_t state_machine_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
@@ -59,8 +60,10 @@ char *mtype2str(MType mtype){
     return "ACK_INSERT";
   case NAK_INSERT:
     return "NAK_INSERT";
-  case DISCONNECT:
-    return "DISCONNECT";
+  case DISCONNECT_PRED:
+    return "DISCONNECT_PRED";
+  case DISCONNECT_SUCC:
+    return "DISCONNECT_SUCC";
   case NEWSUCC:
     return "NEWSUCC";
   default:
@@ -147,6 +150,8 @@ void train_handling(womim *p_womim) {
   int round = p_womim->msg.body.train.stamp.round;
   wagon *p_wag;
 
+  counters.recent_trains_received++;
+  counters.recent_trains_bytes_received += p_womim->msg.len;
   if (round==lts[id].stamp.round)
     {
       round=(round+1) % NR;
@@ -241,8 +246,8 @@ void waitBeforConnect () {
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "wait_nb_max owerflowed");
   }
   participate(false);
-  close_connection(prec);
-  close_connection(succ);
+  close_connection(prec,true);
+  close_connection(succ,false);
   prec=0;
   succ=0;
   int sleep=rand_sleep(waitNb)*wait_default_time;
@@ -261,16 +266,16 @@ participate(true);
 	bqueue_enqueue(wagonsToDeliver,wagonToSend);
 	wagonToSend=newwiw();
 	automatonState=ALONE_INSERT_WAIT;
-	printf("Nextstate(fake) = %s\n", state2str(automatonState));
+	//printf("Nextstate(fake) = %s\n", state2str(automatonState));
 	int rc=sem_post(&sem_init_done);
 	if (rc)
 	  error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"error in sem_post");
 	prec=my_address;
 	return;
       }
-    send_other(succ,INSERT, my_address);
+    send_other(succ,false, INSERT, my_address);
     automatonState=OFFLINE_CONNECTION_ATTEMPT;
-    printf("Nextstate(fake) = %s\n", state2str(automatonState));
+    //printf("Nextstate(fake) = %s\n", state2str(automatonState));
     return;
 }
 
@@ -314,18 +319,19 @@ void stateMachine (womim* p_womim) {
       switch (p_womim->msg.type)
 	{
 	case NAK_INSERT :
-	case DISCONNECT :
+	case DISCONNECT_PRED :
+	case DISCONNECT_SUCC :
 	  free_womim(p_womim);
 	  nextstate(WAIT);
 	  break;
 	case INSERT :
-	  send_other(p_womim->msg.body.insert.sender,NAK_INSERT, my_address);
+	  send_other(p_womim->msg.body.insert.sender,true, NAK_INSERT, my_address);
 	  free_womim(p_womim);
 	  break;
 	case ACK_INSERT :
 	  prec=p_womim->msg.body.ackInsert.sender;
-	  open_connection(prec);
-	  send_other(prec,NEWSUCC, my_address);
+	  open_connection(prec,true);
+	  send_other(prec,true, NEWSUCC, my_address);
 	  free_womim(p_womim);	  
 	  nextstate(OFFLINE_CONFIRMATION_WAIT);
 	  break;
@@ -339,12 +345,13 @@ void stateMachine (womim* p_womim) {
       switch (p_womim->msg.type)
 	{
 	case NEWSUCC :
-	case DISCONNECT :
+	case DISCONNECT_PRED :
+	case DISCONNECT_SUCC :
 	  free_womim(p_womim);	  
 	  nextstate(WAIT);
 	  break;
 	case INSERT :
-	  send_other(p_womim->msg.body.insert.sender,NAK_INSERT, my_address);
+	  send_other(p_womim->msg.body.insert.sender,true, NAK_INSERT, my_address);
 	  free_womim(p_womim);	  
 	  break;
 	case TRAIN :
@@ -364,7 +371,7 @@ void stateMachine (womim* p_womim) {
 	  }
 	  lts[id].circuit=p_womim->msg.body.train.circuit;
 	  lts[id].stamp=p_womim->msg.body.train.stamp;
-	  send_train(succ,lts[id]);
+	  send_train(succ,false,lts[id]);
 	  free_womim(p_womim);
 	  if (is_in_lts(my_address,lts))
 	    {
@@ -391,7 +398,8 @@ void stateMachine (womim* p_womim) {
     case ALONE_INSERT_WAIT :
       switch (p_womim->msg.type)
 	{
-	case DISCONNECT :
+	case DISCONNECT_PRED :
+	case DISCONNECT_SUCC :
 	  // May happen in case there are 2 processes on the circuit and one process dies
 	  // The other process receives DISCONNECT in SEVERAL state and switched to 
 	  // ALONE_INSERT_WAIT state, where it receives the DISCONNECT corresponding
@@ -399,7 +407,7 @@ void stateMachine (womim* p_womim) {
 	  free_womim(p_womim);	  
 	  break;
 	case INSERT :
-	  send_other(p_womim->msg.body.insert.sender,ACK_INSERT, my_address);
+	  send_other(p_womim->msg.body.insert.sender,true,ACK_INSERT, my_address);
 	  prec=p_womim->msg.body.insert.sender;
 	  free_womim(p_womim);	  
 	  nextstate(ALONE_CONNECTION_WAIT);
@@ -414,14 +422,14 @@ void stateMachine (womim* p_womim) {
     case ALONE_CONNECTION_WAIT :
       switch (p_womim->msg.type)
 	{
-	case DISCONNECT :
-	  prec=my_address;
+	case DISCONNECT_PRED :
+	  nextstate(ALONE_INSERT_WAIT);
 	  free_womim(p_womim);	  
 	  break;
 	case INSERT :
 	  // In the PhD-thesis algorithm, we are supposed to do a
 	  // saveUntilNextstate(p_womim). Sending a NAK_INSERT is more simple.
-	  send_other(p_womim->msg.body.insert.sender,NAK_INSERT, my_address);
+	  send_other(p_womim->msg.body.insert.sender,true,NAK_INSERT, my_address);
 	  free_womim(p_womim);
 	  break;
 	case NEWSUCC :
@@ -434,7 +442,7 @@ void stateMachine (womim* p_womim) {
 	    (lts[(int)id]).w.w_w.p_wagon=NULL;
 	    (lts[(int)id]).w.w_w.p_womim=NULL;
 	    (lts[(int)id]).w.len=0;
-	    send_train(succ,lts[(int)id]);
+	    send_train(succ,false,lts[(int)id]);
 	  }
 	  free_womim(p_womim);	  
 	  nextstate(SEVERAL);
@@ -456,7 +464,7 @@ void stateMachine (womim* p_womim) {
 		{
 		  train_handling(p_womim);
 		  lis=p_womim->msg.body.train.stamp.id;
-		  send_train(succ,lts[lis]);
+		  send_train(succ,false,lts[lis]);
 		}
 	    }
 	  else
@@ -465,64 +473,59 @@ void stateMachine (womim* p_womim) {
 	    }
 	  break;
 	case INSERT :
-	  close_connection(prec);
-	  send_other(p_womim->msg.body.insert.sender,ACK_INSERT, my_address);
+	  close_connection(prec,true);
+	  send_other(p_womim->msg.body.insert.sender,true,ACK_INSERT, prec);
 	  prec=p_womim->msg.body.insert.sender;
 	  addr_appendArrived(&cameProc,prec);
 	  free_womim(p_womim);	  
 	  break;
 	case NEWSUCC :
-	  close_connection(succ);
+	  close_connection(succ,false);
 	  succ=p_womim->msg.body.newSucc.sender;
 	  int i;
 	  for (i=1;i<=ntr;i++)
 	    {
-	      send_train(succ,lts[(lis+i) % ntr]);
+	      send_train(succ,false,lts[(lis+i) % ntr]);
 	    }
 	  free_womim(p_womim);	  
 	  break;
-	case DISCONNECT :
-	  if (addr_isequal(p_womim->msg.body.disconnect.sender,prec))
+	case DISCONNECT_PRED :
+	  while (!(addr_isequal(prec,my_address)))
 	    {
-	      while (!(addr_isequal(prec,my_address)))
+	      if (open_connection(prec,true)!=(-1))
 		{
-		  if (open_connection(prec)!=(-1))
-		    {
-		      send_other(prec,NEWSUCC, my_address);
-		      free_womim(p_womim);	  
-		      nextstate(SEVERAL);
-		      MUTEX_UNLOCK(state_machine_mutex);
-		      return;
-		    }
-		  addr_appendGone(&cameProc,&goneProc,prec);
-		  prec=addr_prec(prec, lts[lis].circuit);
+		  send_other(prec,true,NEWSUCC, my_address);
+		  free_womim(p_womim);	  
+		  nextstate(SEVERAL);
+		  MUTEX_UNLOCK(state_machine_mutex);
+		  return;
 		}
-	      signalDepartures(goneProc, lts[lis].circuit);
-	      goneProc=0;
-	      int aRound;
+	      addr_appendGone(&cameProc,&goneProc,prec);
+	      prec=addr_prec(prec, lts[lis].circuit);
+	    }
+	  signalDepartures(goneProc, lts[lis].circuit);
+	  goneProc=0;
+	  int aRound;
+	  for (aRound=1;aRound<=NR;aRound++)
+	    {
 	      int i;
-	      for (aRound=1;aRound<=NR;aRound++)
+	      for (i=1;i<=ntr;i++)
 		{
-		  for (i=1;i<=ntr;i++)
-		    {
-		      int id=(lis+i) % ntr;
-		      int round=(lts[id].stamp.round + aRound) % NR;
-		      bqueue_extend(wagonsToDeliver,unstableWagons[id][round]);
-		      list_cleanList(unstableWagons[id][round]);
-		    }
+		  int id=(lis+i) % ntr;
+		  int round=(lts[id].stamp.round + aRound) % NR;
+		  bqueue_extend(wagonsToDeliver,unstableWagons[id][round]);
+		  list_cleanList(unstableWagons[id][round]);
 		}
-	      bqueue_enqueue(wagonsToDeliver,wagonToSend);
-	      wagonToSend=newwiw();
-	      free_womim(p_womim);	  
-	      nextstate(ALONE_INSERT_WAIT);
-	      MUTEX_UNLOCK(state_machine_mutex);
-	      return;
 	    }
-	  else // connection lost with succ
-	    {
-	      succ=0;
-	      free_womim(p_womim);	  
-	    }
+	  bqueue_enqueue(wagonsToDeliver,wagonToSend);
+	  wagonToSend=newwiw();
+	  free_womim(p_womim);	  
+	  nextstate(ALONE_INSERT_WAIT);
+	  MUTEX_UNLOCK(state_machine_mutex);
+	  break;
+	case DISCONNECT_SUCC :
+	  succ=0;
+	  free_womim(p_womim);	  
 	  break;
 	default:
 	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : received message %s in state %s",mtype2str(p_womim->msg.type),state2str(automatonState));

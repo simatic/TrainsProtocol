@@ -93,13 +93,14 @@ typedef struct {
 */
 typedef char MType;
 
-#define DEFAULT    0 /**<USe to init message or to raise error*/
-#define TRAIN      1
-#define INSERT     2
-#define ACK_INSERT 3
-#define NAK_INSERT 4
-#define DISCONNECT 5
-#define NEWSUCC    6
+#define DEFAULT         0 /**<USe to init message or to raise error*/
+#define TRAIN           1
+#define INSERT          2
+#define ACK_INSERT      3
+#define NAK_INSERT      4
+#define DISCONNECT_PRED 5 /**<Disconnection with predecessor*/
+#define DISCONNECT_SUCC 6 /**<Disconnection with successor*/
+#define NEWSUCC         7
 
 /**
 * @brief Data structure for Msg

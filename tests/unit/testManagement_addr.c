@@ -7,6 +7,7 @@
 #define NB_LINES_IN_FILE 16
 #define FAKE_COMM1 ((t_comm*)0xFFFFFFFF)
 #define FAKE_COMM2 ((t_comm*)0x8FFFFFFF)
+#define FAKE_COMM3 ((t_comm*)0x88FFFFFF)
 #define SEARCHED_INDEX 8
 
 void compare(char *testType, bool result){
@@ -22,7 +23,10 @@ int main(){
   int i;
   char ip[MAX_LEN_IP];
   char chan[MAX_LEN_CHAN];
+  int aRank;
+  bool aIsPred;
 
+  printf("taille = %d\n", sizeof(ADDR));
   global_addr_array = addr_generator(LOCALISATION, NB_LINES_IN_FILE);
 
   for (i=0; i<NB_LINES_IN_FILE; i++){
@@ -34,16 +38,24 @@ int main(){
   }
   compare("global_addr_array contents", ((global_addr_array[i].ip[0]=='\0') && (global_addr_array[i].chan[0]=='\0') && (global_addr_array[i].tcomm[0]==NULL) && (global_addr_array[i].tcomm[1]==NULL)));
 
-  add_tcomm(FAKE_COMM1, 0, global_addr_array);
-  add_tcomm(FAKE_COMM2, 0, global_addr_array);
-  compare("add_tcomm", global_addr_array[0].tcomm[0]==FAKE_COMM1);
-  compare("add_tcomm", global_addr_array[0].tcomm[1]==FAKE_COMM2);
+  add_tcomm(FAKE_COMM1, 0, global_addr_array, true);
+  add_tcomm(FAKE_COMM2, 0, global_addr_array, false);
+  compare("add_tcomm", (global_addr_array[0].tcomm[0]==FAKE_COMM1) && (global_addr_array[0].isPred[0]==true));
+  compare("add_tcomm", (global_addr_array[0].tcomm[1]==FAKE_COMM2) && (global_addr_array[0].isPred[1]==false));
 
-  compare("get_tcomm", get_tcomm(0,global_addr_array)==FAKE_COMM1);
+  search_tcomm(FAKE_COMM1, global_addr_array, &aRank, &aIsPred);
+  compare("search_tcomm", (aRank==0) && (aIsPred==true));
+  search_tcomm(FAKE_COMM2, global_addr_array, &aRank, &aIsPred);
+  compare("search_tcomm", (aRank==0) && (aIsPred==false));
+  search_tcomm(FAKE_COMM3, global_addr_array, &aRank, &aIsPred);
+  compare("search_tcomm", (aRank==-1));
+
+  compare("get_tcomm", get_tcomm(0,true,global_addr_array)==FAKE_COMM1);
+  compare("get_tcomm", get_tcomm(0,false,global_addr_array)==FAKE_COMM2);
   remove_tcomm(FAKE_COMM1, 0, global_addr_array);
-  compare("get_tcomm", get_tcomm(0,global_addr_array)==FAKE_COMM2);
-  add_tcomm(FAKE_COMM1, 0, global_addr_array);
-  compare("get_tcomm", get_tcomm(0,global_addr_array)==FAKE_COMM1);
+  compare("get_tcomm", get_tcomm(0,true,global_addr_array)==NULL);
+  add_tcomm(FAKE_COMM1, 0, global_addr_array, true);
+  compare("get_tcomm", get_tcomm(0,true,global_addr_array)==FAKE_COMM1);
 
   memset(ip,65+SEARCHED_INDEX,MAX_LEN_IP);
   ip[MAX_LEN_IP-1] = '\0';

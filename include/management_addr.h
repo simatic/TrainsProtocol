@@ -25,11 +25,12 @@
 /**
  * @brief Structure of the file addresses variable
  */
-typedef struct addr
+typedef struct
 {
   char ip[MAX_LEN_IP];    /**<String holding the ip address*/
   char chan[MAX_LEN_CHAN];  /**<String holding the channel*/
   t_comm* tcomm[2];/**<t_comm pointers to have the file descriptor (we need to store 2 t_comm pointers as a process may have 2 connections with another process)*/
+  bool isPred[2];/**<indicates if the corresponding tcomm is the one of a predecessor or not */
 }ADDR;
 
 /**
@@ -58,16 +59,20 @@ ADDR* addr_generator(char* locate, int length);
  * @param[in] tcomm The t_comm
  * @param[in] i The place where @a tcomm will be add
  * @param[in] array The ADDR*
+ * @param[in] isPred the value the isPred field should have
  */
-void add_tcomm(t_comm * tcomm, int i, ADDR * array);
+void add_tcomm(t_comm * tcomm, int i, ADDR * array, bool isPred);
 
 /**
  * @brief Tries to return a non-NULL @a tcomm from @a array at the @a i place
+ *        and having the same @a isPred
  * @param[in] i The place where @a tcomm will be add
+ * @param[in] isPred the value the isPred field should have
  * @param[in] array The ADDR*
- * @return tcomm[0] if it is non-NULL and tcomm[1] otherwise (so if tcomm[1] is NULL, return NULL)
+ * @return tcomm[0] if it is non-NULL and has the right isPred, or tcomm[1] 
+ *         for the same reasons or NULL
  */
-t_comm *get_tcomm(int i, ADDR * array);
+t_comm *get_tcomm(int i, bool isPred, ADDR * array);
 
 /**
  * @brief Remove a @a tcomm from @a array at the @a i place
@@ -81,10 +86,10 @@ void remove_tcomm(t_comm * tcomm, int i, ADDR * array);
  * @brief Search if a @a tcomm is present in @a array
  * @param[in] tcomm The t_comm to search for
  * @param[in] array The ADDR array to crowl
- * @return The rank in the array
- * @note Return -1 if unfound
+ * @param[out] prank Rank of the found @a tcomm (-1 if unfound)
+ * @param[out] pisPred Set to true if the @a tcomm found is the one of a pred
  */
-int search_tcomm(t_comm * tcomm, ADDR * array);
+void search_tcomm(t_comm * tcomm, ADDR * array, int *prank, bool *pisPred);
 
 /**
  * @brief Give the place in the @a array of a given address

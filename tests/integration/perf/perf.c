@@ -216,13 +216,12 @@ void *timeKeeper(void *null) {
   timeradd(&rusageEnd.ru_utime, &rusageEnd.ru_stime, &stopSomme);
   printDiffTimeval("ru_utime+ru_stime (in sec)", stopSomme, startSomme);
 
-  printf("number of bytes received from the network ; %llu\n", countersEnd.bytes_received - countersBegin.bytes_received);
   printf("number of messages delivered to the application ; %llu\n", countersEnd.messages_delivered - countersBegin.messages_delivered);
   printf("number of bytes delivered to the application ; %llu\n", countersEnd.messages_bytes_delivered - countersBegin.messages_bytes_delivered);
-  printf("number of bytes of recent trains received from the network ; %llu\n", countersEnd.recent_trains_bytes_received - countersBegin.recent_trains_bytes_received);
-  printf("number of recent trains received from the network ; %llu\n", countersEnd.recent_trains_received - countersBegin.recent_trains_received);
   printf("number of bytes of trains received from the network ; %llu\n", countersEnd.trains_bytes_received - countersBegin.trains_bytes_received);
   printf("number of trains received from the network ; %llu\n", countersEnd.trains_received - countersBegin.trains_received);
+  printf("number of bytes of recent trains received from the network ; %llu\n", countersEnd.recent_trains_bytes_received - countersBegin.recent_trains_bytes_received);
+  printf("number of recent trains received from the network ; %llu\n", countersEnd.recent_trains_received - countersBegin.recent_trains_received);
   printf("number of wagons delivered to the application ; %llu\n", countersEnd.wagons_delivered - countersBegin.wagons_delivered);
   printf("number of times automaton has been in state WAIT ; %llu\n", countersEnd.wait_states - countersBegin.wait_states);
   printf("number of calls to comm_read() ; %llu\n", countersEnd.comm_read - countersBegin.comm_read);
@@ -237,11 +236,12 @@ void *timeKeeper(void *null) {
   printf("number of times there was flow control when calling newmsg() ; %llu\n", countersEnd.flowControl - countersBegin.flowControl);
 
   timersub(&timeEnd, &timeBegin, &diffTimeval);
-  printf("Broadcasters / number / size / ntr / Average msg per wagon / Throughput of uto-broadcasts in Mbps ; %d ; %d ; %d ; %d ; %g ; %g\n", 
+  printf("Broadcasters / number / size / ntr / Average number of delivered wagons per recent train received / Average number of msg per wagon / Throughput of uto-broadcasts in Mbps ; %d ; %d ; %d ; %d ; %g ; %g ; %g\n", 
 	 broadcasters,
 	 number, 
 	 size,
 	 ntr,
+	 ((double)(countersEnd.wagons_delivered - countersBegin.wagons_delivered)) / ((double)(countersEnd.recent_trains_received - countersBegin.recent_trains_received)),
 	 ((double)(countersEnd.messages_delivered - countersBegin.messages_delivered)) / ((double)(countersEnd.wagons_delivered - countersBegin.wagons_delivered)),
 	 ((double)(countersEnd.messages_bytes_delivered - countersBegin.messages_bytes_delivered) * 8) /
 	 ((double)(diffTimeval.tv_sec * 1000000 + diffTimeval.tv_usec)));

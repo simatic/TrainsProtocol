@@ -6,6 +6,7 @@
 #include "iomsg.h"
 #include "stateMachine.h"
 #include "param.h"
+#include "counter.h"
 
 void *connectionMgt(void *arg) {
   t_comm *aComm = (t_comm*)arg;
@@ -18,13 +19,18 @@ void *connectionMgt(void *arg) {
       break;
     }
     switch(msg_ext->msg.type){
+    case TRAIN:
+      counters.trains_received++;
+      counters.trains_bytes_received += msg_ext->msg.len;
+      break;
     case INSERT:
-      add_tcomm(aComm, addr_2_rank(msg_ext->msg.body.insert.sender), global_addr_array);
+      add_tcomm(aComm, addr_2_rank(msg_ext->msg.body.insert.sender), global_addr_array, true);
       break;
     case NEWSUCC:
-      add_tcomm(aComm, addr_2_rank(msg_ext->msg.body.newSucc.sender), global_addr_array);
+      add_tcomm(aComm, addr_2_rank(msg_ext->msg.body.newSucc.sender), global_addr_array, false);
       break;
-    case DISCONNECT:
+    case DISCONNECT_PRED:
+    case DISCONNECT_SUCC:
       theEnd = true;
     default:
       break;
@@ -38,7 +44,7 @@ void *connectionMgt(void *arg) {
   return NULL;
 }
 
-int open_connection(address addr){
+int open_connection(address addr, bool isPred){
   int rank;
   t_comm * tcomm;
 
@@ -54,7 +60,7 @@ int open_connection(address addr){
     else{
       pthread_t thread;
       int rc;
-      add_tcomm(tcomm,rank,global_addr_array);
+      add_tcomm(tcomm,rank,global_addr_array,isPred);
       rc = pthread_create(&thread, NULL, &connectionMgt, (void *)tcomm);
       if (rc < 0)
 	error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
@@ -66,7 +72,7 @@ int open_connection(address addr){
   }
 }
 
-void close_connection(address addr){
+void close_connection(address addr, bool isPred){
   int rank;
   t_comm * tcomm;
   
@@ -74,10 +80,10 @@ void close_connection(address addr){
   if (rank==-1)
     error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"Wrong address %d sent to close_connection",addr);
   else{
-    tcomm=get_tcomm(rank,global_addr_array);
+    tcomm=get_tcomm(rank,isPred,global_addr_array);
     if(tcomm!=NULL){
-      comm_abort(tcomm);
       remove_tcomm(tcomm, rank, global_addr_array);
+      comm_abort(tcomm);
     }
   }           
 }
@@ -94,7 +100,7 @@ address searchSucc(address add){
   else{
     i=(rank+1)%NP;
     while(i!=rank && watch){
-      if(open_connection(rank_2_addr(i))==1){
+      if(open_connection(rank_2_addr(i),false)==1){
 	result=rank_2_addr(i);
 	watch=0;
       }

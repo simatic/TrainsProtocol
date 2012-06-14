@@ -386,13 +386,18 @@ int comm_writev(t_comm *aComm, const struct iovec *iov, int iovcnt){
     return -1;
   }
 
-  comm_longIOBegin(aComm);
+  // FIXME: We must comment the comm_longIOBegin(aComm);
+  // otherwise it is not possible to do a read and a write at the
+  // same time on the socket
+  //comm_longIOBegin(aComm);
 
   do {
     nb = writev(aComm->fd, iov, iovcnt);
   } while ((nb < 0) && (errno == EINTR) && !aComm->aborted);
 
-  comm_longIOEnd(aComm);
+  // FIXME : comm_longIOEnd(aComm); is commented because
+  // comm_longIOBegin(aComm); hereabove is commented
+  //comm_longIOEnd(aComm);
 
   counters.comm_writev++;
   counters.comm_writev_bytes += nb;
