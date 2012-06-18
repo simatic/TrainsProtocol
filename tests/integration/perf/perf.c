@@ -176,7 +176,7 @@ void *timeKeeper(void *null) {
   t_counters countersBegin, countersEnd;
   struct rusage rusageBegin, rusageEnd;
   struct timeval timeBegin, timeEnd;
-  struct timeval startSomme, stopSomme, diffTimeval;
+  struct timeval startSomme, stopSomme, diffCPU, diffTimeval;
 
   // Warm-up phase
   usleep(warmup * 1000000);
@@ -235,8 +235,9 @@ void *timeKeeper(void *null) {
   printf("number of calls to newmsg() ; %llu\n", countersEnd.newmsg - countersBegin.newmsg);
   printf("number of times there was flow control when calling newmsg() ; %llu\n", countersEnd.flowControl - countersBegin.flowControl);
 
+  timersub(&stopSomme, &startSomme, &diffCPU);
   timersub(&timeEnd, &timeBegin, &diffTimeval);
-  printf("Broadcasters / number / size / ntr / Average number of delivered wagons per recent train received / Average number of msg per wagon / Throughput of uto-broadcasts in Mbps ; %d ; %d ; %d ; %d ; %g ; %g ; %g\n", 
+  printf("Broadcasters / number / size / ntr / Average number of delivered wagons per recent train received / Average number of msg per wagon / Throughput of uto-broadcasts in Mbps ; %d ; %d ; %d ; %d ; %g ; %g ; %g ; %g\n", 
 	 broadcasters,
 	 number, 
 	 size,
@@ -244,7 +245,9 @@ void *timeKeeper(void *null) {
 	 ((double)(countersEnd.wagons_delivered - countersBegin.wagons_delivered)) / ((double)(countersEnd.recent_trains_received - countersBegin.recent_trains_received)),
 	 ((double)(countersEnd.messages_delivered - countersBegin.messages_delivered)) / ((double)(countersEnd.wagons_delivered - countersBegin.wagons_delivered)),
 	 ((double)(countersEnd.messages_bytes_delivered - countersBegin.messages_bytes_delivered) * 8) /
-	 ((double)(diffTimeval.tv_sec * 1000000 + diffTimeval.tv_usec)));
+	 ((double)(diffTimeval.tv_sec * 1000000 + diffTimeval.tv_usec)),
+	 ((double)(diffCPU.tv_sec * 1000000 + diffCPU.tv_usec) /
+	  (double)(diffTimeval.tv_sec * 1000000 + diffTimeval.tv_usec)));
 
   // Termination phase
   rc = tr_terminate();
