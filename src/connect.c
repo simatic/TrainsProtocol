@@ -8,41 +8,6 @@
 #include "param.h"
 #include "counter.h"
 
-void *connectionMgt(void *arg) {
-  t_comm *aComm = (t_comm*)arg;
-  womim * msg_ext;
-  bool theEnd = false;
-
-  do{
-    msg_ext = receive(aComm);
-    if (msg_ext == NULL) {
-      break;
-    }
-    switch(msg_ext->msg.type){
-    case TRAIN:
-      counters.trains_received++;
-      counters.trains_bytes_received += msg_ext->msg.len;
-      break;
-    case INSERT:
-      add_tcomm(aComm, addr_2_rank(msg_ext->msg.body.insert.sender), global_addr_array, true);
-      break;
-    case NEWSUCC:
-      add_tcomm(aComm, addr_2_rank(msg_ext->msg.body.newSucc.sender), global_addr_array, false);
-      break;
-    case DISCONNECT_PRED:
-    case DISCONNECT_SUCC:
-      theEnd = true;
-    default:
-      break;
-    }
-    stateMachine(msg_ext);
-  } while (!theEnd);
-  // NB : The test cannot be 
-  //} while (msg_ext->msg.type != DISCONNECT);
-  // because msg.typ is freed inside stateMachine()
-
-  return NULL;
-}
 
 int open_connection(address addr, bool isPred){
   int rank;
@@ -110,4 +75,40 @@ address searchSucc(address add){
     }
   }
   return(result);
+}
+
+void *connectionMgt(void *arg) {
+  t_comm *aComm = (t_comm*)arg;
+  womim * msg_ext;
+  bool theEnd = false;
+
+  do{
+    msg_ext = receive(aComm);
+    if (msg_ext == NULL) {
+      break;
+    }
+    switch(msg_ext->msg.type){
+    case TRAIN:
+      counters.trains_received++;
+      counters.trains_bytes_received += msg_ext->msg.len;
+      break;
+    case INSERT:
+      add_tcomm(aComm, addr_2_rank(msg_ext->msg.body.insert.sender), global_addr_array, true);
+      break;
+    case NEWSUCC:
+      add_tcomm(aComm, addr_2_rank(msg_ext->msg.body.newSucc.sender), global_addr_array, false);
+      break;
+    case DISCONNECT_PRED:
+    case DISCONNECT_SUCC:
+      theEnd = true;
+    default:
+      break;
+    }
+    stateMachine(msg_ext);
+  } while (!theEnd);
+  // NB : The test cannot be 
+  //} while (msg_ext->msg.type != DISCONNECT);
+  // because msg.typ is freed inside stateMachine()
+
+  return NULL;
 }

@@ -1,5 +1,8 @@
 /**
  * @brief Definitions related to counters.
+ * @file counter.h
+ * @author Michel SIMATIC
+ * @date 26 june 2012
  */
 
 #ifndef _counters_H

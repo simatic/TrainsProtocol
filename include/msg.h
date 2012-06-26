@@ -1,8 +1,8 @@
 /**
 * @brief File holding the types' definition for the in/out flux
 * @file msg.h
-* @author Nathan REBOUD & Damien GRAUX
-* @date 30/05/2012
+* @author Nathan REBOUD - Damien GRAUX
+* @date 30 may 2012
 */
  
 #ifndef _MSG_H
@@ -10,6 +10,7 @@
  
 #include <pthread.h>
 #include <assert.h>
+
 #include "address.h"
 #include "wagon.h"
 #include "common.h"
@@ -17,22 +18,23 @@
 
 
 /**
-* @brief Data structure containing Logicial clocks
+* @brief Data structure containing logicial clocks
 */
 typedef unsigned char t_lc;
 
 /**
- * Number of possible values for t_lc
+ * @brief Number of possible values for t_lc
+ * @note Because we can have only 256 values in an unsigned char
  */
-#define M 256 // Because we can have 256 values in an unsigned char
+#define M 256
 
 /**
-* @brief Data structure for stamps
-*/
+ * @brief Data structure for stamps
+ */
 typedef struct {
-  char id;
-  t_lc lc;
-  char round;
+  char id;/**<The identifier*/
+  t_lc lc;/**<The logical clock*/
+  char round;/**<The roundat that moment*/
 }__attribute__((packed)) stamp;
 
 /**
@@ -41,15 +43,15 @@ typedef struct {
 typedef struct {
   stamp stamp;/**<A stramp for some info*/
   address_set circuit;/**<A description of the circuit*/
-  wagon wagons[];/**<The block of wagons*/
+  wagon wagons[];/**<The block of wagons containing info*/
 }__attribute__((packed)) Train;
 
 /**
 * @brief Data structure for Default messages
-* @note Use only to init message and to coerce the right type in case of bad use of the functions
+* @note Use only to init message and to coerce the right type in case of bad use of some functions
 */
 typedef struct {
-  int problem_id; /**<To refer the problem*/
+  int problem_id; /**<To refer the problem. Actually the values can be 0 and 1.*/
 }Default;
 
 /**
@@ -93,7 +95,7 @@ typedef struct {
 */
 typedef char MType;
 
-#define DEFAULT         0 /**<USe to init message or to raise error*/
+#define DEFAULT         0 /**<Use to init message or to raise error*/
 #define TRAIN           1
 #define INSERT          2
 #define ACK_INSERT      3
@@ -107,8 +109,8 @@ typedef char MType;
 */
 typedef struct {
   
-  int len;/**<total length of the msg*/
-  MType type;
+  int len;/**<Total length of the msg*/
+  MType type;/**<MType of the message*/
 
   union {
     Default def;
@@ -118,7 +120,7 @@ typedef struct {
     NakInsert nakInsert;
     NewSucc newSucc;
     Disconnect disconnect;
-  }body;
+  }body;/**<A union between all the types of possible messages*/
 }__attribute__((packed)) Msg;
 
 /**

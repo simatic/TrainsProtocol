@@ -1,5 +1,8 @@
 /**
  * @brief Definitions related to addresses used in trains protocol.
+ * @file address.h
+ * @author Michel SIMATIC - Nathan REBOUD - Damien GRAUX
+ * @date 26 june 2012
  */
 
 #ifndef _ADDRESS_H

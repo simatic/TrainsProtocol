@@ -1,16 +1,17 @@
 /**
-* @brief This file contains the state machine
-* @file stateMachine.h
-* @author Nathan REBOUD
-* @date 05/06/2012
-*/
+ * @brief This file contains the state machine
+ * @file stateMachine.h
+ * @author Nathan REBOUD
+ * @date 05 june 2012
+ */
+
 #ifndef _STATEMACHINE_H
 #define _STATEMACHINE_H
 
 #include <stdlib.h>
 #include <errno.h>
 #include <error.h>
-#include <unistd.h> //pour la fonction sleep
+#include <unistd.h> //for the sleep function
 #include "param.h"
 #include "address.h"
 #include "iomsg.h"
@@ -37,38 +38,47 @@ typedef enum {
 * @brief state of the automaton
 */
 extern State automatonState;
+
 /**
 * @brief mutex used in statemachine
 */
 extern pthread_mutex_t state_machine_mutex;
+
 /**
 * @brief address of the host process
 */
 extern address my_address;
+
 /**
 * @brief predecessor and successor of the host process
 */
 extern address prec,succ;
+
 /**
 * @brief lists the gone and the came process
 */
 extern address_set cameProc, goneProc;
+
 /**
 * @brief number of waiting
 */
 extern int waitNb;
+
 /**
 * @brief last train ID sent
 */
 extern int lis;
+
 /**
 * @brief last trains sent
 */
 extern lts_array lts;
+
 /**
 * @brief matrix of list of unstable wagons.
 */
 extern t_list* unstableWagons[MAX_NTR][NR];
+
 /**
 * @brief bqueue of wagon to deliver.
 */
@@ -78,7 +88,7 @@ extern t_bqueue* wagonsToDeliver;
 /**
 * @brief initializes the automaton.
 */
-void automatonInit () ;
+void automatonInit() ;
 
 
 /**

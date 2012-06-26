@@ -1,8 +1,8 @@
 /**
- * @brief This file gives fun to send and receive Msg
+ * @brief This file gives function to send and receive Msg
  * @file iomsg.h
  * @author Damien GRAUX
- * @date 30/05/2012
+ * @date 30 may 2012
  */
 
 #ifndef _IOMSG_H

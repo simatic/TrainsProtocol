@@ -2,7 +2,7 @@
  * @brief Definitions of the complex structures used to manage properly the pointers
  * @file advanced_struct.h
  * @author Damien GRAUX
- * @date 05/06/2012
+ * @date 05 june 2012
  */
 
 #ifndef _ADVANCED_STRUCT_H
@@ -21,22 +21,22 @@ typedef struct{
 }prefix;
 
 /**
- * @brief Data structure used to improve the messages and wagon_to_send with a prefixe
+ * @brief Data structure used to improve the messages (type Msg) and wagonToSend (type wagon) with a prefixe
  * @note Stand for "Wagon Or Message In Memory"
  * @note Used only for Messages and WagonToSend. In fact, when wagons are part of a train they do not bring a @a womim struc
 ture, they are part of a bigger structure called Msg.
  */
 typedef struct{
   prefix pfx;
-  union{
+  union{/**<A union between to two possible types*/
     wagon wagon;
     Msg msg;
   };
-}womim; // womim = Wagon Or Message In Memory
+}womim;
 
 /**
- * @brief A wagon in a womim
- * @note Structure to watch the behaviour or wagon_to_send and messages
+ * @brief Structure to watch the behaviour or wagon_to_send and messages
+ * @note wiw stands for : A wagon in a womim
  * @note It links wagon_to_send and messages and the prefixe head-on the train
  */
 typedef struct {
@@ -46,13 +46,13 @@ typedef struct {
 
 /**
  * @brief Data structure for lts
- * @note lts is for Last Train Send
+ * @note lts is for : Last Train Send
  */
 typedef struct {
-  int   lng;
-  MType type;
-  stamp stamp;
-  address_set circuit;
+  int   lng;/**<the length of the structure*/
+  MType type;/**<the type of message used*/
+  stamp stamp;/**<the stamp which contains some info*/
+  address_set circuit;/**<a log of the circuit*/
   struct {
     wiw w_w;
     int len;
@@ -92,6 +92,7 @@ bool is_in_lts(address  ad, lts_array ltsarray);
  * @note This fun holds the overflows
  */
 bool is_recent_train(stamp tr_st,lts_array lts, char last_id);
+
 /**
  * @brief Create a new wiw
  * @return A pointer on a wiw
@@ -124,7 +125,7 @@ void free_wiw(wiw * ww);
 void free_womim(womim *wo);
 
 /**
- * @brief Wagon containing the next messages to be uto-broadcasted
+ * @brief Wiw containing the next messages to be uto-broadcasted
  */
 extern wiw * wagonToSend;
 
@@ -134,7 +135,7 @@ extern wiw * wagonToSend;
 extern pthread_mutex_t mutexWagonToSend;
 
 /**
- * @brief Condition protecting access to wagonToSend
+ * @brief Condition about wagonToSend
  */
 extern pthread_cond_t condWagonToSend;
 

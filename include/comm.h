@@ -2,7 +2,7 @@
  * @brief Communication module: handles all that is related to inter-machine communications
  * @file comm.h
  * @author Michel SIMATIC
- * @date  15/04/2012
+ * @date  15 april 2012
  */
 
 #ifndef _COMM_H_

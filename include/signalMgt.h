@@ -10,7 +10,7 @@
  *
  * @file signalMgt.h
  * @author Michel SIMATIC
- * @date  15/04/2012
+ * @date  15 april 2012
  */
 
 #ifndef _SIGNALMGT_H_

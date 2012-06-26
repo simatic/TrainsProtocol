@@ -2,8 +2,7 @@
  * @brief List: handles a list of elements thanks to a linked list. NB: with the provided primitives (@a list_append() and \a list_remove_first()), this structure offers only the functionalities of a queue.
  * @file list.h
  * @author Michel SIMATIC
- * @date  14/04/2012
- * @note extension 30/05/2012 by Damien GRAUX
+ * @date  14 april 2012
  */
 
 #ifndef _LIST_H_
@@ -52,7 +51,7 @@ void list_append(t_list *aList, void *anElt);
 /**
  * @brief Extends @a aList with the @a b_list at queue
  * @param[in] aList The list which will be extended
- * @param[in] b_list The list wich will be added at the queue
+ * @param[in] b_list The list which will be added at the queue of @a aList
  */
 void list_extend(t_list* aList, t_list* b_list);
 

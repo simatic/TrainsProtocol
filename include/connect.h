@@ -1,8 +1,8 @@
-/**
- * @brief Fun used to connect
+ /**
+ * @brief Functions used to connect and diconnect
  * @file connect.h
- * @author Nathan REBOUD Damien GRAUX
- * @date 05/06/2012
+ * @author Nathan REBOUD - Damien GRAUX
+ * @date 05 june 2012
  */
 
 #ifndef _CONNECT_H
@@ -13,7 +13,7 @@
 #include "comm.h" 
 
 /**
- * @brief Open the connection
+ * @brief Open the connection with @a addr
  * @param[in] addr The address to connect to
  * @param[in] isPred Indicates if this connection is opened towards
  *            a future predecessor
@@ -22,8 +22,8 @@
 int open_connection(address addr, bool isPred);
 
 /**
- * @brief Close the connection
- * @param[in] addr The address to diconnect
+ * @brief Close the connection with @a addr
+ * @param[in] addr The address to diconnect with
  * @param[in] isPred Indicates if this connection is opened towards
  *            a future predecessor
  */
@@ -37,6 +37,10 @@ void close_connection(address addr, bool isPred);
  */
 address searchSucc(address add);
 
+/**
+ * @brief Manage the connection
+ * @param[in] arg A pointer on an argument
+ */
 void *connectionMgt(void *arg);
 
 #endif /* _CONNECT_H */

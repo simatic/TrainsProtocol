@@ -1,5 +1,8 @@
 /**
  * @brief Definitions related to messages carried by trains protocol for the application using the middleware.
+ * @file applicationMessage.h
+ * @author Michel SIMATIC
+ * @date 26 june 2012
  */
 
 #ifndef _APPLICATION_MESSAGE_H

@@ -2,7 +2,7 @@
  * @brief Declarations common to all files
  * @file common.h
  * @author Michel SIMATIC
- * @date  15/04/2012
+ * @date  15 april 2012
  */
 
 #ifndef _COMMON_H

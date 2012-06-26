@@ -2,7 +2,7 @@
  * @brief Definitions related to the management of addresses used in trains protocol.
  * @file management_addr.h
  * @author Damien GRAUX
- * @date 30/05/2012 
+ * @date 30 may 2012 
  */
 
 #ifndef _MANAGEMENT_ADDRESS_H

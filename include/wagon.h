@@ -1,5 +1,8 @@
 /**
  * @brief Definitions related to wagons used in trains protocol.
+ * @file wagon.h
+ * @author Michel SIMATIC
+ * @date 26 june 2012
  */
 
 #ifndef _wagon_H
@@ -40,17 +43,17 @@ typedef struct wagon{
 extern t_bqueue *wagonsToDeliver;
 
 /**
- * @brief Returns pointer on first message contained in wagon @a w
- * @param[in] w Wagon in which to search first message
- * @return pointer on a first message or NULL if @a w contains no messages
+ * @brief Search the first message contained in a wagon @a w
+ * @param[in] w A pointer on the wagon in which to search the first message
+ * @return A pointer on a first message or NULL if @a w contains no messages
  */
 message *firstmsg(wagon *w);
 
 /**
- * @brief Returns pointer on message following message @a mp in wagon @a w
- * @param[in] w Wagon in which to search next message
- * @param[in] mp Message after which to search for an other message
- * @return pointer on a next message or NULL if @a w contains no other messages
+ * @brief Give the message following message @a mp in wagon @a w
+ * @param[in] w A pointer on a wagon in which to search next message
+ * @param[in] mp A pointer on a message after which to search for an other message
+ * @return A pointer on a next message or NULL if @a w contains no other messages
  */
 message *nextmsg(wagon *w, message *mp);
 

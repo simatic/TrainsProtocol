@@ -1,5 +1,8 @@
 /**
  * @brief Definitions offered to application by the trains middleware.
+ * @file trains.h
+ * @author Michel SIMATIC
+ * @date 26 june 2012
  */
 
 #ifndef _TRAINS_H

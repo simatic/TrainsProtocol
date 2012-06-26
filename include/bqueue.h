@@ -2,7 +2,7 @@
  * @brief Blocking queue: a queue for which, when a thread calls @a bqueue_dequeue on an empty queue, this thread is blocked until another thread calls \a bqueue_queue to queue an element.
  * @file bqueue.h
  * @author Michel SIMATIC
- * @date  14/04/2012
+ * @date  14 april 2012
  */
 
 #ifndef _BQUEUE_H_
