@@ -1,0 +1,16 @@
+Version 01.00.00
+
+Contributors: Damien GRAUX, Nathan REBOUD, Michel SIMATIC
+
+This release is the initial release of the Trains protocol middleware.
+
+It is with this release that:
+- Damien and Nathan's performance tests were done.
+- Michel's PhD's thesis performance tests were done.
+
+NB: The release number is formated according to information found in
+http://fr.wikipedia.org/wiki/Version_d%27un_logiciel:
+x.y.z has the following sense:
+- x (which starts at 1) is the published version
+- y (which starts at 0) is the y-th supplement of functionality in version x
+- z (which starts at 0) is the z-th revision in version x.z
