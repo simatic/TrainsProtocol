@@ -1,9 +1,9 @@
 Trains Protocol : a uniform and totally-ordered broadcast protocol
 ==================================================================
 
-Trains protocol is a uniform and totally-ordered broadcast protocol [Défago et al., 2004][1].
+Trains protocol is a uniform and totally-ordered broadcast protocol [Défago et al., 2004].
 
-It is designed to be a throughput-efficient protocol, especially for short messages (100 bytes or lower) [Simatic, 2012][2].
+It is designed to be a throughput-efficient protocol, especially for short messages (100 bytes or lower) [Simatic, 2012].
 
 Compilation of Trains protocol middleware
 -----------------------------------------
@@ -15,7 +15,7 @@ Generating an application using Trains protocol
 -----------------------------------------------
 tests/integration/basic contains a basic integration test which shows the APIs which can be used.
 
-To compile, you should add ""-Iinclude" (where "include" is the path to "include" directory of this TrainsProtocol GIT project) to your compilation instruction
+To compile, you should add "-Iinclude" (where "include" is the path to "include" directory of this TrainsProtocol GIT project) to your compilation instruction
 
 To link, you should add "-Lsrc -ltrains -pthread" (where "src" is the path to "src" directory of this TrainsProtocol GIT project) to your link instruction
 
@@ -28,6 +28,7 @@ In the directory where you will launch your apoplication, create a file called a
 See tests/integration/basic/addr_file for an example
 
 export TRAINS_HOST=hostname on which application is run
+
 export TRAINS_PORT=port to be used by application
 
 Known issues
@@ -36,5 +37,6 @@ See "Known issues" section in RELEASE-NOTES.txt
 
 Bibliography
 ------------
-[1]: [Défago et al., 2004] Défago, X., Schiper, A. et Urbán, P. (2004). Total order broadcast and multicast algorithms : Taxonomy and survey. ACM Comput. Surv., 36:372?421.
-[2]: [Simatic, 2012] M. Simatic. Communication et partage de données dans les systèmes répartis (Data communication and data sharing in distributed system, in French). PhD thesis, École Doctorale ÉDITE, 2012 (To be published).
+[Défago et al., 2004] Défago, X., Schiper, A. et Urbán, P. (2004). Total order broadcast and multicast algorithms : Taxonomy and survey. ACM Comput. Surv., 36:372?421.
+
+[Simatic, 2012] M. Simatic. Communication et partage de données dans les systèmes répartis (Data communication and data sharing in distributed system, in French). PhD thesis, École Doctorale ÉDITE, 2012 (To be published).

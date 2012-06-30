@@ -1,4 +1,4 @@
-Version 00.01.00
+Version 00.01.01
 
 Contributors: Damien GRAUX, Nathan REBOUD, Michel SIMATIC
 
@@ -11,6 +11,10 @@ It is with this release that:
 Known issues
 ------------
 If the contents of TRAINS_HOST environment variable does not appear in addr_file, an application using Trains protocol will make a Segmentation fault (core dumped).
+
+Differences with 00.01.00
+-------------------------
+- Improved documentation for Github
 
 NB: The release number is formated according to information found in
 http://fr.wikipedia.org/wiki/Version_d%27un_logiciel:
