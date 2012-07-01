@@ -1,19 +1,20 @@
-Version 00.01.01
+Version 00.01.02
 
 Contributors: Damien GRAUX, Nathan REBOUD, Michel SIMATIC
 
 This release is the initial release of the Trains protocol middleware.
-
-It is with this release that:
+NB: It is with release 00.01.00 that:
 - Damien and Nathan's performance tests were done.
 - Michel's PhD's thesis performance tests were done.
 
 Known issues
 ------------
-If the contents of TRAINS_HOST environment variable does not appear in addr_file, an application using Trains protocol will make a Segmentation fault (core dumped).
+- tests/integration/perf/scriptForPerfTests does not work properly: Tests must
+  be launched manually
 
 Differences with 00.01.00
 -------------------------
+- Correction of the following bug: "If the contents of TRAINS_HOST environment variable does not appear in addr_file, an application using Trains protocol will make a Segmentation fault (core dumped)." 
 - Improved documentation for Github
 
 NB: The release number is formated according to information found in

@@ -18,6 +18,7 @@ int tr_init(CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver call
   pthread_t thread;
   char *trainsHost;
   char *trainsPort;
+  int rank;
 
   rc = sem_init(&sem_init_done,0,0);
   if(rc)
@@ -37,7 +38,10 @@ int tr_init(CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver call
   trainsPort = getenv("TRAINS_PORT");
   if (trainsPort == NULL)
     error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"TRAINS_PORT environment variable is not defined");
-  my_address=rank_2_addr(addr_id(trainsHost,trainsPort,global_addr_array));
+  rank = addr_id(trainsHost,trainsPort,global_addr_array);
+  if (rank < 0)
+    error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"Could not find a line in %s file corresponding to TRAINS_HOST environment variable value (%s) and TRAINS_PORT environment variable value (%s)", LOCALISATION, trainsHost, trainsPort);
+  my_address=rank_2_addr(rank);
 
   automatonInit();
   do {
