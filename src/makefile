@@ -27,15 +27,9 @@ clean:
 
 cleanall: clean
 	rm -f $(OBJECTS) $(BIN) depend
-	# We cut lines after "# DO NOT DELETE THIS LINE" so that
-	# we do not keep in GIT dependencies related to a given distribution
-	# (e.g. Ubuntu 10.04) which are not compatible with other distributions
-	# (e.g. Ubuntu 11.10)
-	sed '/^# DO NOT DELETE THIS LINE -- make depend depends on it./q' makefile >makefile.tmp
-	mv makefile.tmp makefile
 
 depend: $(SOURCES)
 	touch depend
-	makedepend -- $(CFLAGS) -- $(SOURCES) 2>/dev/null
+	makedepend -fdepend -- $(CFLAGS) -- $(SOURCES) 2>/dev/null
 
-# DO NOT DELETE THIS LINE -- make depend depends on it.
+include depend
