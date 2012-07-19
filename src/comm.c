@@ -248,7 +248,7 @@ t_comm *comm_newForAccept(char *port){
     return NULL;
 
   // Everything went fine: we can return a communication handle.
-  return comm_alloc(fd);;
+  return comm_alloc(fd);
 }
 
 t_comm *comm_accept(t_comm *aComm){

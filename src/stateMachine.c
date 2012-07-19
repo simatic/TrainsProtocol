@@ -306,6 +306,7 @@ void nextstate (State s) {
     break;
   default :
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected Automaton State : %d",s);
+    break;
   }
 }
 
@@ -531,6 +532,7 @@ void stateMachine (womim* p_womim) {
 	  break;
 	default:
 	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : received message %s in state %s",mtype2str(p_womim->msg.type),state2str(automatonState));
+      break;
 	}
        break;
     default :

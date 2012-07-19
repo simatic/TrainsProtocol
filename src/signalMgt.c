@@ -62,6 +62,7 @@ void *signalMgt_thread(void *null) {
       exit(EXIT_FAILURE);
     }
   } while (true);
+  return NULL;
 }
 
 void signalMgt_initialize() {

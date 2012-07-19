@@ -338,6 +338,7 @@ int main(int argc, char *argv[]) {
     case 'h':  
       /* User specified -h or --help.  */
       print_usage (EXIT_SUCCESS);
+      break;
 
     case 'm':  
       /* User specified -m or --measurement.  */
@@ -372,6 +373,7 @@ int main(int argc, char *argv[]) {
     case '?':  
       /* User specified an unrecognized option.  */
       print_usage (EXIT_FAILURE);
+      break;
 
     case -1:  
       /* Done with options.  */

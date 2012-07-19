@@ -101,6 +101,7 @@ void *connectionMgt(void *arg) {
     case DISCONNECT_PRED:
     case DISCONNECT_SUCC:
       theEnd = true;
+      break;
     default:
       break;
     }
