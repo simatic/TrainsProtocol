@@ -15,7 +15,7 @@ LDFLAGS = -g -shared
 
 ### Rules.  ############################################################
 
-.PHONY:         all clean cleanall
+.PHONY:         all clean
 
 all: depend $(BIN)
 
@@ -24,12 +24,10 @@ $(BIN): $(OBJECTS)
 
 clean:
 	rm -f *~ *.bak *.BAK 
-
-cleanall: clean
 	rm -f $(OBJECTS) $(BIN) depend
 
 depend: $(SOURCES)
 	touch depend
 	makedepend -fdepend -- $(CFLAGS) -- $(SOURCES) 2>/dev/null
 
-include depend
+-include depend

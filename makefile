@@ -1,21 +1,21 @@
 # Subdirectories containing a makefile
 SUBDIRS = $(dir $(wildcard */makefile) $(wildcard */*/makefile) $(wildcard */*/*/makefile))
 
-.PHONY: all clean cleanall ${SUBDIRS}
+.PHONY: all clean ${SUBDIRS}
 
 all: WHATTODO=all
-all: ${SUBDIRS} doc
+all: ${SUBDIRS}
 
-clean:
+clean: WHATTODO=clean
+clean: ${SUBDIRS}
 	for i in '*'~ '*'.bak '*'.tmp; do find . -iname $$i -exec rm -f '{}' \+; done
-
-cleanall: WHATTODO=cleanall
-cleanall: clean ${SUBDIRS}
-	${RM} -f *~ *.bak *.tmp
-	rm -rf html latex
+	rm -f *~ *.bak *.tmp
 
 doc:
 	doxygen doxy.conf
+
+cleandoc:
+	rm -rf html latex
 
 ${SUBDIRS}:
 	${MAKE} -C $@ ${WHATTODO}

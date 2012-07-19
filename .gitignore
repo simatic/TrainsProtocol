@@ -3,4 +3,16 @@
 *.BAK
 *.o
 depend
-tests/integration/basic/basicTest
+html
+# All that is generated
+libtrains.so
+testAddress
+testApplicationMessage_wagon
+testBqueue
+testComm
+testList
+testManagement_addr
+basicTest
+client
+server
+perf

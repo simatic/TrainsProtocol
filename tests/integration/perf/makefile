@@ -17,7 +17,7 @@ VALGRINDFLAGS =--leak-check=yes --leak-resolution=high --num-callers=40 --tool=m
 
 ### Rules.  ############################################################
 
-.PHONY:         all clean cleanall run valgrind
+.PHONY:         all clean run valgrind
 
 all: depend $(BIN)
 
@@ -26,8 +26,6 @@ $(BIN): $(OBJECTS)
 
 clean:
 	rm -f *~ *.bak *.BAK *.tmp
-
-cleanall: clean
 	rm -f $(OBJECTS) $(BIN) depend
 
 depend: $(SOURCES)
@@ -42,4 +40,4 @@ run: $(BIN)
 valgrind: $(BIN)
 	(export LD_LIBRARY_PATH=LD_LIBRARY_PATH:../../../src; valgrind $(VALGRINDFLAGS) ./$(BIN) y 1 100000 1 2>&1)
 
-include depend
+-include depend
