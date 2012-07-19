@@ -36,10 +36,12 @@ void signalArrival(address arrived, address_set circuit){
 
 void signalDepartures(address_set goneSet, address_set circuit){
   address ad;
-  circuit &= ~goneSet;
-  for (ad = 1; ad != 0; ad <<= 1){
-    if (addr_ismember(ad, goneSet)){
-      signalArrivalDepartures(AM_DEPARTURE, ad, circuit);
-    }
+  if (goneSet != 0){
+	  circuit &= ~goneSet;
+	  for (ad = 1; ad != 0; ad <<= 1) {
+		  if (addr_ismember(ad, goneSet)) {
+			  signalArrivalDepartures(AM_DEPARTURE, ad, circuit);
+		  }
+	  }
   }
 }
