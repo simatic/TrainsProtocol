@@ -34,19 +34,21 @@ ADDR* addr_generator(char* locate, int length){
   int i=0;
 
   addr_file = fopen (locate , "r");
-  if (addr_file == NULL) error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "Error opening file");
+  if (addr_file == NULL )
+    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "Error opening file");
   else {
-    for(i=0;i<length;i++){
-      if ( fgets (line, MAX_LEN_LINE_IN_FILE, addr_file) != NULL )
-	{
-	 ip_only   = strtok(line, ":");
-	 addr_full = strtok(NULL, ":\n");
-	 strcpy(array[i].ip,ip_only);
-	 strcpy(array[i].chan,addr_full);
-	}
+    for (i = 0; i < length; i++) {
+      if (fgets(line, MAX_LEN_LINE_IN_FILE, addr_file) != NULL ) {
+        if ((line[0] != '#')&&(line[0]!='\n')) {
+          ip_only = strtok(line, ":");
+          addr_full = strtok(NULL, ":\n");
+          strcpy(array[i].ip, ip_only);
+          strcpy(array[i].chan, addr_full);
+        } else
+          i--;
+      }
     }
   }
-  
   fclose(addr_file);
 
   return(array);
