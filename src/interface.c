@@ -16,9 +16,10 @@ int tr_errno;
 int tr_init(CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver callbackUtoDeliver){
   int rc;
   pthread_t thread;
-  char *trainsHost;
+  char trainsHost[1024];
   char *trainsPort;
   int rank;
+  
 
   rc = sem_init(&sem_init_done,0,0);
   if(rc)
@@ -32,9 +33,11 @@ int tr_init(CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver call
 
   global_addr_array = addr_generator(LOCALISATION, NP);
 
-  trainsHost = getenv("TRAINS_HOST");
-  if (trainsHost == NULL)
-    error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"TRAINS_HOST environment variable is not defined");
+  rc = gethostname(trainsHost,1024);
+  if(rc != 0){
+    printf("Erreur hostname\n");
+    exit(1);
+  }
   trainsPort = getenv("TRAINS_PORT");
   if (trainsPort == NULL)
     error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"TRAINS_PORT environment variable is not defined");
