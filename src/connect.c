@@ -8,7 +8,6 @@
 #include "param.h"
 #include "counter.h"
 
-
 int open_connection(address addr, bool isPred){
   int rank;
   t_comm * tcomm;
@@ -28,10 +27,10 @@ int open_connection(address addr, bool isPred){
       add_tcomm(tcomm,rank,global_addr_array,isPred);
       rc = pthread_create(&thread, NULL, &connectionMgt, (void *)tcomm);
       if (rc < 0)
-	error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+        error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
       rc = pthread_detach(thread);
       if (rc < 0)
-	error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
+        error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
       return(1);
     }
   }
@@ -77,13 +76,15 @@ address searchSucc(address add){
   return(result);
 }
 
-void *connectionMgt(void *arg) {
-  t_comm *aComm = (t_comm*)arg;
-  womim * msg_ext;
+void *msgTreatment(void *arg){
+  t_commAndQueue *commAndQueue = (t_commAndQueue*)arg;
+  t_bqueue *msgToTreatQueue = commAndQueue->msgQueue;
+  t_comm *aComm = commAndQueue->aComm;
+  womim *msg_ext;
   bool theEnd = false;
 
   do{
-    msg_ext = receive(aComm);
+    msg_ext = bqueue_dequeue(msgToTreatQueue);
     if (msg_ext == NULL) {
       break;
     }
@@ -108,6 +109,42 @@ void *connectionMgt(void *arg) {
     stateMachine(msg_ext);
   } while (!theEnd);
   // NB : The test cannot be 
+  //} while (msg_ext->msg.type != DISCONNECT);
+  // because msg.typ is freed inside stateMachine()
+
+  free(commAndQueue);
+  return NULL;
+}
+
+void *connectionMgt(void *arg) {
+  pthread_t treatmentThread;
+  t_commAndQueue *commAndQueue;
+  t_bqueue *msgQueue = bqueue_new();
+  t_comm *aComm = (t_comm*)arg;
+  womim * msg_ext;
+  int rc;
+
+  commAndQueue = malloc(sizeof(t_commAndQueue));
+  assert(commAndQueue != NULL);
+
+  commAndQueue->aComm = aComm;
+  commAndQueue->msgQueue = msgQueue;
+
+  rc = pthread_create(&treatmentThread, NULL, &msgTreatment, (void *)commAndQueue);
+  if (rc < 0)
+    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+  rc = pthread_detach(treatmentThread);
+  if (rc < 0)
+    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
+
+  do{
+    msg_ext = receive(aComm);
+    bqueue_enqueue(msgQueue, msg_ext);
+  } while(
+        (msg_ext != NULL) &&
+        (msg_ext->msg.type != DISCONNECT_PRED) &&
+        (msg_ext->msg.type != DISCONNECT_SUCC));
+  // NB : The test cannot be
   //} while (msg_ext->msg.type != DISCONNECT);
   // because msg.typ is freed inside stateMachine()
 
