@@ -13,6 +13,11 @@
 #include "address.h"
 
 /**
+ * @brief Max length of a rank (including '\0')
+ */
+#define MAX_LEN_RANK 3
+
+/**
  * @brief Max length of an IP address (including '\0')
  */
 #define MAX_LEN_IP 64

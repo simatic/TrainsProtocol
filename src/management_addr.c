@@ -9,7 +9,7 @@
 ADDR* global_addr_array;
 
 // Max length of a line read in LOCALISATION file
-#define MAX_LEN_LINE_IN_FILE (MAX_LEN_IP + 1 + MAX_LEN_CHAN)
+#define MAX_LEN_LINE_IN_FILE (MAX_LEN_RANK + 1 + MAX_LEN_IP + 1 + MAX_LEN_CHAN)
 
 //create an array of addresses
 ADDR* init_addr_list(int length){
@@ -31,23 +31,47 @@ ADDR* addr_generator(char* locate, int length){
   char line[MAX_LEN_LINE_IN_FILE];
   char * addr_full=NULL;
   char * ip_only=NULL;
+  char * rank_str=NULL;
+  int rank;
+  bool already_exist[16];
   int i=0;
+  for (i = 0; i < 16; i++) {
+    already_exist[i] = false;
+  }
 
   addr_file = fopen (locate , "r");
   if (addr_file == NULL )
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "Error opening file");
   else {
-    for (i = 0; i < length; i++) {
-      if (fgets(line, MAX_LEN_LINE_IN_FILE, addr_file) != NULL ) {
-        if ((line[0] != '#')&&(line[0]!='\n')) {
-          ip_only = strtok(line, ":");
+    i=0;
+      while (fgets(line, MAX_LEN_LINE_IN_FILE, addr_file) != NULL ) {
+        i++;
+        if ((line[0] != '#') && (line[0] != '\n')) {
+          rank_str = strtok(line, ":");
+          //Management tests
+          rank = atoi(rank_str);
+          ip_only = strtok(NULL, ":");
           addr_full = strtok(NULL, ":\n");
-          strcpy(array[i].ip, ip_only);
-          strcpy(array[i].chan, addr_full);
-        } else
-          i--;
+          if (rank >= 16 ||
+              rank < 0 ||
+              ip_only == NULL ||
+              addr_full == NULL ||
+              already_exist[rank]) {
+            fprintf(stderr,
+                "BAD USE OF addr_file AT LINE %d\n\n"
+                "Each line should be NB:HOSTNAME:PORT\n\t"
+                "NB being a number between 0 and 15\n\t"
+                "HOSTNAME being the... hostname ! (max length 63 char)\n\t"
+                "PORT being the port on which the process works (max length 63 char)\n\n"
+                "Comments line allowed (begin with #), empty lines allowed\n", i);
+            exit(-1) ;
+          }
+          already_exist[rank] = true;
+
+          strcpy(array[rank].ip, ip_only);
+          strcpy(array[rank].chan, addr_full);
+        }
       }
-    }
   }
   fclose(addr_file);
 
