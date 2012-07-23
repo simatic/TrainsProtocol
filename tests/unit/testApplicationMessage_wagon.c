@@ -115,12 +115,12 @@ int main(){
   MUTEX_UNLOCK(mutexWagonToSend);
   compare("newmsg (which calls mallocmsg_outdated) test1",
 	  (mp1->header.len == sizeof(messageHeader)+SIZE1) &&
-	  ((unsigned int)mp1 - (unsigned int)wagonToSend->p_wagon ==
-	   sizeof(wagonHeader)));
+	  ((long unsigned int)mp1 - (long unsigned int)wagonToSend->p_wagon ==
+	   (long unsigned int)sizeof(wagonHeader)));
   compare("newmsg (which calls mallocmsg_outdated) test2",
 	  (mp2->header.len == sizeof(messageHeader)+SIZE2) &&
-	  ((unsigned int)mp2 - (unsigned int)mp1 ==
-	   sizeof(messageHeader) + SIZE1));
+	  ((long unsigned int)mp2 - (long unsigned int)mp1 ==
+	   (long unsigned int)sizeof(messageHeader) + SIZE1));
 
   // Test firstMsg
   w = newWiw();
