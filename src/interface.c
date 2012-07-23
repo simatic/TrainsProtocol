@@ -55,7 +55,7 @@ int trInit(CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver callb
   theCallbackUtoDeliver = callbackUtoDeliver;
 
   globalAddrArray = addrGenerator(LOCALISATION, NP);
-
+fprintf(stderr,"globalAddArray généré\n\n");
   rc = gethostname(trainsHost,1024);
   if(rc != 0){
     printf("Erreur hostname\n");

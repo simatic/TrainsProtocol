@@ -49,26 +49,26 @@ void freeAddrList(ADDR* tab){
 //read the file of addresses to fulfill our array
 //it takes to arguments : the place where is the file and the maximal number of addresses it could have.
 ADDR* addrGenerator(char* locate, int length){
-  FILE * addr_file;
+  FILE * addrFile;
   ADDR * array=initAddrList(length);
   char line[MAX_LEN_LINE_IN_FILE];
   char * addr_full=NULL;
   char * ip_only=NULL;
   char * rank_str=NULL;
   int rank;
-  bool already_exist[16];
+  bool already_exist[NP];
 
   int i=0;
-  for (i = 0; i < 16; i++) {
+  for (i = 0; i < NP; i++) {
     already_exist[i] = false;
   }
 
-  addr_file = fopen (locate , "r");
-  if (addr_file == NULL )
+  addrFile = fopen (locate , "r");
+  if (addrFile == NULL )
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "Error opening file");
   else {
     i=0;
-      while (fgets(line, MAX_LEN_LINE_IN_FILE, addr_file) != NULL ) {
+      while (fgets(line, MAX_LEN_LINE_IN_FILE, addrFile) != NULL ) {
         i++;
         if ((line[0] != '#') && (line[0] != '\n')) {
           rank_str = strtok(line, ":");
@@ -95,7 +95,14 @@ ADDR* addrGenerator(char* locate, int length){
         }
       }
   }
-  fclose(addr_file);
+  fclose(addrFile);
+
+  for (i = 0; i < NP; i++){
+    if (!already_exist[i]){
+      strcpy(array[i].ip, "FAKEADDRESS");
+      strcpy(array[i].chan,"FAKEPORT");
+    }
+  }
 
   return(array);
 }
@@ -154,7 +161,8 @@ void searchTComm(t_comm * tcomm, ADDR * array, int *prank, bool *pisPred){
 int addrID(char * ip, char * chan, ADDR * array){
   int i=0;
 
-  while((array[i].ip[0] != '\0')&&(strcmp(array[i].ip,ip)!=0 || strcmp(array[i].chan,chan)!=0)){
+  while ((array[i].ip[0] != '\0')
+      && (strcmp(array[i].ip, ip) != 0 || strcmp(array[i].chan, chan) != 0)) {
     i++;
   }
 
