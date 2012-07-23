@@ -51,7 +51,7 @@ typedef struct{
  *            a future predecessor
  * @return -1 if it fails and 1 if not
  */
-int open_connection(address addr, bool isPred);
+int openConnection(address addr, bool isPred);
 
 /**
  * @brief Close the connection with @a addr
@@ -59,18 +59,24 @@ int open_connection(address addr, bool isPred);
  * @param[in] isPred Indicates if this connection is opened towards
  *            a future predecessor
  */
-void close_connection(address addr, bool isPred);
+void closeConnection(address addr, bool isPred);
 
 /**
- * @brief Search a successor in @a global_addr_array related to @a add and create the connectcion if possible
+ * @brief Search a successor in @a globalAddrArray related to @a add and create the connectcion if possible
  * @param[in] add The address to search from
  * @return The address of the successor
- * @note Return my_address if no succ is found
+ * @note Return myAddress if no succ is found
  */
 address searchSucc(address add);
 
 /**
- * @brief Manage the connection
+ * @brief Treat the messages received
+ * @param[in] arf A pointer on a structure containing the arguments
+ */
+void *msgTreatment(void *arg)
+
+/**
+ * @brief Manage the connection : enqueue the messages received in a bqueue read by a second thread
  * @param[in] arg A pointer on an argument
  */
 void *connectionMgt(void *arg);

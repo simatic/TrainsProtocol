@@ -45,7 +45,7 @@ void *functionThread1(void *null) {
   printf("Purge wagonToSend_outdated");
   MUTEX_LOCK(mutexWagonToSend);
   free(wagonToSend);
-  wagonToSend = newwiw();
+  wagonToSend = newWiw();
   pthread_cond_signal(&condWagonToSend);
   MUTEX_UNLOCK(mutexWagonToSend);
   return NULL;
@@ -60,8 +60,8 @@ void compare(char *testType, bool result){
   printf("...OK\n");
 }
 
-void aCallbackCircuitChange(circuitview *cp){
-  if (addr_isnull(cp->cv_departed)) {
+void aCallbackCircuitChange(circuitView *cp){
+  if (addrIsNull(cp->cv_departed)) {
     // A process joined
     compare("uto_deliveries (callbackCircuitChange) test1",
 	    (cp->cv_joined == 0x0001) &&
@@ -86,7 +86,7 @@ void aCallbackCircuitChange(circuitview *cp){
 void aCallbackUtoDeliver(address sender, message *mp){
       compare("uto_deliveries (callbackUtoDeliver)",
 	      (sender == FAKE_ADDRESS) &&
-	      (mp->header.len == sizeof(message_header) + sizeof(int)) &&
+	      (mp->header.len == sizeof(messageHeader) + sizeof(int)) &&
 	      (*((int*)(mp->payload)) == DATA));
 }
 
@@ -99,13 +99,13 @@ int main(){
   // Miscellaneous initializations
   rc = pthread_cond_init(&condWagonToSend, NULL);
   assert(rc == 0);
-  wagonsToDeliver = bqueue_new();
+  wagonsToDeliver = newBqueue();
 
   // Test newwagon_outdated
-  my_address = FAKE_ADDRESS;
-  wagonToSend = newwiw();
+  myAddress = FAKE_ADDRESS;
+  wagonToSend = newWiw();
   compare("newwagon_outdated",
-	  (wagonToSend->p_wagon->header.len == sizeof(wagon_header)) &&
+	  (wagonToSend->p_wagon->header.len == sizeof(wagonHeader)) &&
 	  (wagonToSend->p_wagon->header.sender == FAKE_ADDRESS));
 
   // Test newmsg (which calls mallocmsg_outdated)
@@ -114,33 +114,33 @@ int main(){
   mp2 = newmsg(SIZE2);
   MUTEX_UNLOCK(mutexWagonToSend);
   compare("newmsg (which calls mallocmsg_outdated) test1",
-	  (mp1->header.len == sizeof(message_header)+SIZE1) &&
+	  (mp1->header.len == sizeof(messageHeader)+SIZE1) &&
 	  ((unsigned int)mp1 - (unsigned int)wagonToSend->p_wagon ==
-	   sizeof(wagon_header)));
+	   sizeof(wagonHeader)));
   compare("newmsg (which calls mallocmsg_outdated) test2",
-	  (mp2->header.len == sizeof(message_header)+SIZE2) &&
+	  (mp2->header.len == sizeof(messageHeader)+SIZE2) &&
 	  ((unsigned int)mp2 - (unsigned int)mp1 ==
-	   sizeof(message_header) + SIZE1));
+	   sizeof(messageHeader) + SIZE1));
 
-  // Test firstmsg
-  w = newwiw();
-  mp = firstmsg(w->p_wagon);
+  // Test firstMsg
+  w = newWiw();
+  mp = firstMsg(w->p_wagon);
   compare("firstmsg test1", mp == NULL);
-  free_wiw(w);
-  mp = firstmsg(wagonToSend->p_wagon);
+  freeWiw(w);
+  mp = firstMsg(wagonToSend->p_wagon);
   compare("firstmsg test2", mp == mp1);
 
-  // Test nextmsg
-  mp = nextmsg(wagonToSend->p_wagon, mp);
+  // Test nextMsg
+  mp = nextMsg(wagonToSend->p_wagon, mp);
   compare("nextmsg test1", mp == mp2);
-  mp = nextmsg(wagonToSend->p_wagon, mp);
+  mp = nextMsg(wagonToSend->p_wagon, mp);
   compare("nextmsg test2", mp == NULL);
 
   // Test signalArrival
   signalArrival(FAKE_ADDRESS, FAKE_CIRCUIT);
-  mp = firstmsg(wagonToSend->p_wagon);
-  mp = nextmsg(wagonToSend->p_wagon, mp);
-  mp = nextmsg(wagonToSend->p_wagon, mp);
+  mp = firstMsg(wagonToSend->p_wagon);
+  mp = nextMsg(wagonToSend->p_wagon, mp);
+  mp = nextMsg(wagonToSend->p_wagon, mp);
   compare("signalArrival (which tests signalArrivalDepartures)",
 	  (mp->header.typ == AM_ARRIVAL) &&
 	  (((payloadArrivalDeparture*)(mp->payload))->ad == FAKE_ADDRESS) &&
@@ -148,8 +148,8 @@ int main(){
 
   // Test signalDepartures
   signalDepartures(0x0003, FAKE_CIRCUIT);
-  mp = nextmsg(wagonToSend->p_wagon, mp);
-  mp2 = nextmsg(wagonToSend->p_wagon, mp);
+  mp = nextMsg(wagonToSend->p_wagon, mp);
+  mp2 = nextMsg(wagonToSend->p_wagon, mp);
   compare("signalDeparturesArrival_outdated (which tests signalArrivalDepartures_outdated)",
 	  (mp->header.typ == AM_DEPARTURE) &&
 	  (((payloadArrivalDeparture*)(mp->payload))->ad == 0x0001) &&
@@ -168,7 +168,7 @@ int main(){
   mp = newmsg(WAGON_MAX_LEN); // This message is too big to fit into the current wagon. We must wait till the wagon is made empty.
   MUTEX_UNLOCK(mutexWagonToSend);
   compare("newmsg (which calls mallocmsg_outdated) test3",
-	  mp == firstmsg(wagonToSend->p_wagon));
+	  mp == firstMsg(wagonToSend->p_wagon));
 
   rc = pthread_create(&thread, NULL, &functionThread1, NULL);
   if (rc < 0)
@@ -179,39 +179,39 @@ int main(){
   mp = newmsg(SIZE1); // This message is too big to fit into the current wagon. We must wait till the wagon is made empty.
   MUTEX_UNLOCK(mutexWagonToSend);
   compare("newmsg (which calls mallocmsg_outdated) test4",
-	  mp == firstmsg(wagonToSend->p_wagon));
+	  mp == firstMsg(wagonToSend->p_wagon));
 
-  // Test uto_broadcast when automatonState is ALONE_INSERT_WAIT
+  // Test utoBroadcast when automatonState is ALONE_INSERT_WAIT
   automatonState = ALONE_INSERT_WAIT;
-  uto_broadcast(mp);
-  w = bqueue_dequeue(wagonsToDeliver);
-  mp2 = firstmsg(w->p_wagon);
+  utoBroadcast(mp);
+  w = bqueueDequeue(wagonsToDeliver);
+  mp2 = firstMsg(w->p_wagon);
   compare("uto_broadcast (when ALONE)",
 	  (mp == mp2) &&
-	  (firstmsg(wagonToSend->p_wagon) == NULL));
+	  (firstMsg(wagonToSend->p_wagon) == NULL));
 
-  // Test uto_deliveries
+  // Test utoDeliveries
   theCallbackCircuitChange = aCallbackCircuitChange;
   theCallbackUtoDeliver = aCallbackUtoDeliver;
 
-  my_address = FAKE_ADDRESS;
+  myAddress = FAKE_ADDRESS;
 
-  free_wiw(wagonToSend);
-  wagonToSend = newwiw();
+  freeWiw(wagonToSend);
+  wagonToSend = newWiw();
   signalArrival(0x0001, 0x0007);
   signalDepartures(0x0006, 0x0001);
-  bqueue_enqueue(wagonsToDeliver, wagonToSend);
+  bqueueEnqueue(wagonsToDeliver, wagonToSend);
 
-  wagonToSend = newwiw();
+  wagonToSend = newWiw();
   mp = newmsg(sizeof(int));
   MUTEX_UNLOCK(mutexWagonToSend);
   *((int*)(mp->payload)) = DATA;
   mp = newmsg(0);
   MUTEX_UNLOCK(mutexWagonToSend);
   mp->header.typ = AM_TERMINATE;
-  bqueue_enqueue(wagonsToDeliver, wagonToSend);
+  bqueueEnqueue(wagonsToDeliver, wagonToSend);
 
-  uto_deliveries(NULL);
+  utoDeliveries(NULL);
 
   return EXIT_SUCCESS;
 }

@@ -65,7 +65,7 @@ typedef struct {
 */
 typedef struct {
   stamp stamp;/**<A stramp for some info*/
-  address_set circuit;/**<A description of the circuit*/
+  addressSet circuit;/**<A description of the circuit*/
   wagon wagons[];/**<The block of wagons containing info*/
 }__attribute__((packed)) Train;
 
@@ -159,13 +159,13 @@ wagon* firstWagon(Msg * msg);
 * @return An empty Msg
 * @note The problem_id is 0
 */
-Msg init_msg();
+Msg initMsg();
 
 /**
 * @brief Create a Msg of the given @a mtype
 * @note If @a mtype is TRAIN then it will give a DEFAULT Msg with the problem_id number 1. This function shouldn't be used to create TRAIN.
 * @param[in] mtype The MType wanted
-* @param[in] addr_id The address (short)of the process which is bounded to send the Msg
+* @param[in] addrID The address (short)of the process which is bounded to send the Msg
 * @return The freshly created Msg
 * @warning
 * <ul><li> If an error occured during the creation of the message, the result will be a Msg with a Default body where the problem_id will be -1. In addition, an error will be rised thanks to perror.</li></ul>

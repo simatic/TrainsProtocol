@@ -50,53 +50,53 @@ int main(){
   bool aIsPred;
 
   printf("taille = %d\n", sizeof(ADDR));
-  global_addr_array = addr_generator(LOCALISATION, NB_LINES_IN_FILE);
+  globalAddrArray = addrGenerator(LOCALISATION, NB_LINES_IN_FILE);
 
   for (i=0; i<NB_LINES_IN_FILE; i++){
     memset(ip,65+i,MAX_LEN_IP);
     ip[MAX_LEN_IP-1] = '\0';
     memset(chan,97+i,MAX_LEN_CHAN);
     chan[MAX_LEN_CHAN-1] = '\0';
-    compare("global_addr_array contents", ((strcmp(ip,global_addr_array[i].ip)==0) && (strcmp(chan,global_addr_array[i].chan)==0) && (global_addr_array[i].tcomm[0]==NULL) && (global_addr_array[i].tcomm[1]==NULL)));
+    compare("global_addr_array contents", ((strcmp(ip,globalAddrArray[i].ip)==0) && (strcmp(chan,globalAddrArray[i].chan)==0) && (globalAddrArray[i].tcomm[0]==NULL) && (globalAddrArray[i].tcomm[1]==NULL)));
   }
-  compare("global_addr_array contents", ((global_addr_array[i].ip[0]=='\0') && (global_addr_array[i].chan[0]=='\0') && (global_addr_array[i].tcomm[0]==NULL) && (global_addr_array[i].tcomm[1]==NULL)));
+  compare("global_addr_array contents", ((globalAddrArray[i].ip[0]=='\0') && (globalAddrArray[i].chan[0]=='\0') && (globalAddrArray[i].tcomm[0]==NULL) && (globalAddrArray[i].tcomm[1]==NULL)));
 
-  add_tcomm(FAKE_COMM1, 0, global_addr_array, true);
-  add_tcomm(FAKE_COMM2, 0, global_addr_array, false);
-  compare("add_tcomm", (global_addr_array[0].tcomm[0]==FAKE_COMM1) && (global_addr_array[0].isPred[0]==true));
-  compare("add_tcomm", (global_addr_array[0].tcomm[1]==FAKE_COMM2) && (global_addr_array[0].isPred[1]==false));
+  addTComm(FAKE_COMM1, 0, globalAddrArray, true);
+  addTComm(FAKE_COMM2, 0, globalAddrArray, false);
+  compare("add_tcomm", (globalAddrArray[0].tcomm[0]==FAKE_COMM1) && (globalAddrArray[0].isPred[0]==true));
+  compare("add_tcomm", (globalAddrArray[0].tcomm[1]==FAKE_COMM2) && (globalAddrArray[0].isPred[1]==false));
 
-  search_tcomm(FAKE_COMM1, global_addr_array, &aRank, &aIsPred);
+  searchTComm(FAKE_COMM1, globalAddrArray, &aRank, &aIsPred);
   compare("search_tcomm", (aRank==0) && (aIsPred==true));
-  search_tcomm(FAKE_COMM2, global_addr_array, &aRank, &aIsPred);
+  searchTComm(FAKE_COMM2, globalAddrArray, &aRank, &aIsPred);
   compare("search_tcomm", (aRank==0) && (aIsPred==false));
-  search_tcomm(FAKE_COMM3, global_addr_array, &aRank, &aIsPred);
+  searchTComm(FAKE_COMM3, globalAddrArray, &aRank, &aIsPred);
   compare("search_tcomm", (aRank==-1));
 
-  compare("get_tcomm", get_tcomm(0,true,global_addr_array)==FAKE_COMM1);
-  compare("get_tcomm", get_tcomm(0,false,global_addr_array)==FAKE_COMM2);
-  remove_tcomm(FAKE_COMM1, 0, global_addr_array);
-  compare("get_tcomm", get_tcomm(0,true,global_addr_array)==NULL);
-  add_tcomm(FAKE_COMM1, 0, global_addr_array, true);
-  compare("get_tcomm", get_tcomm(0,true,global_addr_array)==FAKE_COMM1);
+  compare("get_tcomm", getTComm(0,true,globalAddrArray)==FAKE_COMM1);
+  compare("get_tcomm", getTComm(0,false,globalAddrArray)==FAKE_COMM2);
+  removeTComm(FAKE_COMM1, 0, globalAddrArray);
+  compare("get_tcomm", getTComm(0,true,globalAddrArray)==NULL);
+  addTComm(FAKE_COMM1, 0, globalAddrArray, true);
+  compare("get_tcomm", getTComm(0,true,globalAddrArray)==FAKE_COMM1);
 
   memset(ip,65+SEARCHED_INDEX,MAX_LEN_IP);
   ip[MAX_LEN_IP-1] = '\0';
   memset(chan,97+SEARCHED_INDEX,MAX_LEN_CHAN);
   chan[MAX_LEN_CHAN-1] = '\0';
-  compare("addr_id", addr_id(ip, chan, global_addr_array) == SEARCHED_INDEX);
+  compare("addr_id", addrID(ip, chan, globalAddrArray) == SEARCHED_INDEX);
   chan[0] = '\0';
-  compare("addr_id", addr_id(ip, chan, global_addr_array) == -1);
+  compare("addr_id", addrID(ip, chan, globalAddrArray) == -1);
 
-  remove_tcomm(FAKE_COMM2, 0, global_addr_array);
-  compare("remove_tcomm", global_addr_array[0].tcomm[0]==FAKE_COMM1);
-  compare("remove_tcomm", global_addr_array[0].tcomm[1]==NULL);
-  remove_tcomm(FAKE_COMM1, 0, global_addr_array);
-  compare("remove_tcomm", global_addr_array[0].tcomm[0]==NULL);
-  compare("remove_tcomm", global_addr_array[0].tcomm[1]==NULL);
+  removeTComm(FAKE_COMM2, 0, globalAddrArray);
+  compare("remove_tcomm", globalAddrArray[0].tcomm[0]==FAKE_COMM1);
+  compare("remove_tcomm", globalAddrArray[0].tcomm[1]==NULL);
+  removeTComm(FAKE_COMM1, 0, globalAddrArray);
+  compare("remove_tcomm", globalAddrArray[0].tcomm[0]==NULL);
+  compare("remove_tcomm", globalAddrArray[0].tcomm[1]==NULL);
 
 
-  free_addr_list(global_addr_array);
+  freeAddrList(globalAddrArray);
 
   return EXIT_SUCCESS;
 }

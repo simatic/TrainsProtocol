@@ -47,7 +47,7 @@
 /**
  * @brief Initializes signalMgt module
  */
-void signalMgt_initialize();
+void signalMgtInitialize();
 
 #endif /* _SIGNALMGT_H_ */
 

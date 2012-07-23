@@ -34,9 +34,9 @@
 
 sem_t sem_init_done;
 
-int tr_errno;
+int trErrno;
 
-int tr_init(CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver callbackUtoDeliver){
+int trInit(CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver callbackUtoDeliver){
   int rc;
   pthread_t thread;
   char trainsHost[1024];
@@ -54,7 +54,7 @@ int tr_init(CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver call
   theCallbackCircuitChange = callbackCircuitChange;
   theCallbackUtoDeliver = callbackUtoDeliver;
 
-  global_addr_array = addr_generator(LOCALISATION, NP);
+  globalAddrArray = addrGenerator(LOCALISATION, NP);
 
   rc = gethostname(trainsHost,1024);
   if(rc != 0){
@@ -64,10 +64,10 @@ int tr_init(CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver call
   trainsPort = getenv("TRAINS_PORT");
   if (trainsPort == NULL)
     error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"TRAINS_PORT environment variable is not defined");
-  rank = addr_id(trainsHost,trainsPort,global_addr_array);
+  rank = addrID(trainsHost,trainsPort,globalAddrArray);
   if (rank < 0)
     error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"Could not find a line in %s file corresponding to TRAINS_HOST environment variable value (%s) and TRAINS_PORT environment variable value (%s)", LOCALISATION, trainsHost, trainsPort);
-  my_address=rank_2_addr(rank);
+  myAddress=rankToAddr(rank);
 
   automatonInit();
   do {
@@ -76,7 +76,7 @@ int tr_init(CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver call
   if (rc)
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_wait()");
 
-  rc = pthread_create(&thread, NULL, uto_deliveries, NULL);
+  rc = pthread_create(&thread, NULL, utoDeliveries, NULL);
   if (rc)
     error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
   rc = pthread_detach(thread);
@@ -86,15 +86,15 @@ int tr_init(CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver call
   return 0;
 }
 
-void tr_error_at_line(int status, int errnum, const char *filename, unsigned int linenum, const char *format){
+void trError_at_line(int status, int errnum, const char *filename, unsigned int linenum, const char *format){
   fflush(stdout);
   fprintf(stderr, "basic version of tr_error_at_line\n");
 }
 
-void tr_perror(int errnum){
+void trPerror(int errnum){
   fprintf(stderr, "basic version of tr_perror");
 }
 
-int tr_terminate(){
+int trTerminate(){
   return 0;
 }

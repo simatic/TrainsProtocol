@@ -69,12 +69,12 @@ extern int ntr;
 /**
  * @brief The limit of time to wait
  */
-extern int wait_nb_max;
+extern int waitNbMax;
 
 /**
  * @brief The default time to wait
  */
-extern int wait_default_time; /**<in microsecond*/
+extern int waitDefaultTime; /**<in microsecond*/
 
 
 #endif

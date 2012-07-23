@@ -22,7 +22,7 @@
  */
 
 /**
- * @brief Blocking queue: a queue for which, when a thread calls @a bqueue_dequeue on an empty queue, this thread is blocked until another thread calls \a bqueue_queue to queue an element.
+ * @brief Blocking queue: a queue for which, when a thread calls @a bqueueDequeue on an empty queue, this thread is blocked until another thread calls \a bqueue_queue to queue an element.
  * @file bqueue.h
  * @author Michel SIMATIC
  * @date  14 april 2012
@@ -46,28 +46,28 @@ typedef struct{
  * @brief Creates a new bqueue
  * @return Pointer to the new bqueue
  */
-t_bqueue *bqueue_new();
+t_bqueue *newBqueue();
 
 /**
  * @brief Removes the first element of @a aBQueue. In case \a aBQueue is empty, blocks the executing thread until an other thread adds an element to \a aBQueue.
  * @param[in] aBQueue Bqueue to work on
  * @return The first element of \a aBQueue
  */
-void *bqueue_dequeue(t_bqueue *aBQueue);
+void *bqueueDequeue(t_bqueue *aBQueue);
 
 /**
  * @brief Enqueues element @a anElt at the end of queue @a aBQueue
  * @param[in] aBQueue Bqueue to work on
  * @param[in] anElt Element to add to \a aBQueue
  */
-void bqueue_enqueue(t_bqueue *aBQueue, void *anElt);
+void bqueueEnqueue(t_bqueue *aBQueue, void *anElt);
 
 /**
  * @brief Do several enqueue of elements of @a list in @a aBQueue
  * @param[in] aBQueue The pointer on the t_bqueue wich is bouned to grow
  * @param[in] list The pointer on the list to enqueue
  */
-void bqueue_extend(t_bqueue *aBQueue, t_list *list);
+void bqueueExtend(t_bqueue *aBQueue, t_list *list);
 
 /**
  * @brief Frees @a aBQueue
@@ -75,9 +75,9 @@ void bqueue_extend(t_bqueue *aBQueue, t_list *list);
  * @warning 
  * <ol>
  * <li>If elements of @a aBQueue were pointers to allocated structures, these elements are not freed.</li>
- * <li>Freeing a \a bqueue that other threads are currently blocked on (in \a bqueue_dequeue) produces undefined behavior.</li>
+ * <li>Freeing a \a bqueue that other threads are currently blocked on (in \a bqueueDequeue) produces undefined behavior.</li>
  * </ol>
  */
-void bqueue_free(t_bqueue *aBQueue);
+void freeBqueue(t_bqueue *aBQueue);
 
 #endif /* _BQUEUE_H_ */

@@ -36,7 +36,7 @@
 
 wagon* firstWagon(Msg * msg){
   if(msg->type==TRAIN){
-    if(msg->len > (sizeof(int)+sizeof(MType)+sizeof(stamp)+sizeof(address_set)) ){
+    if(msg->len > (sizeof(int)+sizeof(MType)+sizeof(stamp)+sizeof(addressSet)) ){
       return(msg->body.train.wagons);
     }
     else {
@@ -49,7 +49,7 @@ wagon* firstWagon(Msg * msg){
   }
 }
 
-Msg init_msg(){
+Msg initMsg(){
   Msg msg;
 
   msg.type=DEFAULT;
@@ -59,7 +59,7 @@ Msg init_msg(){
 }
 
 Msg newMsg(MType mtype, address addr_id){
-  Msg msg=init_msg();
+  Msg msg=initMsg();
 
   switch(mtype){
   case DEFAULT:

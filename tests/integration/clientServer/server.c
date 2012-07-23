@@ -49,19 +49,19 @@ void *connectionMgt(void *arg) {
   printf("\tNew connection\n");
   do{
     int len;
-    nbRead = comm_readFully(aComm, &len, sizeof(len));
+    nbRead = commReadFully(aComm, &len, sizeof(len));
     if (nbRead == sizeof(len)){
       msg = malloc(len);
       assert(msg != NULL);
       msg->header.len=len;
-      nbRead  = comm_readFully(aComm, &(msg->header.typ), msg->header.len - sizeof(len));
+      nbRead  = commReadFully(aComm, &(msg->header.typ), msg->header.len - sizeof(len));
       if (nbRead == msg->header.len - sizeof(len)){
 	if (msg->header.len < 1000) {
 	  printf("\t\t...Received message of %d bytes with: \"%s\"\n", msg->header.len, msg->payload);
 	} else {
 	  printf("\t\t...Received message of %d bytes ", msg->header.len);
 	  // Check contents
-	  for(i=0; i<msg->header.len - sizeof(message_header); i++){
+	  for(i=0; i<msg->header.len - sizeof(messageHeader); i++){
 	    if ((unsigned char)(msg->payload[i]) != i%256){
 	      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "Received long message which contents is incorrect (at %d-th position, found %d instead of %d)\n", i, (unsigned char)(msg->payload[i]), i%256);
 	    }
@@ -77,7 +77,7 @@ void *connectionMgt(void *arg) {
     }
   } while (nbRead > 0);
 
-  comm_free(aComm);
+  freeComm(aComm);
 
   if (nbRead == 0){
     printf("\t...Connection has been closed\n");
@@ -99,12 +99,12 @@ int main(int argc, char *argv[]) {
   }
 
   printf("Accepting connections on port %s...\n", argv[1]);
-  commForAccept = comm_newForAccept(argv[1]);
+  commForAccept = commNewForAccept(argv[1]);
   if (commForAccept == NULL)
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newForAccept");
 
   do{
-    aComm = comm_accept(commForAccept);
+    aComm = commAccept(commForAccept);
     if (aComm != NULL){
       // We fork a thread responsible for handling this connection
       pthread_t thread;
@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
 
   if (errno == EINTR){
     printf("\t...comm_accept was aborted\n");
-    comm_free(commForAccept);
+    freeComm(commForAccept);
   }else
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_accept");
 

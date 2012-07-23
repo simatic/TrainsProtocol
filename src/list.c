@@ -30,7 +30,7 @@
 
 #define NULLINK ((LINK*)NULL)
 
-t_list *list_new(){
+t_list *newList(){
   t_list *aList;
   aList = malloc(sizeof(t_list));
   assert(aList != NULL);
@@ -46,7 +46,7 @@ t_list *list_new(){
   return aList;
 }
 
-void *list_removeFirst(t_list *aList){
+void *listRemoveFirst(t_list *aList){
   LINK *link;
   void *val = NULL;
 
@@ -62,7 +62,7 @@ void *list_removeFirst(t_list *aList){
   return val;
 }
 
-void list_append(t_list *aList, void *anElt){
+void listAppend(t_list *aList, void *anElt){
   LINK *link, *exLast;
 
   if (!anElt)
@@ -82,17 +82,17 @@ void list_append(t_list *aList, void *anElt){
   MUTEX_UNLOCK(aList->listMutex);
 }
 
-void list_extend(t_list* aList, t_list* b_list){
+void listExtend(t_list* aList, t_list* b_list){
   LINK *link;
 
   // We append the elements of b_list in alist
   for (link = b_list->first; link->value != NULL ; link = link->next){
-    list_append(aList,link->value);
+    listAppend(aList,link->value);
   }
 }
 
 //list_clean just remove all the elements from at_list but let it alive
-void list_cleanList(t_list* aList){
+void cleanList(t_list* aList){
   LINK *link, *next;
   // We free all the LINK elements which value is not NULL
   MUTEX_LOCK(aList->listMutex);
@@ -108,7 +108,7 @@ void list_cleanList(t_list* aList){
   MUTEX_UNLOCK(aList->listMutex);
 }
 
-void list_free(t_list *aList){
+void freeList(t_list *aList){
   LINK *link, *next;
 
   // We free the remaining LINK elements in the list

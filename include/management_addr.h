@@ -66,13 +66,13 @@ typedef struct
  * @param[in] length The length of the array
  * @return The ADDR* created
  */
-ADDR* init_addr_list(int length);
+ADDR* initAddrList(int length);
 
 /**
  * @brief Clean the ADDR* @a tab
  * @param[in] tab The ADDR* we want to free
  */
-void free_addr_list(ADDR* tab);
+void freeAddrList(ADDR* tab);
 
 /**
  * @brief Generate the ADDR* from the file at @a locate
@@ -80,7 +80,7 @@ void free_addr_list(ADDR* tab);
  * @param[in] length The maximum number of addresses it could have
  * @return The ADDR*
  */
-ADDR* addr_generator(char* locate, int length);
+ADDR* addrGenerator(char* locate, int length);
 
 /**
  * @brief Add a @a tcomm to @a array at the @a i place
@@ -89,7 +89,7 @@ ADDR* addr_generator(char* locate, int length);
  * @param[in] array The ADDR*
  * @param[in] isPred the value the isPred field should have
  */
-void add_tcomm(t_comm * tcomm, int i, ADDR * array, bool isPred);
+void addTComm(t_comm * tcomm, int i, ADDR * array, bool isPred);
 
 /**
  * @brief Tries to return a non-NULL @a tcomm from @a array at the @a i place
@@ -100,7 +100,7 @@ void add_tcomm(t_comm * tcomm, int i, ADDR * array, bool isPred);
  * @return tcomm[0] if it is non-NULL and has the right isPred, or tcomm[1] 
  *         for the same reasons or NULL
  */
-t_comm *get_tcomm(int i, bool isPred, ADDR * array);
+t_comm *getTComm(int i, bool isPred, ADDR * array);
 
 /**
  * @brief Remove a @a tcomm from @a array at the @a i place
@@ -108,7 +108,7 @@ t_comm *get_tcomm(int i, bool isPred, ADDR * array);
  * @param[in] i The place from where @a tcomm will be removed
  * @param[in] array The ADDR*
  */
-void remove_tcomm(t_comm * tcomm, int i, ADDR * array);
+void removeTComm(t_comm * tcomm, int i, ADDR * array);
 
 /**
  * @brief Search if a @a tcomm is present in @a array
@@ -117,7 +117,7 @@ void remove_tcomm(t_comm * tcomm, int i, ADDR * array);
  * @param[out] prank Rank of the found @a tcomm (-1 if unfound)
  * @param[out] pisPred Set to true if the @a tcomm found is the one of a pred
  */
-void search_tcomm(t_comm * tcomm, ADDR * array, int *prank, bool *pisPred);
+void searchTComm(t_comm * tcomm, ADDR * array, int *prank, bool *pisPred);
 
 /**
  * @brief Give the place in the @a array of a given address
@@ -130,12 +130,12 @@ void search_tcomm(t_comm * tcomm, ADDR * array, int *prank, bool *pisPred);
  * <li>If the address caracterized by @a ip and @a chan is not found in @a array, this function will return the integer -1.</li>
  * </ul>
  */
-int addr_id(char * ip, char * chan, ADDR * array);
+int addrID(char * ip, char * chan, ADDR * array);
 
 /**
  * @brief Definition of the variable where the addresses will be kept
  * @note Before the utilisation, one should generate it...
  */
-extern ADDR* global_addr_array; 
+extern ADDR* globalAddrArray; 
 
 #endif /* _MANAGEMENT_ADDRESS_H_ */

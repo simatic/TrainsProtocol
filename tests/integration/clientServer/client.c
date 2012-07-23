@@ -60,37 +60,37 @@ int main(int argc, char *argv[]) {
 
   // We open a connection to send messages
   printf("Connecting %s on port %s...\n", argv[1], argv[2]);
-  commForConnect = comm_newAndConnect(argv[1], argv[2], CONNECT_TIMEOUT);
+  commForConnect = commNewAndConnect(argv[1], argv[2], CONNECT_TIMEOUT);
   if (commForConnect == NULL)
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newAndConnect");
   printf("...OK\n");
 
-  len = sizeof(message_header)+strlen(HW)+sizeof('\0');
+  len = sizeof(messageHeader)+strlen(HW)+sizeof('\0');
   msg = malloc(len);
   assert(msg != NULL);
   msg->header.len = len;
   strcpy(msg->payload, HW);
   printf("\tSend message of %d bytes with: \"%s\"...\n", len, HW);
-  nbWritten = comm_write(commForConnect, msg, msg->header.len);
+  nbWritten = commWrite(commForConnect, msg, msg->header.len);
   if (nbWritten != len){
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "sent only %d/%d bytes", nbWritten, len);
   }
   free(msg);
 
-  len = sizeof(message_header)+strlen(LONG_MESSAGE)+sizeof('\0');
+  len = sizeof(messageHeader)+strlen(LONG_MESSAGE)+sizeof('\0');
   msg = malloc(len);
   assert(msg != NULL);
   msg->header.len = len;
   strcpy(msg->payload, LONG_MESSAGE);
   printf("\tSend message of %d bytes with: \"%s\"...\n", len, LONG_MESSAGE);
-  nbWritten = comm_write(commForConnect, msg, msg->header.len);
+  nbWritten = commWrite(commForConnect, msg, msg->header.len);
   if (nbWritten != len){
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "sent only %d/%d bytes", nbWritten, len);
   }
   free(msg);
 
   // We send a very long message
-  len = sizeof(message_header)+VERY_LONG_MESSAGE_SIZE;
+  len = sizeof(messageHeader)+VERY_LONG_MESSAGE_SIZE;
   msg = malloc(len);
   assert(msg != NULL);
   msg->header.len = len;
@@ -99,12 +99,12 @@ int main(int argc, char *argv[]) {
   }
   printf("\tSend message of %d bytes\n", len);
   iov[0].iov_base = msg;
-  iov[0].iov_len  = sizeof(message_header);
+  iov[0].iov_len  = sizeof(messageHeader);
   for(i=0; i<NB_CHUNKS; i++){
     iov[i+1].iov_base = &(msg->payload[i*VERY_LONG_MESSAGE_SIZE/NB_CHUNKS]);
     iov[i+1].iov_len  = VERY_LONG_MESSAGE_SIZE/NB_CHUNKS;
   }
-  nbWritten = comm_writev(commForConnect, iov, IOVCNT);
+  nbWritten = commWritev(commForConnect, iov, IOVCNT);
   if (nbWritten != len){
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "sent only %d/%d bytes", nbWritten, len);
   }
@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
   // We send a very long message which is not complete
   lenIncomplete = len - VERY_LONG_MESSAGE_SIZE/NB_CHUNKS;
   printf("\tSend incomplete message of %d/%d bytes  ==> This should make the server unhappy\n", lenIncomplete, len);
-  nbWritten = comm_writev(commForConnect, iov, IOVCNT-1);
+  nbWritten = commWritev(commForConnect, iov, IOVCNT-1);
   if (nbWritten != lenIncomplete){
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "sent only %d/%d bytes", nbWritten, lenIncomplete);
   }
@@ -128,7 +128,7 @@ int main(int argc, char *argv[]) {
   //      in a standard application.
   usleep(1000000);
   printf("Close connection...\n");
-  comm_free(commForConnect);
+  freeComm(commForConnect);
   printf("...OK\n");
 
   return EXIT_SUCCESS;

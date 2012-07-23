@@ -52,11 +52,11 @@ static t_comm *commDoingConnect = NULL;
 /**
  * @brief Initializes communication module
  */
-void comm_initialize(){
+void commInitialize(){
   static bool done;
   if (!done){
     memset(&pthread_null,0,sizeof(pthread_null));
-    signalMgt_initialize();
+    signalMgtInitialize();
     done = true;
   }
 }
@@ -66,7 +66,7 @@ void comm_initialize(){
  * @param[in] fd File descriptor managed by the allocated communication handle
  * @return The communication handle
  */
-t_comm *comm_alloc(int fd){
+t_comm *commAlloc(int fd){
   t_comm *aComm = malloc(sizeof(t_comm));
   assert(aComm != NULL);
   aComm->fd = fd;
@@ -80,9 +80,9 @@ t_comm *comm_alloc(int fd){
  * @brief Prepares the communication module to do a long IO (read, write, accept, connect).
  * @param[in] aComm Communication handle to work on
  */
-void comm_longIOBegin(t_comm *aComm){
-  // We lock mutexForSynch, so that if there is a comm_abort() on this long
-  // IO, the comm_abort() will wait until we are indeed done with  the IO
+void commLongIOBegin(t_comm *aComm){
+  // We lock mutexForSynch, so that if there is a commAbort() on this long
+  // IO, the commAbort() will wait until we are indeed done with  the IO
   aComm->ownerMutexForSynch = pthread_self();
 
   MUTEX_LOCK(aComm->mutexForSynch);
@@ -92,7 +92,7 @@ void comm_longIOBegin(t_comm *aComm){
  * @brief Notifies the communication module that a long IO (read, write, accept, connect) is done.
  * @param[in] aComm Communication handle to work on
  */
-void comm_longIOEnd(t_comm *aComm){
+void commLongIOEnd(t_comm *aComm){
   aComm->ownerMutexForSynch = pthread_null;
   aComm->aborted = false;
 
@@ -101,7 +101,7 @@ void comm_longIOEnd(t_comm *aComm){
   MUTEX_UNLOCK(aComm->mutexForSynch);
 }
 
-t_comm *comm_newAndConnect(char *hostname, char *port, int connectTimeout){
+t_comm *commNewAndConnect(char *hostname, char *port, int connectTimeout){
   int fd;
   t_comm *aComm;
   struct addrinfo hints;
@@ -110,9 +110,9 @@ t_comm *comm_newAndConnect(char *hostname, char *port, int connectTimeout){
   int rc;
   int status=1;
 
-  comm_initialize();
+  commInitialize();
 
-  aComm = comm_alloc(-1);
+  aComm = commAlloc(-1);
 
   //
   // The following code is an adaptation from the example in man getaddrinfo
@@ -143,7 +143,7 @@ t_comm *comm_newAndConnect(char *hostname, char *port, int connectTimeout){
       continue;
     aComm->fd = fd;
     
-    comm_longIOBegin(aComm);
+    commLongIOBegin(aComm);
 
     if (connectTimeout != 0){
       // A connectTimeout was specified to avoid being blocked waiting for
@@ -183,7 +183,7 @@ t_comm *comm_newAndConnect(char *hostname, char *port, int connectTimeout){
       commDoingConnect = NULL;
     }
 
-    comm_longIOEnd(aComm);
+    commLongIOEnd(aComm);
 
     if (rc != -1)
       break;                  /* Success */
@@ -210,12 +210,12 @@ t_comm *comm_newAndConnect(char *hostname, char *port, int connectTimeout){
   return aComm;
 }
 
-t_comm *comm_newForAccept(char *port){
+t_comm *commNewForAccept(char *port){
   int fd, s, on = 1;
   struct addrinfo hints;
   struct addrinfo *result, *rp;
 
-  comm_initialize();
+  commInitialize();
 
   //
   // The following code is an adaptation from the example in man getaddrinfo
@@ -271,20 +271,20 @@ t_comm *comm_newForAccept(char *port){
     return NULL;
 
   // Everything went fine: we can return a communication handle.
-  return comm_alloc(fd);
+  return commAlloc(fd);
 }
 
-t_comm *comm_accept(t_comm *aComm){
+t_comm *commAccept(t_comm *aComm){
   int connection;
   int status=1;
 
-  comm_longIOBegin(aComm);
+  commLongIOBegin(aComm);
 
   do {
     connection = accept(aComm->fd,NULL,NULL);
   } while ((connection < 0) && (errno == EINTR) && !aComm->aborted);
 
-  comm_longIOEnd(aComm);
+  commLongIOEnd(aComm);
 
   if(connection < 0) 
     return NULL;
@@ -295,14 +295,14 @@ t_comm *comm_accept(t_comm *aComm){
     return NULL;
 
   // Everything went fine: we can return a communication handle.
-  return comm_alloc(connection);
+  return commAlloc(connection);
 }
 
 /**
  * @brief Aborts the accept taking place on \a commDoingConnect
  * @note Procedure called when SIGALRM is delivered
  */
-void comm_abort_whenIT(){
+void commAbortWhenIT(){
   if (commDoingConnect) {
     commDoingConnect->aborted = true;
 
@@ -312,12 +312,12 @@ void comm_abort_whenIT(){
       pthread_kill(commDoingConnect->ownerMutexForSynch, SIGNAL_FOR_ABORT);
     }
     
-    // We are under an IT ==> we must not call comm_longIOBegin() as
+    // We are under an IT ==> we must not call commLongIOBegin() as
     // we do in com_abort(). Otherwise we will have a deadlock.
   }
 }
 
-void comm_abort(t_comm *aComm){
+void commAbort(t_comm *aComm){
   aComm->aborted = true;
 
   if (!pthread_equal(aComm->ownerMutexForSynch,pthread_null)) {
@@ -327,12 +327,12 @@ void comm_abort(t_comm *aComm){
   
     // We lock the mutex to wait until the slow system call is indeed over
     // and then we unlock the mutex
-    comm_longIOBegin(aComm);
-    comm_longIOEnd(aComm);
+    commLongIOBegin(aComm);
+    commLongIOEnd(aComm);
   }
 }
 
-int comm_read(t_comm *aComm, void *buf, size_t count){
+int commRead(t_comm *aComm, void *buf, size_t count){
   int nb;
 
   if (aComm->aborted){
@@ -341,13 +341,13 @@ int comm_read(t_comm *aComm, void *buf, size_t count){
     return -1;
   }
 
-  comm_longIOBegin(aComm);
+  commLongIOBegin(aComm);
 
   do {
     nb = read(aComm->fd, buf, count);
   } while ((nb < 0) && (errno == EINTR) && !aComm->aborted);
 
-  comm_longIOEnd(aComm);
+  commLongIOEnd(aComm);
 
   counters.comm_read++;
   counters.comm_read_bytes += nb;
@@ -355,7 +355,7 @@ int comm_read(t_comm *aComm, void *buf, size_t count){
   return nb;
 }
 
-int comm_readFully(t_comm *aComm, void *buf, size_t count){
+int commReadFully(t_comm *aComm, void *buf, size_t count){
   int nb;
   int nbTotal = 0;
 
@@ -365,7 +365,7 @@ int comm_readFully(t_comm *aComm, void *buf, size_t count){
     return -1;
   }
   do {
-    nb = comm_read(aComm, (char*)buf + nbTotal, count - nbTotal);
+    nb = commRead(aComm, (char*)buf + nbTotal, count - nbTotal);
     if (nb < 0)
       break;
     nbTotal += nb;
@@ -377,7 +377,7 @@ int comm_readFully(t_comm *aComm, void *buf, size_t count){
   return nbTotal;
 }
 
-int comm_write(t_comm *aComm, const void *buf, size_t count){
+int commWrite(t_comm *aComm, const void *buf, size_t count){
   int nb;
 
   if (aComm->aborted){
@@ -386,13 +386,13 @@ int comm_write(t_comm *aComm, const void *buf, size_t count){
     return -1;
   }
 
-  comm_longIOBegin(aComm);
+  commLongIOBegin(aComm);
 
   do {
     nb = write(aComm->fd, buf, count);
   } while ((nb < 0) && (errno == EINTR) && !aComm->aborted);
 
-  comm_longIOEnd(aComm);
+  commLongIOEnd(aComm);
 
   counters.comm_write++;
   counters.comm_write_bytes += nb;
@@ -400,7 +400,7 @@ int comm_write(t_comm *aComm, const void *buf, size_t count){
   return nb;
 }
 
-int comm_writev(t_comm *aComm, const struct iovec *iov, int iovcnt){
+int commWritev(t_comm *aComm, const struct iovec *iov, int iovcnt){
   int nb;
 
   if (aComm->aborted){
@@ -409,18 +409,18 @@ int comm_writev(t_comm *aComm, const struct iovec *iov, int iovcnt){
     return -1;
   }
 
-  // FIXME: We must comment the comm_longIOBegin(aComm);
+  // FIXME: We must comment the commLongIOBegin(aComm);
   // otherwise it is not possible to do a read and a write at the
   // same time on the socket
-  //comm_longIOBegin(aComm);
+  //commLongIOBegin(aComm);
 
   do {
     nb = writev(aComm->fd, iov, iovcnt);
   } while ((nb < 0) && (errno == EINTR) && !aComm->aborted);
 
-  // FIXME : comm_longIOEnd(aComm); is commented because
-  // comm_longIOBegin(aComm); hereabove is commented
-  //comm_longIOEnd(aComm);
+  // FIXME : commLongIOEnd(aComm); is commented because
+  // commLongIOBegin(aComm); hereabove is commented
+  //commLongIOEnd(aComm);
 
   counters.comm_writev++;
   counters.comm_writev_bytes += nb;
@@ -428,9 +428,9 @@ int comm_writev(t_comm *aComm, const struct iovec *iov, int iovcnt){
   return nb;
 }
 
-void comm_free(t_comm *aComm){
+void freeComm(t_comm *aComm){
   int rc;
-  comm_abort(aComm);
+  commAbort(aComm);
   if (close(aComm->fd) < 0)
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "close");
   rc = pthread_mutex_destroy(&(aComm->mutexForSynch));

@@ -65,12 +65,12 @@ extern State automatonState;
 /**
 * @brief mutex used in statemachine
 */
-extern pthread_mutex_t state_machine_mutex;
+extern pthread_mutex_t stateMachineMutex;
 
 /**
 * @brief address of the host process
 */
-extern address my_address;
+extern address myAddress;
 
 /**
 * @brief predecessor and successor of the host process
@@ -80,7 +80,7 @@ extern address prec,succ;
 /**
 * @brief lists the gone and the came process
 */
-extern address_set cameProc, goneProc;
+extern addressSet cameProc, goneProc;
 
 /**
 * @brief number of waiting
@@ -95,7 +95,7 @@ extern int lis;
 /**
 * @brief last trains sent
 */
-extern lts_array lts;
+extern ltsArray lts;
 
 /**
 * @brief matrix of list of unstable wagons.
@@ -118,14 +118,14 @@ void automatonInit() ;
 * @brief handles a train when it arrived.
 * @param[in] p_womim pointer of the womim to handle
 */
-void train_handling(womim *p_womim) ;
+void trainHandling(womim *p_womim) ;
 
 /**
 * @brief calculates the time to wait for WAIT state.
 * @param[in] nbwait number of waiting made befor.
 * @return Returns the time to wait
 */
-int rand_sleep(int nbwait) ;
+int randSleep(int nbwait) ;
 
 /**
 * @brief when a connection abort the automaton closes all connexion and waits.
@@ -136,7 +136,7 @@ void waitBeforConnect () ;
 * @brief changes state and makes initialisations that go with it.
 * @param[in] s state to be assigned.
 */
-void nextstate (State s) ;
+void nextState (State s) ;
 
 /**
 * @brief handles the reception of a womim depending on the state of the automaton.

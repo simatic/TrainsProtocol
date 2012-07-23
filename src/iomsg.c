@@ -39,11 +39,11 @@ womim * receive(t_comm * aComm){
   int j;
   bool isPred;
 
-  nbRead = comm_readFully(aComm, &length, sizeof(length));
+  nbRead = commReadFully(aComm, &length, sizeof(length));
   if (nbRead == sizeof(length)){
     msg_ext = calloc(length+sizeof(prefix),sizeof(char));
     assert(msg_ext != NULL);
-    nbRead2 = comm_readFully(aComm, ((char*)msg_ext)+sizeof(prefix)+nbRead, (length-nbRead));
+    nbRead2 = commReadFully(aComm, ((char*)msg_ext)+sizeof(prefix)+nbRead, (length-nbRead));
     if (nbRead2 == length-nbRead) {
       pthread_mutex_init(&(msg_ext->pfx.mutex),NULL);
       msg_ext->pfx.counter=1; 
@@ -56,10 +56,10 @@ womim * receive(t_comm * aComm){
 
   //Connection has been closed
   //search the address which has vanished
-  search_tcomm(aComm,global_addr_array,&j,&isPred);
+  searchTComm(aComm,globalAddrArray,&j,&isPred);
   if(j==-1){
     // It may happen when automaton has closed all the connections (thus
-    // has erased aComm from global_addr_array). As we are already aware of
+    // has erased aComm from globalAddrArray). As we are already aware of
     // this connection loss, there is nothing to do.
     return NULL;
   }
@@ -70,18 +70,18 @@ womim * receive(t_comm * aComm){
   } else {
     disconnectType = DISCONNECT_SUCC;
   }    
-  msg_ext = calloc(sizeof(prefix)+sizeof(newMsg(disconnectType,rank_2_addr(j))),sizeof(char));
+  msg_ext = calloc(sizeof(prefix)+sizeof(newMsg(disconnectType,rankToAddr(j))),sizeof(char));
   pthread_mutex_init(&(msg_ext->pfx.mutex),NULL);
   msg_ext->pfx.counter=1;
-  msg_ext->msg=newMsg(disconnectType,rank_2_addr(j));
+  msg_ext->msg=newMsg(disconnectType,rankToAddr(j));
   //close the connection
-  close_connection(rank_2_addr(j),isPred);
+  closeConnection(rankToAddr(j),isPred);
   return(msg_ext);
 }
 
-//Use to sendall the messages Msg, even the TRAIN ones, but in fact, TRAIN messages will never be created for the sending, but use only on reception... Thus, to send TRAIN messages, send_train will be used.
-//use global_addr_array defined in management_addr.h
-int send_other(address addr, bool isPred, MType type, address sender){
+//Use to sendall the messages Msg, even the TRAIN ones, but in fact, TRAIN messages will never be created for the sending, but use only on reception... Thus, to send TRAIN messages, sendTrain will be used.
+//use globalAddrArray defined in management_addr.h
+int sendOther(address addr, bool isPred, MType type, address sender){
   int length;
   int iovcnt=1;
   struct iovec iov[1];
@@ -99,14 +99,14 @@ int send_other(address addr, bool isPred, MType type, address sender){
     *msg=newMsg(type,sender);
 
     length=msg->len;    
-    rank=addr_2_rank(addr);
+    rank=addrToRank(addr);
     if(rank!=-1)
       {
-	aComm=get_tcomm(rank,isPred,global_addr_array);
-	//printf("Send message = %s on comm %p\n", mtype2str(type), aComm);
+	aComm=getTComm(rank,isPred,globalAddrArray);
+	//printf("Send message = %s on comm %p\n", msgTypeToStr(type), aComm);
 	iov[0].iov_base=msg;
 	iov[0].iov_len=length;
-	result=comm_writev(aComm,iov,iovcnt);
+	result=commWritev(aComm,iov,iovcnt);
 	if(result!=length)
 	  fprintf(stderr, "result!=length\n");
 	free(msg);
@@ -116,23 +116,23 @@ int send_other(address addr, bool isPred, MType type, address sender){
       //should return an error if the addr is out of rank
       free(msg);
       error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"Sending failure in send_other");
-      return(-1);//same error as comm_writev !!
+      return(-1);//same error as commWritev !!
     }
   }
 }
 
-//send a train -> use send_other to send the rest
-int send_train(address addr, bool isPred, lts_struct lts){
+//send a train -> use sendOther to send the rest
+int sendTrain(address addr, bool isPred, ltsStruct lts){
   int iovcnt=3;
   struct iovec iov[iovcnt];
   int rank=-1;
   t_comm * aComm;
   int result;
   
-  rank=addr_2_rank(addr);
+  rank=addrToRank(addr);
   if(rank!=-1)
     {
-      aComm = get_tcomm(rank,isPred,global_addr_array);
+      aComm = getTComm(rank,isPred,globalAddrArray);
       //printf("The train %d/%d is sent to %d on comm %p\n",lts.stamp.id,lts.stamp.lc,addr, aComm);
 
       lts.lng =
@@ -161,7 +161,7 @@ int send_train(address addr, bool isPred, lts_struct lts){
 	iov[2].iov_len=0;
       }
       else {
-	if(firstmsg(lts.p_wtosend->p_wagon) == NULL){//check if p_wtosend is not just a header
+	if(firstMsg(lts.p_wtosend->p_wagon) == NULL){//check if p_wtosend is not just a header
 	  printf("wagonToSend is just a header \n");
 	  iov[2].iov_base=NULL;
 	  iov[2].iov_len=0;
@@ -174,7 +174,7 @@ int send_train(address addr, bool isPred, lts_struct lts){
       }
       //sending the whole train with writev
       //returning the number of bytes sent
-      result=comm_writev(aComm,iov,iovcnt);
+      result=commWritev(aComm,iov,iovcnt);
       if(result!=lts.lng)
 	fprintf(stderr, "result!=lts.lng (bis) with result=%i and length=%i\n",result,lts.lng);
       return(result);
@@ -182,7 +182,7 @@ int send_train(address addr, bool isPred, lts_struct lts){
   else{
     //should return an error if the addr is out of rank
     error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"Sending failure in send_other");
-    return(-1);//same error as comm_writev !!
+    return(-1);//same error as commWritev !!
   }
 }
 

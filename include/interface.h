@@ -34,7 +34,7 @@
 #include <semaphore.h>
 
 /**
- * @brief The big semaphore used to manage the protocol in the function tr_init
+ * @brief The big semaphore used to manage the protocol in the function trInit
  */
 extern sem_t sem_init_done;
 

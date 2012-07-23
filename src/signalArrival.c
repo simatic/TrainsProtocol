@@ -34,7 +34,7 @@
  * @param[in] ad Address of arrived or gone process
  * @param[in] circuit Circuit into (respectively from) which process come (respectively left)
 */
-static void signalArrivalDepartures(char typ, address ad, address_set circuit){
+static void signalArrivalDepartures(char typ, address ad, addressSet circuit){
   message *mp;
   MUTEX_LOCK(mutexWagonToSend);
 
@@ -43,7 +43,7 @@ static void signalArrivalDepartures(char typ, address ad, address_set circuit){
   // for space in wagonToSend in the case the wagon is already full. If
   // newmsg was stuck, we would be in a dead lock (as only the thread processing
   // the train is able to empty wagonToSend).
-  mp = mallocwiw(sizeof(payloadArrivalDeparture));
+  mp = mallocWiw(sizeof(payloadArrivalDeparture));
 
   mp->header.typ = typ;
   ((payloadArrivalDeparture*)(mp->payload))->ad = ad;
@@ -52,17 +52,17 @@ static void signalArrivalDepartures(char typ, address ad, address_set circuit){
   MUTEX_UNLOCK(mutexWagonToSend);
 }
 
-void signalArrival(address arrived, address_set circuit){
+void signalArrival(address arrived, addressSet circuit){
   circuit |= arrived;
   signalArrivalDepartures(AM_ARRIVAL, arrived, circuit);
 }
 
-void signalDepartures(address_set goneSet, address_set circuit){
+void signalDepartures(addressSet goneSet, addressSet circuit){
   address ad;
   if (goneSet != 0){
 	  circuit &= ~goneSet;
 	  for (ad = 1; ad != 0; ad <<= 1) {
-		  if (addr_ismember(ad, goneSet)) {
+		  if (addrIsMember(ad, goneSet)) {
 			  signalArrivalDepartures(AM_DEPARTURE, ad, circuit);
 		  }
 	  }

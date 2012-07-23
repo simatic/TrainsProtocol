@@ -40,31 +40,31 @@ void compare(char *testType, void *s, char *target){
 }
 
 int main() {
-  t_list *l = list_new();
-  t_list *l2 = list_new();
+  t_list *l = newList();
+  t_list *l2 = newList();
 
-  list_append(l, a);
-  list_append(l, b);
-  list_append(l, c);
+  listAppend(l, a);
+  listAppend(l, b);
+  listAppend(l, c);
 
-  compare("removeFirst", list_removeFirst(l), a);
-  compare("removeFirst", list_removeFirst(l), b);
-  compare("removeFirst", list_removeFirst(l), c);
+  compare("removeFirst", listRemoveFirst(l), a);
+  compare("removeFirst", listRemoveFirst(l), b);
+  compare("removeFirst", listRemoveFirst(l), c);
 
-  // We now test list_extend and list_cleanList
-  list_append(l, a);
-  list_append(l2, b);
-  list_append(l2, c);
-  list_extend(l,l2);
-  list_cleanList(l2);
-  list_extend(l,l2);
-  compare("removeFirst", list_removeFirst(l), a);
-  compare("removeFirst", list_removeFirst(l), b);
-  compare("removeFirst", list_removeFirst(l), c);
+  // We now test listExtend and cleanList
+  listAppend(l, a);
+  listAppend(l2, b);
+  listAppend(l2, c);
+  listExtend(l,l2);
+  cleanList(l2);
+  listExtend(l,l2);
+  compare("removeFirst", listRemoveFirst(l), a);
+  compare("removeFirst", listRemoveFirst(l), b);
+  compare("removeFirst", listRemoveFirst(l), c);
 
-  // Code to check (with valgrind) that list_free frees everything
-  list_free(l);
-  list_free(l2);
+  // Code to check (with valgrind) that freeList frees everything
+  freeList(l);
+  freeList(l2);
 
   return EXIT_SUCCESS;
 }

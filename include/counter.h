@@ -48,14 +48,14 @@ typedef struct{
   t_counter recent_trains_received;       /**< number of recent trains received from the network */
   t_counter wagons_delivered;             /**< number of wagons delivered to the application */
   t_counter wait_states;                  /**< number of times automaton has been in state WAIT */
-  t_counter comm_read;                    /**< number of calls to comm_read() */
-  t_counter comm_read_bytes;              /**< number of bytes read by comm_read() calls */
-  t_counter comm_readFully;               /**< number of calls to comm_readFully() */
-  t_counter comm_readFully_bytes;         /**< number of bytes read by comm_readFully() calls */
-  t_counter comm_write;                   /**< number of calls to comm_write() */
-  t_counter comm_write_bytes;             /**< number of bytes written by comm_write() calls */
-  t_counter comm_writev;                  /**< number of calls to comm_writev() */
-  t_counter comm_writev_bytes;            /**< number of bytes written by comm_writev() calls */
+  t_counter comm_read;                    /**< number of calls to commRead() */
+  t_counter comm_read_bytes;              /**< number of bytes read by commRead() calls */
+  t_counter comm_readFully;               /**< number of calls to commReadFully() */
+  t_counter comm_readFully_bytes;         /**< number of bytes read by commReadFully() calls */
+  t_counter comm_write;                   /**< number of calls to commWrite() */
+  t_counter comm_write_bytes;             /**< number of bytes written by commWrite() calls */
+  t_counter comm_writev;                  /**< number of calls to commWritev() */
+  t_counter comm_writev_bytes;            /**< number of bytes written by commWritev() calls */
   t_counter newmsg;                       /**< number of calls to newmsg() */
   t_counter flowControl;                  /**< number of times there was flow control when calling newmsg() */
 } t_counters;

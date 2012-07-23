@@ -58,9 +58,9 @@ womim * receive(t_comm * aComm);
  * @note If the number of bites sent is diferent of the size of the msg, the sending is automatically done again (... and again)
  * @note If the @a type is TRAIN an error will be given
  * @note It is -1 if it fails
- * @note It uses the variable "global_addr_array" which is created in management_addr.h
+ * @note It uses the variable "globalAddrArray" which is created in management_addr.h
  */
-int send_other(address addr, bool isPred, MType type, address sender);
+int sendOther(address addr, bool isPred, MType type, address sender);
 
 /**
  * @brief Function specialized for sending train with @a lts
@@ -72,8 +72,8 @@ int send_other(address addr, bool isPred, MType type, address sender);
  * @return The number of bites sent
  * @note If the number of bites sent is diferent of the size of the msg, the sending is automatically done again (... and again)
  * @note It is -1 if it fails
- * @note It uses the variable "global_addr_array" which is created in management_addr.h
+ * @note It uses the variable "globalAddrArray" which is created in management_addr.h
  */
-int send_train(address addr, bool isPred, lts_struct lts);
+int sendTrain(address addr, bool isPred, ltsStruct lts);
 
 #endif /* _IOMSG_H */

@@ -52,14 +52,14 @@ int  nbRecMsgBeforeStop;
 
 bool terminate = false;
 
-void callbackCircuitChange(circuitview *cp){
+void callbackCircuitChange(circuitView *cp){
   char s[MAX_LEN_ADDRESS_AS_STR];
 
   printf("!!! ******** callbackCircuitChange called with %d members (process ", cp->cv_nmemb);
-  if (!addr_isnull(cp->cv_joined)){
-    printf("%s has arrived)\n", addr_2_str(s,cp->cv_joined));
+  if (!addrIsNull(cp->cv_joined)){
+    printf("%s has arrived)\n", addrToStr(s,cp->cv_joined));
   }else{
-    printf("%s is gone)\n", addr_2_str(s,cp->cv_departed));
+    printf("%s is gone)\n", addrToStr(s,cp->cv_departed));
   }
 
   if(cp->cv_nmemb >= nbMemberMin){
@@ -76,11 +76,11 @@ void callbackUtoDeliver(address sender, message *mp){
   char s[MAX_LEN_ADDRESS_AS_STR];
   static int nbRecMsg = 0;
 
-  if (payload_size(mp) != PAYLOAD_SIZE){
+  if (payloadSize(mp) != PAYLOAD_SIZE){
     fprintf(stderr, "Error in file %s:%d : Payload size is incorrect: it is %d when it should be %d\n", 
 	    __FILE__,
 	    __LINE__,
-	    payload_size(mp),
+	    payloadSize(mp),
 	    PAYLOAD_SIZE);
     exit(EXIT_FAILURE);
   }
@@ -93,7 +93,7 @@ void callbackUtoDeliver(address sender, message *mp){
     }
   }
 
-  printf("!!! %5d-ieme message (recu de %s / contenu = %5d)\n", nbRecMsg, addr_2_str(s,sender), *((int*)(mp->payload)));
+  printf("!!! %5d-ieme message (recu de %s / contenu = %5d)\n", nbRecMsg, addrToStr(s,sender), *((int*)(mp->payload)));
 
 }
 
@@ -129,9 +129,9 @@ int main(int argc, char *argv[]) {
   }
 
   // We initialize the trains protocol
-  rc = tr_init(callbackCircuitChange, callbackUtoDeliver);
+  rc = trInit(callbackCircuitChange, callbackUtoDeliver);
   if (rc < 0) {
-    tr_error_at_line(rc, tr_errno, __FILE__, __LINE__, "tr_init()");
+    trError_at_line(rc, trErrno, __FILE__, __LINE__, "tr_init()");
     return EXIT_FAILURE;
   }
 
@@ -149,13 +149,13 @@ int main(int argc, char *argv[]) {
     while (!terminate){
       message *mp = newmsg(PAYLOAD_SIZE);
       if (mp == NULL){
-	tr_error_at_line(rc, tr_errno, __FILE__, __LINE__, "newmsg()");
+	trError_at_line(rc, trErrno, __FILE__, __LINE__, "newmsg()");
 	return EXIT_FAILURE;
       }    
       rankMessage++;
       *((int*)(mp->payload)) = rankMessage;
-      if (uto_broadcast(mp) < 0){
-	tr_error_at_line(rc, tr_errno, __FILE__, __LINE__, "utoBroadcast()");
+      if (utoBroadcast(mp) < 0){
+	trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
 	return EXIT_FAILURE;
       }
       usleep(delayBetweenTwoUtoBroadcast);
@@ -173,9 +173,9 @@ int main(int argc, char *argv[]) {
 
   printf("Process received enough messages: Game over !\n");
 
-  rc = tr_terminate();
+  rc = trTerminate();
   if (rc < 0) {
-    tr_error_at_line(rc, tr_errno, __FILE__, __LINE__, "tr_init()");
+    trError_at_line(rc, trErrno, __FILE__, __LINE__, "tr_init()");
     return EXIT_FAILURE;
   }
 

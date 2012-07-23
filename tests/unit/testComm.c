@@ -45,7 +45,7 @@
 #define LONG_MESSAGE "This is a long message: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define AVERAGE_SIZE 32 //This default value is estimated by considering the average size of received message
 
-bool full_or_not=false; // To say if comm_readFully is used instead of comm_read
+bool full_or_not=false; // To say if commReadFully is used instead of commRead
 
 void *connectionMgt(void *arg) {
   t_comm *aComm = (t_comm*)arg;
@@ -55,23 +55,23 @@ void *connectionMgt(void *arg) {
   do{
     int len;
     if (full_or_not==false){
-      nbRead = comm_read(aComm, &len, sizeof(len));
+      nbRead = commRead(aComm, &len, sizeof(len));
       if (nbRead > 0){
 	msg = malloc(len);
 	assert(msg != NULL);
 	msg->header.len=len;
-	nbRead  = comm_read(aComm, ((char*)msg)+nbRead, msg->header.len - nbRead);
+	nbRead  = commRead(aComm, ((char*)msg)+nbRead, msg->header.len - nbRead);
 	printf("\t...Received message of %d bytes with: \"%s\"\n", msg->header.len, msg->payload);
 	free(msg);
       }
     }
     else {
-      nbRead = comm_readFully(aComm, &len, sizeof(len));
+      nbRead = commReadFully(aComm, &len, sizeof(len));
       if (nbRead > 0){
         msg = malloc(len);
         assert(msg != NULL);
         msg->header.len=len;
-        nbRead  = comm_readFully(aComm, ((char*)msg)+nbRead, msg->header.len - nbRead);
+        nbRead  = commReadFully(aComm, ((char*)msg)+nbRead, msg->header.len - nbRead);
         printf("\t...Received message of %d bytes with: \"%s\"\n", msg->header.len, msg->payload);
         free(msg);
       }
@@ -80,24 +80,24 @@ void *connectionMgt(void *arg) {
 
   if (nbRead == 0){
     printf("\t...Connection has been closed\n");
-    comm_free(aComm);
+    freeComm(aComm);
   } else if (errno == EINTR){
     printf("\t...comm_read was aborted\n");
-    // In this test, comm_read was aborted because aComm was freed. So
-    // there is no need to call: comm_free(aComm);
+    // In this test, commRead was aborted because aComm was freed. So
+    // there is no need to call: freeComm(aComm);
   } else
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_read");
 
   return NULL;
 }
 
-// Thread taking care of comm_accept for standard connection tests
+// Thread taking care of commAccept for standard connection tests
 void *acceptMgt(void *arg) {
   t_comm *commForAccept = (t_comm*)arg;
   t_comm *aComm;
 
   do{
-    aComm = comm_accept(commForAccept);
+    aComm = commAccept(commForAccept);
     if (aComm != NULL){
       // We fork a thread responsible for handling this connection
       pthread_t thread;
@@ -118,15 +118,15 @@ void *acceptMgt(void *arg) {
   return NULL;
 }
 
-// Thread taking care of comm_accept for testing that comm_free() works 
-// correctly with a thread blocked on comm_read()
+// Thread taking care of commAccept for testing that freeComm() works 
+// correctly with a thread blocked on commRead()
 void *acceptMgt2(void *arg) {
   t_comm *commForAccept = (t_comm*)arg;
   t_comm *aComm;
   pthread_t thread;
   int rc;
 
-  aComm = comm_accept(commForAccept);
+  aComm = commAccept(commForAccept);
   if (aComm != NULL){
     // We fork a thread responsible for handling this connection
     rc = pthread_create(&thread, NULL, connectionMgt, (void *)aComm);
@@ -141,14 +141,14 @@ void *acceptMgt2(void *arg) {
   usleep(10000);
 
   printf("\tBegin  comm_free with a thread blocked in comm_read()...\n");
-  comm_free(aComm);
+  freeComm(aComm);
   rc = pthread_join(thread, NULL);
   if(rc)
     error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_join");
 
   printf("\t......End comm_free with a thread blocked in comm_read().\n");
 
-  comm_free(commForAccept);
+  freeComm(commForAccept);
 
   return NULL;
 }
@@ -168,7 +168,7 @@ int main() {
   if (answer=='Y'||answer=='y')
     full_or_not=true;
 
-  commForAccept = comm_newForAccept(PORT);
+  commForAccept = commNewForAccept(PORT);
   if (commForAccept == NULL)
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newForAccept");
 
@@ -182,28 +182,28 @@ int main() {
   usleep(10000);
 
   // We open a connection to send messages
-  commForConnect = comm_newAndConnect(LOCAL_HOST, PORT, CONNECT_TIMEOUT);
+  commForConnect = commNewAndConnect(LOCAL_HOST, PORT, CONNECT_TIMEOUT);
   if (commForConnect == NULL)
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newAndConnect");
 
-  len = sizeof(message_header)+strlen(HW)+1; //+1 for '\0'
+  len = sizeof(messageHeader)+strlen(HW)+1; //+1 for '\0'
   msg = malloc(len);
   assert(msg != NULL);
   msg->header.len = len;
   msg->header.typ = 0;
   strcpy(msg->payload, HW);
   printf("\tSend message of %d bytes with: \"%s\"...\n", len, HW);
-  comm_write(commForConnect, msg, msg->header.len);
+  commWrite(commForConnect, msg, msg->header.len);
   free(msg);
 
-  len = sizeof(message_header)+strlen(LONG_MESSAGE)+1; //+1 for '\0'
+  len = sizeof(messageHeader)+strlen(LONG_MESSAGE)+1; //+1 for '\0'
   msg = malloc(len);
   assert(msg != NULL);
   msg->header.len = len;
   msg->header.typ = 0;
   strcpy(msg->payload, LONG_MESSAGE);
   printf("\tSend message of %d bytes with: \"%s\"...\n", len, LONG_MESSAGE);
-  comm_write(commForConnect, msg, msg->header.len);
+  commWrite(commForConnect, msg, msg->header.len);
   free(msg);
 
   // We sleep a little to give time to the message to arrive before closing 
@@ -212,12 +212,12 @@ int main() {
   //      in a standard application.
   usleep(10000);
   printf("\tClose connection...\n");
-  comm_free(commForConnect);
+  freeComm(commForConnect);
   usleep(10000);
 
   // We try to connect to sites that refuse the connection
   printf("\tTesting user-specified connect timeout when connecting to an existing site which does not accept this port...\n");
-  commForConnect = comm_newAndConnect(REMOTE_HOST, PORT, CONNECT_TIMEOUT);
+  commForConnect = commNewAndConnect(REMOTE_HOST, PORT, CONNECT_TIMEOUT);
   if (commForConnect == NULL){
     if (errno == EINTR) 
       printf("\t...OK\n");
@@ -227,18 +227,18 @@ int main() {
 
   // We abort the accept to see if this work
   printf("\tAbort comm_accept...\n");
-  comm_abort(commForAccept);
-  comm_free(commForAccept);
+  commAbort(commForAccept);
+  freeComm(commForAccept);
 
   rc = pthread_join(thread, NULL);
   if(rc)
     error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_join");
 
   //
-  // Now we create a new socket to check that comm_free() works correctly
-  // with a thread blocked on comm_read()read works correctly
+  // Now we create a new socket to check that freeComm() works correctly
+  // with a thread blocked on commRead()read works correctly
   //
-  commForAccept = comm_newForAccept(PORT);
+  commForAccept = commNewForAccept(PORT);
   if (commForAccept == NULL)
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newForAccept");
 
@@ -248,7 +248,7 @@ int main() {
 
   // We open a connection so that the acceptMgt2 thread creates a thread
   // to handle the connection
-  commForConnect = comm_newAndConnect(LOCAL_HOST, PORT, CONNECT_TIMEOUT);
+  commForConnect = commNewAndConnect(LOCAL_HOST, PORT, CONNECT_TIMEOUT);
   if (commForConnect == NULL)
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newAndConnect");
 
@@ -256,7 +256,7 @@ int main() {
   if(rc)
     error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_join");
 
-  comm_free(commForConnect);
+  freeComm(commForConnect);
 
   // free memory 
 

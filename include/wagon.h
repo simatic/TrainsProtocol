@@ -49,13 +49,13 @@ typedef struct{
     int            len;                /**< Length of whole wagon */
     address        sender;             /**< Sender of wagon */
     char           round;              /**< Round to which this wagon belongs */
-} __attribute__((packed)) wagon_header;
+} __attribute__((packed)) wagonHeader;
 
 /** 
  * @brief Wagon carried by trains protocol
  */
 typedef struct wagon{
-  wagon_header   header;             /**< header of wagon */
+  wagonHeader   header;             /**< header of wagon */
   message        msgs[];             /**< Messages carried by this wagon */
 } __attribute__((packed)) wagon;
 
@@ -70,7 +70,7 @@ extern t_bqueue *wagonsToDeliver;
  * @param[in] w A pointer on the wagon in which to search the first message
  * @return A pointer on a first message or NULL if @a w contains no messages
  */
-message *firstmsg(wagon *w);
+message *firstMsg(wagon *w);
 
 /**
  * @brief Give the message following message @a mp in wagon @a w
@@ -78,6 +78,6 @@ message *firstmsg(wagon *w);
  * @param[in] mp A pointer on a message after which to search for an other message
  * @return A pointer on a next message or NULL if @a w contains no other messages
  */
-message *nextmsg(wagon *w, message *mp);
+message *nextMsg(wagon *w, message *mp);
 
 #endif /* _wagon_H */

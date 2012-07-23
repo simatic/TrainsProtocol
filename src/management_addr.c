@@ -29,28 +29,28 @@
 
 #include "management_addr.h"
 
-ADDR* global_addr_array;
+ADDR* globalAddrArray;
 
 // Max length of a line read in LOCALISATION file
 #define MAX_LEN_LINE_IN_FILE (MAX_LEN_RANK + 1 + MAX_LEN_IP + 1 + MAX_LEN_CHAN)
 
 //create an array of addresses
-ADDR* init_addr_list(int length){
+ADDR* initAddrList(int length){
   ADDR* result=calloc(length+1,sizeof(ADDR));//We calloc one more element, so that the last element of the array is an empty element
   assert(result != NULL);
   return(result);
 }
 
 //free an array of addresses
-void free_addr_list(ADDR* tab){
+void freeAddrList(ADDR* tab){
   free(tab);
 }
 
 //read the file of addresses to fulfill our array
 //it takes to arguments : the place where is the file and the maximal number of addresses it could have.
-ADDR* addr_generator(char* locate, int length){
+ADDR* addrGenerator(char* locate, int length){
   FILE * addr_file;
-  ADDR * array=init_addr_list(length);
+  ADDR * array=initAddrList(length);
   char line[MAX_LEN_LINE_IN_FILE];
   char * addr_full=NULL;
   char * ip_only=NULL;
@@ -101,7 +101,7 @@ ADDR* addr_generator(char* locate, int length){
 }
 
 //add a tcomm to a place in an ADDR*
-void add_tcomm(t_comm * tcomm, int i, ADDR * array, bool isPred){
+void addTComm(t_comm * tcomm, int i, ADDR * array, bool isPred){
   if (array[i].tcomm[0] == NULL) {
     array[i].tcomm[0]=tcomm;
     array[i].isPred[0]=isPred;
@@ -112,7 +112,7 @@ void add_tcomm(t_comm * tcomm, int i, ADDR * array, bool isPred){
 }
 
 //Tries to return a non-NULL t_comm at place i in an ADDR*
-t_comm *get_tcomm(int i, bool isPred, ADDR * array){
+t_comm *getTComm(int i, bool isPred, ADDR * array){
   if ((array[i].tcomm[0] != NULL) && (array[i].isPred[0] == isPred)) {
     return array[i].tcomm[0];
   } else if (array[i].isPred[1] == isPred) {
@@ -123,7 +123,7 @@ t_comm *get_tcomm(int i, bool isPred, ADDR * array){
 }
 
 //remove a tcomm from a place in an ADDR*
-void remove_tcomm(t_comm * tcomm, int i, ADDR * array){
+void removeTComm(t_comm * tcomm, int i, ADDR * array){
   if (array[i].tcomm[0] == tcomm){
     array[i].tcomm[0] = NULL;
   } else if (array[i].tcomm[1] == tcomm){
@@ -132,7 +132,7 @@ void remove_tcomm(t_comm * tcomm, int i, ADDR * array){
 }
 
 //search a t_comm in an array
-void search_tcomm(t_comm * tcomm, ADDR * array, int *prank, bool *pisPred){
+void searchTComm(t_comm * tcomm, ADDR * array, int *prank, bool *pisPred){
   int i=0;
 
   *prank=-1;
@@ -151,7 +151,7 @@ void search_tcomm(t_comm * tcomm, ADDR * array, int *prank, bool *pisPred){
 
 //give the place in the array of a given address
 //return -1 if it's unfound
-int addr_id(char * ip, char * chan, ADDR * array){
+int addrID(char * ip, char * chan, ADDR * array){
   int i=0;
 
   while((array[i].ip[0] != '\0')&&(strcmp(array[i].ip,ip)!=0 || strcmp(array[i].chan,chan)!=0)){

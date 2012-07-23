@@ -56,11 +56,11 @@ static int rank;
 /* Boolean indicating that the measurement phase is over */
 static bool measurementDone = false;
 
-/* Storage to measure execution time of tr_init */
+/* Storage to measure execution time of trInit */
 struct timeval timeTrInitBegin, timeTrInitEnd;
 
 /* Storage of the program name, which we'll use in error messages.  */
-char *program_name;
+char *programName;
 
 /* Parameters of the program */
 int broadcasters = -1;
@@ -73,7 +73,7 @@ bool verbose     = false; /* Default value = limited display */
 int warmup       = 300;   /* Default value = 300 seconds */
 
 /* Description of long options for getopt_long.  */
-static const struct option long_options[] = {
+static const struct option longOptions[] = {
   { "broadcasters",     1, NULL, 'b' },
   { "cooldown",         1, NULL, 'c' },
   { "help",             0, NULL, 'h' },
@@ -87,10 +87,10 @@ static const struct option long_options[] = {
 };
 
 /* Description of short options for getopt_long.  */
-static const char* const short_options = "b:c:hm:n:s:t:vw:";
+static const char* const shortOptions = "b:c:hm:n:s:t:vw:";
 
 /* Usage summary text.  */
-static const char* const usage_template = 
+static const char* const usageTemplate = 
   "Usage: %s [ options ]\n"
   "  -b, --broadcasters number       Number of broadcasting processes.\n"
   "  -c, --cooldown seconds          Duration of cool-down phase (default = 10).\n"
@@ -107,27 +107,27 @@ static const char* const usage_template =
    stderr and use an error exit code.  Otherwise, write to stdout and
    use a non-error termination code.  Does not return. 
 */
-static void print_usage (int is_error)
+static void printUsage (int is_error)
 {
-  fprintf (is_error ? stderr : stdout, usage_template, program_name);
+  fprintf (is_error ? stderr : stdout, usageTemplate, programName);
   exit (is_error ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
 /* Converts the value stored in optarg into an integer.
-   Calls print_usage is conversion is not possible or if the
+   Calls printUsage is conversion is not possible or if the
    value is incorrect.
 */
-int optarg2correctValue(){
+int optArgToCorrectValue(){
   long value;
   char* end;
 
   value = strtol (optarg, &end, 10);
   if (*end != '\0')
     /* The user specified non-digits for this number.  */
-    print_usage (EXIT_FAILURE);
+    printUsage (EXIT_FAILURE);
   if (value <= 0 )
     /* The user gave an incorrect value. */
-    print_usage (EXIT_FAILURE);
+    printUsage (EXIT_FAILURE);
   return value;
 }
 
@@ -135,7 +135,7 @@ int optarg2correctValue(){
 void check(int value, char *name){
   if (value < 0) {
     fprintf(stderr, "\"%s\" must be specified\n", name);
-    print_usage(EXIT_FAILURE);
+    printUsage(EXIT_FAILURE);
   }
 }
 
@@ -147,14 +147,14 @@ void printDiffTimeval(char *msg, struct timeval stop, struct timeval start){
 }
 
 /* Callback for circuit changes */
-void callbackCircuitChange(circuitview *cp){
+void callbackCircuitChange(circuitView *cp){
   char s[MAX_LEN_ADDRESS_AS_STR];
 
   printf("!!! ******** callbackCircuitChange called with %d members (process ", cp->cv_nmemb);
-  if (!addr_isnull(cp->cv_joined)){
-    printf("%s has arrived)\n", addr_2_str(s,cp->cv_joined));
+  if (!addrIsNull(cp->cv_joined)){
+    printf("%s has arrived)\n", addrToStr(s,cp->cv_joined));
   }else{
-    printf("%s is gone)\n", addr_2_str(s,cp->cv_departed));
+    printf("%s is gone)\n", addrToStr(s,cp->cv_departed));
     if (!measurementDone) {
       printf("!!! ******** Experience has failed ******** !!!\n");
       exit(EXIT_FAILURE);
@@ -163,7 +163,7 @@ void callbackCircuitChange(circuitview *cp){
 
   if(cp->cv_nmemb >= number){
     // We compute the rank of the process in the group
-    for (rank=0; (rank<cp->cv_nmemb) && !addr_ismine(cp->cv_members[rank]); rank++);
+    for (rank=0; (rank<cp->cv_nmemb) && !addrIsMine(cp->cv_members[rank]); rank++);
     // We can start the experience
     printf("!!! ******** enough members to start utoBroadcasting\n");
     int rc = sem_post(&semWaitEnoughMembers);
@@ -177,11 +177,11 @@ void callbackUtoDeliver(address sender, message *mp){
   char s[MAX_LEN_ADDRESS_AS_STR];
   static int nbRecMsg = 0;
 
-  if (payload_size(mp) != size){
+  if (payloadSize(mp) != size){
     fprintf(stderr, "Error in file %s:%d : Payload size is incorrect: it is %d when it should be %d\n", 
 	    __FILE__,
 	    __LINE__,
-	    payload_size(mp),
+	    payloadSize(mp),
 	    size);
     exit(EXIT_FAILURE);
   }
@@ -189,7 +189,7 @@ void callbackUtoDeliver(address sender, message *mp){
   nbRecMsg++;
 
   if (verbose)
-    printf("!!! %5d-ieme message (recu de %s / contenu = %5d)\n", nbRecMsg, addr_2_str(s,sender), *((int*)(mp->payload)));
+    printf("!!! %5d-ieme message (recu de %s / contenu = %5d)\n", nbRecMsg, addrToStr(s,sender), *((int*)(mp->payload)));
 
 }
 
@@ -226,7 +226,7 @@ void *timeKeeper(void *null) {
 
   // We display the results
   printf("%s --broadcasters %d --cooldown %d --measurement %d --number %d --size %d --trainsNumber %d  --warmup %d\n", 
-	 program_name, broadcasters, cooldown, measurement, number, size, trainsNumber,  warmup);
+	 programName, broadcasters, cooldown, measurement, number, size, trainsNumber,  warmup);
 
   printDiffTimeval("time for tr_init (in sec)", timeTrInitEnd, timeTrInitBegin);
 
@@ -273,9 +273,9 @@ void *timeKeeper(void *null) {
 	  (double)(diffTimeval.tv_sec * 1000000 + diffTimeval.tv_usec)));
 
   // Termination phase
-  rc = tr_terminate();
+  rc = trTerminate();
   if (rc < 0) {
-    tr_error_at_line(rc, tr_errno, __FILE__, __LINE__, "tr_init()");
+    trError_at_line(rc, trErrno, __FILE__, __LINE__, "tr_init()");
     exit(EXIT_FAILURE);
   }
   exit(EXIT_SUCCESS);
@@ -295,9 +295,9 @@ void startTest() {
   // We initialize the trains protocol
   if (gettimeofday(&timeTrInitBegin, NULL) < 0)
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "gettimeofday");
-  rc = tr_init(callbackCircuitChange, callbackUtoDeliver);
+  rc = trInit(callbackCircuitChange, callbackUtoDeliver);
   if (rc < 0) {
-    tr_error_at_line(rc, tr_errno, __FILE__, __LINE__, "tr_init()");
+    trError_at_line(rc, trErrno, __FILE__, __LINE__, "tr_init()");
     exit(EXIT_FAILURE);
   }
   if (gettimeofday(&timeTrInitEnd, NULL) < 0)
@@ -324,13 +324,13 @@ void startTest() {
     do {
       message *mp = newmsg(size);
       if (mp == NULL){
-	tr_error_at_line(rc, tr_errno, __FILE__, __LINE__, "newmsg()");
+	trError_at_line(rc, trErrno, __FILE__, __LINE__, "newmsg()");
 	exit(EXIT_FAILURE);
       }    
       rankMessage++;
       *((int*)(mp->payload)) = rankMessage;
-      if (uto_broadcast(mp) < 0){
-	tr_error_at_line(rc, tr_errno, __FILE__, __LINE__, "utoBroadcast()");
+      if (utoBroadcast(mp) < 0){
+	trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
 	exit(EXIT_FAILURE);
       }
     } while (1);
@@ -341,46 +341,46 @@ int main(int argc, char *argv[]) {
   int next_option;
 
   /* Store the program name, which we'll use in error messages.  */
-  program_name = argv[0];
+  programName = argv[0];
 
   /* Parse options.  */
   do {
     next_option = 
-      getopt_long (argc, argv, short_options, long_options, NULL);
+      getopt_long (argc, argv, shortOptions, longOptions, NULL);
     switch (next_option) {
     case 'b':  
       /* User specified -b or --broadcasters.  */
-      broadcasters = optarg2correctValue();
+      broadcasters = optArgToCorrectValue();
       break;
 
     case 'c':  
       /* User specified -c or --cooldown.  */
-      cooldown = optarg2correctValue();
+      cooldown = optArgToCorrectValue();
       break;
 
     case 'h':  
       /* User specified -h or --help.  */
-      print_usage (EXIT_SUCCESS);
+      printUsage (EXIT_SUCCESS);
       break;
 
     case 'm':  
       /* User specified -m or --measurement.  */
-      measurement = optarg2correctValue();
+      measurement = optArgToCorrectValue();
       break;
 
     case 'n':  
       /* User specified -n or --number.  */
-      number = optarg2correctValue();
+      number = optArgToCorrectValue();
       break;
 
     case 's':  
       /* User specified -s or --size.  */
-      size = optarg2correctValue();
+      size = optArgToCorrectValue();
       break;
 
     case 't':  
       /* User specified -t or --trainsNumber.  */
-      trainsNumber = optarg2correctValue();
+      trainsNumber = optArgToCorrectValue();
       break;
 
     case 'v':  
@@ -390,12 +390,12 @@ int main(int argc, char *argv[]) {
 
     case 'w':  
       /* User specified -w or --warmup.  */
-      warmup = optarg2correctValue();
+      warmup = optArgToCorrectValue();
       break;
 
     case '?':  
       /* User specified an unrecognized option.  */
-      print_usage (EXIT_FAILURE);
+      printUsage (EXIT_FAILURE);
       break;
 
     case -1:  
@@ -410,7 +410,7 @@ int main(int argc, char *argv[]) {
   /* This program takes no additional arguments.  Issue an error if the
      user specified any.  */
   if (optind != argc)
-    print_usage (1);
+    printUsage (1);
 
   /* Check that parameters without default values were specified. */
   check(broadcasters, "broadcasters");

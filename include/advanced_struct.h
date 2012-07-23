@@ -75,19 +75,19 @@ typedef struct {
   int   lng;/**<the length of the structure*/
   MType type;/**<the type of message used*/
   stamp stamp;/**<the stamp which contains some info*/
-  address_set circuit;/**<a log of the circuit*/
+  addressSet circuit;/**<a log of the circuit*/
   struct {
     wiw w_w;
     int len;
   } w;/**<The area used to stock wagons*/
   wiw* p_wtosend;/**<refers to the wagon which is bouned to be sent*/
-}lts_struct;
+}ltsStruct;
 
 /**
- * @brief Definition of an array of lts_struct
+ * @brief Definition of an array of ltsStruct
  * @note @a MAX_NTR refers to maximal number of trains possible -> Define in constant.h
  */
-typedef lts_struct lts_array[MAX_NTR];
+typedef ltsStruct ltsArray[MAX_NTR];
 
 /**
  * @brief Go to the next wagon
@@ -104,7 +104,7 @@ wagon* nextWagon(womim* msg_ext, wagon* w);
  * @param[in] ltsarray The lts of the protocol
  * @return A boolean
  */
-bool is_in_lts(address  ad, lts_array ltsarray);
+bool isInLts(address  ad, ltsArray ltsarray);
 
 /**
  * @brief Says if the train signalized by @a tr_st is recent or no
@@ -114,38 +114,38 @@ bool is_in_lts(address  ad, lts_array ltsarray);
  * @return A boolean
  * @note This fun holds the overflows
  */
-bool is_recent_train(stamp tr_st,lts_array lts, char last_id);
+bool isRecentTrain(stamp tr_st,ltsArray lts, char last_id);
 
 /**
  * @brief Create a new wiw
  * @return A pointer on a wiw
  */
-wiw * newwiw();
+wiw * newWiw();
 
 /**
  * @brief Allocate a message in @a wagonToSend
  * @param[in] payloadSize An int
  * @return A pointer on a message
  */
-message * mallocwiw(int payloadSize);
+message * mallocWiw(int payloadSize);
 
 /**
  * @brief Look after the counter and decrements it (does not free the wiw)
  * @param[in] ww A pointer on a wiw used to have prefixe and the rest.
  */
-void release_wiw(wiw * ww);
+void releaseWiw(wiw * ww);
 
 /**
  * @brief Look after the counter and free the wiw if it is equal to 0
  * @param[in] ww A pointer on a wiw used to have prefixe and the rest.
  */
-void free_wiw(wiw * ww);
+void freeWiw(wiw * ww);
 
 /**
  * @brief Decreases counter of womim @a wo and frees it if it is 0.
  * @param[in] wo A pointer to the womim
  */
-void free_womim(womim *wo);
+void freeWomim(womim *wo);
 
 /**
  * @brief Wiw containing the next messages to be uto-broadcasted

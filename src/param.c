@@ -26,5 +26,5 @@
 
 
 int ntr=1;
-int wait_nb_max=10 ;
-int wait_default_time=2 ;
+int waitNbMax=10 ;
+int waitDefaultTime=2 ;

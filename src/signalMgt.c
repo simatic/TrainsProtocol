@@ -37,7 +37,7 @@ pid_t signalMgtThreadTid = 0;
 static sigset_t mask;
 static pthread_t thread;
 
-void comm_abort_whenIT();
+void commAbortWhenIT();
 
 /**
  * @brief Signal handler for SIGNAL_FOR_ABORT
@@ -78,7 +78,7 @@ void *signalMgt_thread(void *null) {
     if (info.si_signo == SIGALRM){
       // SIGALRM can only be delivered because we called setitimer in
       // comm.c and we came to expiration
-      comm_abort_whenIT();
+      commAbortWhenIT();
     } else {
       fprintf(stderr,"Signal %d received", info.si_signo);
       // As this should never happen here, we exit
@@ -88,7 +88,7 @@ void *signalMgt_thread(void *null) {
   return NULL;
 }
 
-void signalMgt_initialize() {
+void signalMgtInitialize() {
   static bool done = false;
   if (!done) {
     int rc;

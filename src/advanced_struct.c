@@ -46,16 +46,16 @@ wagon* nextWagon (womim* msg_ext, wagon* w) {
     return w2;
 }
 
-bool is_in_lts(address ad, lts_array ltsarray) {
+bool isInLts(address ad, ltsArray ltsarray) {
   bool result=true;
   int i;
   for (i=0;i<ntr;i++) {
-    result=result & addr_ismember(ad,ltsarray[i].circuit);
+    result=result & addrIsMember(ad,ltsarray[i].circuit);
   }
   return result;
 }
 
-bool is_recent_train(stamp tr_st,lts_array lts, char last_id){
+bool isRecentTrain(stamp tr_st,ltsArray lts, char last_id){
   int waiting_id;
   int diff;
 
@@ -63,7 +63,7 @@ bool is_recent_train(stamp tr_st,lts_array lts, char last_id){
   if(tr_st.id==waiting_id){
 
     //printf("id of the stamp given %d\n",tr_st.id);
-    //printf("logical clock of stamp in the is_recent_train %d\n",tr_st.lc);
+    //printf("logical clock of stamp in the isRecentTrain %d\n",tr_st.lc);
     //printf("logical clock in lts %d\n",lts[waiting_id].stamp.lc);
 
     diff=tr_st.lc - lts[waiting_id].stamp.lc;
@@ -78,15 +78,15 @@ bool is_recent_train(stamp tr_st,lts_array lts, char last_id){
   }
 }
 
-wiw * newwiw(){
+wiw * newWiw(){
   wiw *pp;
   womim *pw;
-  pw = malloc(sizeof(prefix)+sizeof(wagon_header));
+  pw = malloc(sizeof(prefix)+sizeof(wagonHeader));
   assert(pw != NULL);
   pthread_mutex_init(&(pw->pfx.mutex),NULL);
   pw->pfx.counter = 1;
-  pw->wagon.header.len = sizeof(wagon_header);
-  pw->wagon.header.sender = my_address;
+  pw->wagon.header.len = sizeof(wagonHeader);
+  pw->wagon.header.sender = myAddress;
   pw->wagon.header.round = 0;
 
   pp = malloc(sizeof(wiw));
@@ -97,22 +97,22 @@ wiw * newwiw(){
   return pp;
 }
 
-message * mallocwiw(int payloadSize){
+message * mallocWiw(int payloadSize){
   message *mp;
   wagon *w;
   int newWomimLen = sizeof(prefix) + wagonToSend->p_wagon->header.len +
-    sizeof(message_header) + payloadSize;
+    sizeof(messageHeader) + payloadSize;
   wagonToSend->p_womim = realloc(wagonToSend->p_womim, newWomimLen);
   assert(wagonToSend->p_womim != NULL);
   w = &(wagonToSend->p_womim->wagon);
   wagonToSend->p_wagon = w;
   mp =(message*)(((char*)w) + w->header.len);
-  mp->header.len = sizeof(message_header) + payloadSize;
+  mp->header.len = sizeof(messageHeader) + payloadSize;
   w->header.len += mp->header.len;
   return mp;
 }
 
-void release_wiw(wiw * ww){
+void releaseWiw(wiw * ww){
   if((ww !=NULL) && (ww->p_womim != NULL)){
     MUTEX_LOCK(ww->p_womim->pfx.mutex);
     ww->p_womim->pfx.counter -= 1;
@@ -129,12 +129,12 @@ void release_wiw(wiw * ww){
   }
 }
 
-void free_wiw(wiw * ww){
-  release_wiw(ww);
+void freeWiw(wiw * ww){
+  releaseWiw(ww);
   free(ww);
 }
 
-void free_womim(womim *wo){
+void freeWomim(womim *wo){
   MUTEX_LOCK(wo->pfx.mutex);
   wo->pfx.counter--;
   if (wo->pfx.counter == 0) {

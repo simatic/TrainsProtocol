@@ -31,23 +31,23 @@
 #include "param.h"
 #include "counter.h"
 
-int open_connection(address addr, bool isPred){
+int openConnection(address addr, bool isPred){
   int rank;
   t_comm * tcomm;
 
-  rank=addr_2_rank(addr);
+  rank=addrToRank(addr);
   if (rank==-1){
     error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"Wrong address %d sent to open_connection",addr);
     return(-1);
   }
   else{
-    tcomm=comm_newAndConnect(global_addr_array[rank].ip,global_addr_array[rank].chan,CONNECT_TIMEOUT);
+    tcomm=commNewAndConnect(globalAddrArray[rank].ip,globalAddrArray[rank].chan,CONNECT_TIMEOUT);
     if (tcomm==NULL)
       return(-1);
     else{
       pthread_t thread;
       int rc;
-      add_tcomm(tcomm,rank,global_addr_array,isPred);
+      addTComm(tcomm,rank,globalAddrArray,isPred);
       rc = pthread_create(&thread, NULL, &connectionMgt, (void *)tcomm);
       if (rc < 0)
         error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
@@ -59,18 +59,18 @@ int open_connection(address addr, bool isPred){
   }
 }
 
-void close_connection(address addr, bool isPred){
+void closeConnection(address addr, bool isPred){
   int rank;
   t_comm * tcomm;
   
-  rank=addr_2_rank(addr);
+  rank=addrToRank(addr);
   if (rank==-1)
     error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"Wrong address %d sent to close_connection",addr);
   else{
-    tcomm=get_tcomm(rank,isPred,global_addr_array);
+    tcomm=getTComm(rank,isPred,globalAddrArray);
     if(tcomm!=NULL){
-      remove_tcomm(tcomm, rank, global_addr_array);
-      comm_abort(tcomm);
+      removeTComm(tcomm, rank, globalAddrArray);
+      commAbort(tcomm);
     }
   }           
 }
@@ -79,16 +79,16 @@ address searchSucc(address add){
   int i;
   int watch=1;
   int rank;
-  address result=my_address;
+  address result=myAddress;
 
-  rank=addr_2_rank(add);
+  rank=addrToRank(add);
   if(rank==-1)
     error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"Wrong address %d given to searchSucc",add);
   else{
     i=(rank+1)%NP;
     while(i!=rank && watch){
-      if(open_connection(rank_2_addr(i),false)==1){
-	result=rank_2_addr(i);
+      if(openConnection(rankToAddr(i),false)==1){
+	result=rankToAddr(i);
 	watch=0;
       }
       else{
@@ -107,7 +107,7 @@ void *msgTreatment(void *arg){
   bool theEnd = false;
 
   do{
-    msg_ext = bqueue_dequeue(msgToTreatQueue);
+    msg_ext = bqueueDequeue(msgToTreatQueue);
     if (msg_ext == NULL) {
       break;
     }
@@ -117,10 +117,10 @@ void *msgTreatment(void *arg){
       counters.trains_bytes_received += msg_ext->msg.len;
       break;
     case INSERT:
-      add_tcomm(aComm, addr_2_rank(msg_ext->msg.body.insert.sender), global_addr_array, true);
+      addTComm(aComm, addrToRank(msg_ext->msg.body.insert.sender), globalAddrArray, true);
       break;
     case NEWSUCC:
-      add_tcomm(aComm, addr_2_rank(msg_ext->msg.body.newSucc.sender), global_addr_array, false);
+      addTComm(aComm, addrToRank(msg_ext->msg.body.newSucc.sender), globalAddrArray, false);
       break;
     case DISCONNECT_PRED:
     case DISCONNECT_SUCC:
@@ -142,7 +142,7 @@ void *msgTreatment(void *arg){
 void *connectionMgt(void *arg) {
   pthread_t treatmentThread;
   t_commAndQueue *commAndQueue;
-  t_bqueue *msgQueue = bqueue_new();
+  t_bqueue *msgQueue = newBqueue();
   t_comm *aComm = (t_comm*)arg;
   womim * msg_ext;
   int rc;
@@ -162,7 +162,7 @@ void *connectionMgt(void *arg) {
 
   do{
     msg_ext = receive(aComm);
-    bqueue_enqueue(msgQueue, msg_ext);
+    bqueueEnqueue(msgQueue, msg_ext);
   } while(
         (msg_ext != NULL) &&
         (msg_ext->msg.type != DISCONNECT_PRED) &&

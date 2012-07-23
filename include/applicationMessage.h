@@ -39,7 +39,7 @@
 typedef struct {
     int   len;   /**< Length of whole message */
     char  typ;   /**< Type of message (contains AM_BROADCAST, AM_ARRIVAL or AM_DEPARTURE) */
-  } __attribute__((packed)) message_header;  
+  } __attribute__((packed)) messageHeader;  
 
 /** 
  * @brief Messages carried by trains protocol for the application using the middleware
@@ -47,7 +47,7 @@ typedef struct {
  * The @a payload contains the information carried by the protocol for the application.
  */
 typedef struct message{
-  message_header header;             /**< Header of the application message */
+  messageHeader header;             /**< Header of the application message */
   char           payload[];          /**< Payload (i.e. contents) of the message */
 } __attribute__((packed)) message;
 
@@ -67,7 +67,7 @@ typedef struct message{
 #define AM_DEPARTURE 2
 
 /**
- * @brief Type of message used internally by uto_deliveries to exit its main loop
+ * @brief Type of message used internally by utoDeliveries to exit its main loop
  */
 #define AM_TERMINATE 3
 
@@ -82,12 +82,12 @@ typedef struct{
 /**
  * @brief Macro to compute the payload of message @a mp
  */
-#define payload_size(mp) ((mp)->header.len - sizeof(message_header))
+#define payloadSize(mp) ((mp)->header.len - sizeof(messageHeader))
 
 /** 
  * @brief View (members, who joined, who departed) of the circuit.
  *
- * Notice that if @a addr_isnull(cv_joined) (respectively @a addr_isnull(cv_departed)) is false, a new 
+ * Notice that if @a addrIsNull(cv_joined) (respectively @a addrIsNull(cv_departed)) is false, a new
  * process has joined (respectively left) the list of processes members of the circuit (thus participating 
  * to the trains protocol). In this case, the address found in @a cv_joined (respectively @a cv_departed) 
  * can (respectively cannot) be found in @a cv_members[]
@@ -97,12 +97,12 @@ typedef struct {
   address     cv_members[MAX_MEMB];  /**< List of members */
   address     cv_joined;             /**< New member, if any */
   address     cv_departed;           /**< Departed member, if any */
-} circuitview;
+} circuitView;
 
 /** 
  * @brief Type of function called by trains middleware when there is a change in circuit members
  */
-typedef  void (*CallbackCircuitChange)(circuitview*);
+typedef  void (*CallbackCircuitChange)(circuitView*);
 
 /** 
  * @brief Type of function called by trains middleware when it is ready to uto-deliver a message 
@@ -125,22 +125,22 @@ extern CallbackUtoDeliver theCallbackUtoDeliver;
  * @brief Request for a pointer on a new message with a payload of size @a payloadSize
  * @param[in] payloadSize Size requested for the @a payload field of the returned message
  * @return pointer on a message upon successful completion, or NULL if an error occurred 
- * (in which case, @a tr_errno is set appropriately)
+ * (in which case, @a trErrno is set appropriately)
  */
 message *newmsg(int payloadSize);
 
 /**
  * @brief uto-broadcast of message @a mp
  * @param[in] mp Message to be uto-broadcasted
- * @return 0 upon successful completion, or -1 if an error occurred (in which case, @a tr_errno is set appropriately)
+ * @return 0 upon successful completion, or -1 if an error occurred (in which case, @a trErrno is set appropriately)
  */
-int uto_broadcast(message *mp);
+int utoBroadcast(message *mp);
 
 /**
  * @brief Function (to be executed by a thread) responsible for delivering messages stored in
  * global variable @a wagonsToDeliver to application layer
  * @param[in] null Unused parameter
  */
-void *uto_deliveries(void *null);
+void *utoDeliveries(void *null);
 
 #endif /* _APPLICATION_MESSAGE_H */

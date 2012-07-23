@@ -33,14 +33,14 @@
 
 t_bqueue *wagonsToDeliver = NULL;
 
-message *firstmsg(wagon *w){
+message *firstMsg(wagon *w){
   if (w->header.len == sizeof(w->header))
     return NULL;
   else
     return w->msgs;
 }
 
-message *nextmsg(wagon *w, message *mp){
+message *nextMsg(wagon *w, message *mp){
   message *mp2 = (message*)((char*)mp + mp->header.len);
   if ((char*)mp2 - (char*)w >= w->header.len)
     return NULL;
