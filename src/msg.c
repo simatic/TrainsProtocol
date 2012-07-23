@@ -58,7 +58,7 @@ Msg initMsg(){
   return msg;
 }
 
-Msg newMsg(MType mtype, address addr_id){
+Msg newMsg(MType mtype, address addrID){
   Msg msg=initMsg();
 
   switch(mtype){
@@ -69,28 +69,28 @@ Msg newMsg(MType mtype, address addr_id){
     break;
   case INSERT:
     msg.type=mtype;
-    msg.body.insert.sender=addr_id;
+    msg.body.insert.sender=addrID;
     msg.len=sizeof(int)+sizeof(MType)+sizeof(address);
     break;
   case ACK_INSERT:
     msg.type=mtype;
-    msg.body.ackInsert.sender=addr_id;
+    msg.body.ackInsert.sender=addrID;
     msg.len=sizeof(int)+sizeof(MType)+sizeof(address);;
     break;
   case NAK_INSERT:
     msg.type=mtype;
-    msg.body.nakInsert.sender=addr_id;
+    msg.body.nakInsert.sender=addrID;
     msg.len=sizeof(int)+sizeof(MType)+sizeof(address);;
     break;
   case NEWSUCC:
     msg.type=mtype;
-    msg.body.newSucc.sender=addr_id;
+    msg.body.newSucc.sender=addrID;
     msg.len=sizeof(int)+sizeof(MType)+sizeof(address);;
     break;
   case DISCONNECT_PRED:
   case DISCONNECT_SUCC:
     msg.type=mtype;
-    msg.body.disconnect.sender=addr_id;
+    msg.body.disconnect.sender=addrID;
     msg.len=sizeof(int)+sizeof(MType)+sizeof(address);;
     break;
   default:

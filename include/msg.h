@@ -170,6 +170,6 @@ Msg initMsg();
 * @warning
 * <ul><li> If an error occured during the creation of the message, the result will be a Msg with a Default body where the problem_id will be -1. In addition, an error will be rised thanks to perror.</li></ul>
 */
-Msg newMsg(MType mtype, address addr_id);
+Msg newMsg(MType mtype, address addrID);
 
 #endif /* _MSG_H */

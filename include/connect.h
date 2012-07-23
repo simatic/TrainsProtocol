@@ -71,7 +71,7 @@ address searchSucc(address add);
 
 /**
  * @brief Treat the messages received
- * @param[in] arf A pointer on a structure containing the arguments
+ * @param[in] arg A pointer on a structure containing the arguments
  */
 void *msgTreatment(void *arg)
 
