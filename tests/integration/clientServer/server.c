@@ -69,11 +69,11 @@ void *connectionMgt(void *arg) {
 	  printf("and contents is OK\n");
 	}
       } else {
-	printf("\t\t...Received only %d/%d bytes (but this could be normal, as the client may have sent on purpose an incomplete message)\n", nbRead, msg->header.len - sizeof(len));
+	printf("\t\t...Received only %d/%lu bytes (but this could be normal, as the client may have sent on purpose an incomplete message)\n", nbRead, msg->header.len - sizeof(len));
       }
       free(msg);
     } else if (nbRead > 0) {
-	error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "Read only %d/%d bytes\n", nbRead, sizeof(len));
+	error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "Read only %d/%lu bytes\n", nbRead, sizeof(len));
     }
   } while (nbRead > 0);
 

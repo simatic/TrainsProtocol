@@ -73,7 +73,7 @@ address searchSucc(address add);
  * @brief Treat the messages received
  * @param[in] arg A pointer on a structure containing the arguments
  */
-void *msgTreatment(void *arg)
+void *msgTreatment(void *arg);
 
 /**
  * @brief Manage the connection : enqueue the messages received in a bqueue read by a second thread

@@ -77,7 +77,7 @@ void callbackUtoDeliver(address sender, message *mp){
   static int nbRecMsg = 0;
 
   if (payloadSize(mp) != PAYLOAD_SIZE){
-    fprintf(stderr, "Error in file %s:%d : Payload size is incorrect: it is %d when it should be %d\n", 
+    fprintf(stderr, "Error in file %s:%d : Payload size is incorrect: it is %d when it should be %lu\n",
 	    __FILE__,
 	    __LINE__,
 	    payloadSize(mp),

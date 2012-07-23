@@ -49,7 +49,7 @@ int main(){
   int aRank;
   bool aIsPred;
 
-  printf("taille = %d\n", sizeof(ADDR));
+  printf("taille = %lu\n", sizeof(ADDR));
   globalAddrArray = addrGenerator(LOCALISATION, NB_LINES_IN_FILE);
 
   for (i=0; i<NB_LINES_IN_FILE; i++){
