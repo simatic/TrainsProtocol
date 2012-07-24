@@ -18,26 +18,32 @@
 ##########################################
 
 # Maximum number of machines for simultaneous launch of perf code
-maxnumber=5
+#maxnumber=5
+maxnumber=2
 
 # List of the size of the message
-listsize=10 100 200 300 400 500 1000 2000 3000 5000 7000 10000 15000 20000
+#listsize="10 100 200 300 400 500 1000 2000 3000 5000 7000 10000 15000 20000"
+listsize="10"
 
 # Warmup time in seconds
-warmup=300
+#warmup=300
+warmup=1
 
 # Measure time in seconds
-measurement=600
+#measurement=600
+measurement=1
 
 # Times (in seconds) related to cooldown phase
-cooldown=10 # done by perf program
+#cooldown=10 # done by perf program
+cooldown=1
 sleepAfterCooldown=1 # done by script program. Should be 290 (because cooldown+sleepAfterCooldown must be 300) for real tests
 
 # Array of hostnames on which to launch the test
 # WARNING : if hostnames does not contain any localhost, then in the following ficname definition, 
 #           take off final '_'$i
 #hostnames=('b313-01' 'b313-02' 'b313-03' 'b313-04' 'b313-05')
-hostnames=('localhost' 'localhost' 'localhost' 'localhost' 'localhost')
+#hostnames=('localhost' 'localhost' 'localhost' 'localhost' 'localhost')
+hostnames=('b313-01' 'b313-02')
 
 ##########################################
 # Let's go for the different tests
@@ -45,7 +51,7 @@ hostnames=('localhost' 'localhost' 'localhost' 'localhost' 'localhost')
 
 for ((number=2; number<=$maxnumber; number+=1))
 do 
-    for size in 10 100 200 300 400 500 1000 2000 3000 5000 7000 10000 15000 20000
+    for size in $listsize
     do
 	# We build the different ssh commands to be lauched for this iteration
 	cmd=''
@@ -54,8 +60,10 @@ do
             ficname='perf_cooldown_'$cooldown'_measurement_'$measurement'_number_'$number'_size_'$size'_warmup_'$warmup'_'${hostnames[$i]}'_'$i
 	    # NB : About the 'export FAKE=toAVoidBug' hereafter, if it is not here, the 
 	    # export TRAINS_HOST=${hostnames[$i]} which follows is not taken into account. I did not
-	    # find why :-(
-            cmd="$cmd (ssh ${hostnames[$i]} export FAKE=toAvoidBug ; export TRAINS_HOST=${hostnames[$i]} ; export TRAINS_PORT=2000 ; `pwd`/perf --broadcasters $number --cooldown $cooldown --measurement $measurement --number $number --size $size --trainsNumber $number --warmup $warmup >$ficname 2>&1 &) ;"
+	    # find why :-( ==> Solved. Now get hostname automatically
+	    perf="TrainsProtocol/tests/integration/perf/"
+	    dist="\"export FAKE=toAvoidBug ; export TRAINS_PORT=2000 ; cd $perf ; ./perf --broadcasters $number --cooldown $cooldown --measurement $measurement --number $number --size $size --trainsNumber $number --warmup $warmup >$ficname &\""
+            cmd="$cmd (ssh ${hostnames[$i]} $dist) ;"
         done
 
 	# we launch the test
