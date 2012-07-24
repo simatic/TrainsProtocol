@@ -52,7 +52,7 @@ void freeAddrList(ADDR* tab){
 ADDR* addrGenerator(char* locate, int length){
   FILE * addrFile;
   ADDR * array=initAddrList(length);
-  char line[MAX_LEN_LINE_IN_FILE];
+  char * line = malloc(MAX_LEN_LINE_IN_FILE * sizeof(char));
   char * addr_full=NULL;
   char * ip_only=NULL;
   char * rank_str=NULL;
@@ -70,31 +70,36 @@ ADDR* addrGenerator(char* locate, int length){
   else {
     currentLine=0;
       while (fgets(line, MAX_LEN_LINE_IN_FILE, addrFile) != NULL ) {
-        currentLine++;
-        if ((line[0] != '#') && (line[0] != '\n')) {
-          rank_str = strtok(line, ":");
-          rank = atoi(rank_str);
-          ip_only = strtok(NULL, ":");
-          addr_full = strtok(NULL, ":\n");
+      currentLine++;
+
+      //Delete the spaces at the beginning of the line
+      int spaces = 0;
+      while (line[spaces] == ' ') {
+        spaces++;
+      }
+      line = &line[spaces];
+
+      if ((line[0] != '#') && (line[0] != '\n')) {
+        rank_str = strtok(line, ":");
+        rank = atoi(rank_str);
+        ip_only = strtok(NULL, ":");
+        addr_full = strtok(NULL, ":\n");
         // Error manager
-        if (rank < 0 ||
-            rank >= 16 ||
-            ip_only == NULL ||
-            addr_full == NULL ||
-            already_exist[rank]) {
+        if (rank < 0 || rank >= 16 || ip_only == NULL || addr_full == NULL
+            || already_exist[rank]) {
 
           char * errorType = malloc(64 * sizeof(char));
 
           if (rank < 0 || rank >= 16) {
             strcpy(errorType, "RANK error : should be between 0 and 15");
-          }else if (ip_only == NULL || addr_full == NULL ) {
+          } else if (ip_only == NULL || addr_full == NULL ) {
             strcpy(errorType, "RANK:HOSTNAME:PORT Semantic error");
-          }else if (already_exist[rank]) {
+          } else if (already_exist[rank]) {
             strcpy(errorType, "RANK already exists in a previous line");
           }
 
           error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
-                "\naddr_file:%d: %s\n\n"
+              "\naddr_file:%d: %s\n\n"
                   "Each line should be RANK:HOSTNAME:PORT\n\t"
                   "RANK being a number between 0 and 15\n\t"
                   "HOSTNAME being the... hostname ! (max length 63 char)\n\t"
@@ -103,7 +108,7 @@ ADDR* addrGenerator(char* locate, int length){
               currentLine, errorType);
         }
 
-          already_exist[rank] = true;
+        already_exist[rank] = true;
 
         // if localhost is detected in addr_file, we replace it with the actual hostname
         if (!strcmp(ip_only, "localhost")) {
@@ -118,8 +123,8 @@ ADDR* addrGenerator(char* locate, int length){
           if (!strcmp(array[i].ip, ip_only)) {
             if (!strcmp(array[i].chan, addr_full)) {
               error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
-                "\naddr_file:%d: This participant already exists in a previous line\n"
-                  "Each hostname:port pair should be unique\n",
+                  "\naddr_file:%d: This participant already exists in a previous line\n"
+                      "Each hostname:port pair should be unique\n",
                   currentLine);
             }
           }
