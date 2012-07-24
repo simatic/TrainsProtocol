@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <errno.h>
-//#include <unistd.h>
+#include <unistd.h>
 
 #include "management_addr.h"
 
@@ -76,23 +76,36 @@ ADDR* addrGenerator(char* locate, int length){
           rank = atoi(rank_str);
           ip_only = strtok(NULL, ":");
           addr_full = strtok(NULL, ":\n");
-          if (rank >= 16 ||
-              rank < 0 ||
-              ip_only == NULL ||
-              addr_full == NULL ||
-              already_exist[rank]) {
-            fprintf(stderr,
-                "BAD USE OF addr_file AT LINE %d\n\n"
-                "Each line should be NB:HOSTNAME:PORT\n\t"
-                "NB being a number between 0 and 15\n\t"
-                "HOSTNAME being the... hostname ! (max length 63 char)\n\t"
-                "PORT being the port on which the process works (max length 63 char)\n\n"
-                "Comments line allowed (begin with #), empty lines allowed\n", currentLine);
-            exit(-1) ;
+        // Error manager
+        if (rank < 0 ||
+            rank >= 16 ||
+            ip_only == NULL ||
+            addr_full == NULL ||
+            already_exist[rank]) {
+
+          char * errorType = malloc(64 * sizeof(char));
+
+          if (rank < 0 || rank >= 16) {
+            strcpy(errorType, "RANK error : should be between 0 and 15");
+          }else if (ip_only == NULL || addr_full == NULL ) {
+            strcpy(errorType, "RANK:HOSTNAME:PORT Semantic error");
+          }else if (already_exist[rank]) {
+            strcpy(errorType, "RANK already exists in a previous line");
           }
+
+          error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
+                "\naddr_file:%d: %s\n\n"
+                  "Each line should be RANK:HOSTNAME:PORT\n\t"
+                  "RANK being a number between 0 and 15\n\t"
+                  "HOSTNAME being the... hostname ! (max length 63 char)\n\t"
+                  "PORT being the port on which the process works (max length 63 char)\n\n"
+                  "Comments line allowed (begin with #), empty lines allowed\n",
+              currentLine, errorType);
+        }
+
           already_exist[rank] = true;
 
-          // if localhost is detected in addr_file, we replace it with the actual hostname
+        // if localhost is detected in addr_file, we replace it with the actual hostname
         if (!strcmp(ip_only, "localhost")) {
           i = gethostname(ip_only, 64);
           if (i < 0) {
@@ -104,11 +117,10 @@ ADDR* addrGenerator(char* locate, int length){
         for (i = 0; i < length; i++) {
           if (!strcmp(array[i].ip, ip_only)) {
             if (!strcmp(array[i].chan, addr_full)) {
-              fprintf(stderr,
-                  "BAD USE OF addr_file AT LINE %d:This participant already exists in a previous line\n"
+              error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
+                "\naddr_file:%d: This participant already exists in a previous line\n"
                   "Each hostname:port pair should be unique\n",
                   currentLine);
-              exit(-1);
             }
           }
         }
