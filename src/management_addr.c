@@ -53,9 +53,9 @@ ADDR* addrGenerator(char* locate, int length){
   FILE * addrFile;
   ADDR * array=initAddrList(length);
   char * line = malloc(MAX_LEN_LINE_IN_FILE * sizeof(char));
-  char * addr_full=NULL;
-  char * ip_only=NULL;
-  char * rank_str=NULL;
+  char * addr_full = NULL;
+  char * ip_only = NULL;
+  char * rank_str = NULL;
   int rank;
   bool already_exist[length];
   int currentLine;
@@ -88,7 +88,7 @@ ADDR* addrGenerator(char* locate, int length){
         if (rank < 0 || rank >= 16 || ip_only == NULL || addr_full == NULL
             || already_exist[rank]) {
 
-          char * errorType = malloc(64 * sizeof(char));
+          char * errorType = malloc(64*sizeof(char));
 
           if (rank < 0 || rank >= 16) {
             strcpy(errorType, "RANK error : should be between 0 and 15");
@@ -99,33 +99,37 @@ ADDR* addrGenerator(char* locate, int length){
           }
 
           error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
-              "\naddr_file:%d: %s\n\n"
+              "\n%s:%d: %s\n\n"
                   "Each line should be RANK:HOSTNAME:PORT\n\t"
                   "RANK being a number between 0 and 15\n\t"
                   "HOSTNAME being the... hostname ! (max length 63 char)\n\t"
                   "PORT being the port on which the process works (max length 63 char)\n\n"
                   "Comments line allowed (begin with #), empty lines allowed\n",
-              currentLine, errorType);
+              locate, currentLine, errorType);
+
+          free(errorType);
         }
 
         already_exist[rank] = true;
 
         // if localhost is detected in addr_file, we replace it with the actual hostname
         if (!strcmp(ip_only, "localhost")) {
-          i = gethostname(ip_only, 64);
+          char ip_only_for_hostname[64];
+          i = gethostname(ip_only_for_hostname, 64);
           if (i < 0) {
             error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
                 "Error getting hostname");
           }
+          ip_only = ip_only_for_hostname;
         }
 
         for (i = 0; i < length; i++) {
           if (!strcmp(array[i].ip, ip_only)) {
             if (!strcmp(array[i].chan, addr_full)) {
               error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
-                  "\naddr_file:%d: This participant already exists in a previous line\n"
+                  "\n%s:%d: This participant already exists in a previous line\n"
                       "Each hostname:port pair should be unique\n",
-                  currentLine);
+                  locate, currentLine);
             }
           }
         }
@@ -144,6 +148,7 @@ ADDR* addrGenerator(char* locate, int length){
     }
   }
 
+  free(line);
   return(array);
 }
 
