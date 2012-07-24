@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <errno.h>
+//#include <unistd.h>
 
 #include "management_addr.h"
 
@@ -57,7 +58,7 @@ ADDR* addrGenerator(char* locate, int length){
   char * rank_str=NULL;
   int rank;
   bool already_exist[length];
-
+  int currentLine;
   int i=0;
   for (i = 0; i < length; i++) {
     already_exist[i] = false;
@@ -67,9 +68,9 @@ ADDR* addrGenerator(char* locate, int length){
   if (addrFile == NULL )
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "Error opening file");
   else {
-    i=0;
+    currentLine=0;
       while (fgets(line, MAX_LEN_LINE_IN_FILE, addrFile) != NULL ) {
-        i++;
+        currentLine++;
         if ((line[0] != '#') && (line[0] != '\n')) {
           rank_str = strtok(line, ":");
           rank = atoi(rank_str);
@@ -86,7 +87,7 @@ ADDR* addrGenerator(char* locate, int length){
                 "NB being a number between 0 and 15\n\t"
                 "HOSTNAME being the... hostname ! (max length 63 char)\n\t"
                 "PORT being the port on which the process works (max length 63 char)\n\n"
-                "Comments line allowed (begin with #), empty lines allowed\n", i);
+                "Comments line allowed (begin with #), empty lines allowed\n", currentLine);
             exit(-1) ;
           }
           already_exist[rank] = true;
@@ -99,6 +100,19 @@ ADDR* addrGenerator(char* locate, int length){
                 "Error getting hostname");
           }
         }
+
+        for (i = 0; i < length; i++) {
+          if (!strcmp(array[i].ip, ip_only)) {
+            if (!strcmp(array[i].chan, addr_full)) {
+              fprintf(stderr,
+                  "BAD USE OF addr_file AT LINE %d:This participant already exists in a previous line\n"
+                  "Each hostname:port pair should be unique\n",
+                  currentLine);
+              exit(-1);
+            }
+          }
+        }
+
         strcpy(array[rank].ip, ip_only);
         strcpy(array[rank].chan, addr_full);
       }
