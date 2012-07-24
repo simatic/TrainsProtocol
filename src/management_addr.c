@@ -56,10 +56,10 @@ ADDR* addrGenerator(char* locate, int length){
   char * ip_only=NULL;
   char * rank_str=NULL;
   int rank;
-  bool already_exist[NP];
+  bool already_exist[length];
 
   int i=0;
-  for (i = 0; i < NP; i++) {
+  for (i = 0; i < length; i++) {
     already_exist[i] = false;
   }
 
@@ -90,17 +90,26 @@ ADDR* addrGenerator(char* locate, int length){
             exit(-1) ;
           }
           already_exist[rank] = true;
-          strcpy(array[rank].ip, ip_only);
-          strcpy(array[rank].chan, addr_full);
+
+          // if localhost is detected in addr_file, we replace it with the actual hostname
+        if (!strcmp(ip_only, "localhost")) {
+          i = gethostname(ip_only, 64);
+          if (i < 0) {
+            error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+                "Error getting hostname");
+          }
         }
+        strcpy(array[rank].ip, ip_only);
+        strcpy(array[rank].chan, addr_full);
       }
+    }
   }
   fclose(addrFile);
 
   for (i = 0; i < NP; i++){
     if (!already_exist[i]){
-      strcpy(array[i].ip, "FAKEADDRESS");
-      strcpy(array[i].chan,"FAKEPORT");
+      strcpy(array[i].ip, "localhost");
+      strcpy(array[i].chan,"3000");
     }
   }
 
