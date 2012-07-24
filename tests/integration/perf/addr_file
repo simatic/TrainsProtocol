@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 0:b313-01.int-evry.fr:2000
 1:b313-01.int-evry.fr:2000
+=======
+0:inf-8941:2000
+1:localhost:2001
+>>>>>>> 50fb5176aa85bdfe4d6d4435956367225a1f3338
 2:localhost:2002
 3:localhost:2003
 4:localhost:2004
