@@ -51,17 +51,18 @@ void freeAddrList(ADDR* tab){
 //it takes to arguments : the place where is the file and the maximal number of addresses it could have.
 ADDR* addrGenerator(char* locate, int length){
   FILE * addrFile;
-  ADDR * array=initAddrList(length);
+  ADDR * array = initAddrList(length);
   char * line = malloc(MAX_LEN_LINE_IN_FILE * sizeof(char));
-  char * addr_full = NULL;
-  char * ip_only = NULL;
-  char * rank_str = NULL;
+  char * tempLine = NULL;
+  char * addrFull = NULL;
+  char * ipOnly = NULL;
+  char * rankStr = NULL;
   int rank;
-  bool already_exist[length];
+  bool alreadyExist[length];
   int currentLine;
-  int i=0;
+  int i = 0;
   for (i = 0; i < length; i++) {
-    already_exist[i] = false;
+    alreadyExist[i] = false;
   }
 
   addrFile = fopen (locate , "r");
@@ -71,30 +72,30 @@ ADDR* addrGenerator(char* locate, int length){
     currentLine=0;
       while (fgets(line, MAX_LEN_LINE_IN_FILE, addrFile) != NULL ) {
       currentLine++;
+      tempLine = line;
 
       //Delete the spaces at the beginning of the line
-      int spaces = 0;
-      while (line[spaces] == ' ') {
-        spaces++;
+      while (tempLine[0] == ' ') {
+        tempLine++;
       }
-      line = &line[spaces];
 
-      if ((line[0] != '#') && (line[0] != '\n')) {
-        rank_str = strtok(line, ":");
-        rank = atoi(rank_str);
-        ip_only = strtok(NULL, ":");
-        addr_full = strtok(NULL, ":\n");
+
+      if ((tempLine[0] != '#') && (tempLine[0] != '\n')) {
+        rankStr = strtok(tempLine, ":");
+        rank = atoi(rankStr);
+        ipOnly = strtok(NULL, ":");
+        addrFull = strtok(NULL, ":\n");
         // Error manager
-        if (rank < 0 || rank >= 16 || ip_only == NULL || addr_full == NULL
-            || already_exist[rank]) {
+        if (rank < 0 || rank >= 16 || ipOnly == NULL || addrFull == NULL
+            || alreadyExist[rank]) {
 
           char * errorType = malloc(64*sizeof(char));
 
           if (rank < 0 || rank >= 16) {
             strcpy(errorType, "RANK error : should be between 0 and 15");
-          } else if (ip_only == NULL || addr_full == NULL ) {
+          } else if (ipOnly == NULL || addrFull == NULL ) {
             strcpy(errorType, "RANK:HOSTNAME:PORT Semantic error");
-          } else if (already_exist[rank]) {
+          } else if (alreadyExist[rank]) {
             strcpy(errorType, "RANK already exists in a previous line");
           }
 
@@ -110,22 +111,22 @@ ADDR* addrGenerator(char* locate, int length){
           free(errorType);
         }
 
-        already_exist[rank] = true;
+        alreadyExist[rank] = true;
 
         // if localhost is detected in addr_file, we replace it with the actual hostname
-        if (!strcmp(ip_only, "localhost")) {
-          char ip_only_for_hostname[64];
-          i = gethostname(ip_only_for_hostname, 64);
+        if (!strcmp(ipOnly, "localhost")) {
+          char ipOnlyForHostname[64];
+          i = gethostname(ipOnlyForHostname, 64);
           if (i < 0) {
             error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
                 "Error getting hostname");
           }
-          ip_only = ip_only_for_hostname;
+          ipOnly = ipOnlyForHostname;
         }
 
         for (i = 0; i < length; i++) {
-          if (!strcmp(array[i].ip, ip_only)) {
-            if (!strcmp(array[i].chan, addr_full)) {
+          if (!strcmp(array[i].ip, ipOnly)) {
+            if (!strcmp(array[i].chan, addrFull)) {
               error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
                   "\n%s:%d: This participant already exists in a previous line\n"
                       "Each hostname:port pair should be unique\n",
@@ -134,15 +135,16 @@ ADDR* addrGenerator(char* locate, int length){
           }
         }
 
-        strcpy(array[rank].ip, ip_only);
-        strcpy(array[rank].chan, addr_full);
+        strcpy(array[rank].ip, ipOnly);
+        strcpy(array[rank].chan, addrFull);
       }
     }
   }
   fclose(addrFile);
 
+  //Place a fake participant in empty cells of the array to fulfill it
   for (i = 0; i < NP; i++){
-    if (!already_exist[i]){
+    if (!alreadyExist[i]){
       strcpy(array[i].ip, "localhost");
       strcpy(array[i].chan,"3000");
     }
