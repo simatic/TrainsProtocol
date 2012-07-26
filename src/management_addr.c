@@ -108,8 +108,15 @@ ADDR* addrGenerator(char* locate, int length){
 
           char * errorType = malloc(64 * sizeof(char));
           if (lastLineChar != '\n') {
-            sprintf(errorType, "LINE too long (should be at most %d char)",
-                MAX_LEN_LINE_IN_FILE);
+            if ((blank = fgetc(addrFile)) == EOF) {
+              sprintf(errorType,
+                  "Last line of %s should be an empty or a comment line",
+                  locate);
+              ungetc(blank, addrFile);
+            } else {
+              sprintf(errorType, "LINE too long (should be at most %d char)",
+                  MAX_LEN_LINE_IN_FILE);
+            }
           } else if (rank < 0 || rank >= 16) {
             strcpy(errorType, "RANK error : should be between 0 and 15");
           } else if (ipOnly == NULL || addrFull == NULL ) {
@@ -124,12 +131,13 @@ ADDR* addrGenerator(char* locate, int length){
 
           error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
               "\n%s:%d: %s\n\n"
-                  "Each line should be RANK:HOSTNAME:PORT\n\t"
-                  "RANK being a number between 0 and 15\n\t"
-                  "HOSTNAME being the... hostname ! (max length 63 char)\n\t"
-                  "PORT being the port on which the process works (max length 63 char)\n\n"
-                  "Comments line allowed (begin with #), empty lines allowed\n",
-              locate, currentLine, errorType);
+                  "Each line should be RANK:HOSTNAME:PORT\n"
+                  "\tRANK being a number between 0 and 15\n"
+                  "\tHOSTNAME being the... hostname ! (max length 63 char)\n"
+                  "\tPORT being the port on which the process works (max length 63 char)\n\n"
+                  "Comments line allowed (begin with #), empty lines allowed\n"
+                  "Comments after the RANK:HOSTNAME:PORT syntax are allowed\n",
+                  locate, currentLine, errorType);
 
           free(errorType);
         }
@@ -161,8 +169,8 @@ ADDR* addrGenerator(char* locate, int length){
         strcpy(array[rank].chan, addrFull);
       }
       //Delete the spaces at the beginning of the next line
-      while ((blank = fgetc(addrFile)) == ' ')
-        ;
+      while ((blank = fgetc(addrFile)) == ' ') {
+      };
       ungetc(blank, addrFile);
 
     }
