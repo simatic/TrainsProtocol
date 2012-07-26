@@ -76,9 +76,9 @@ int main(){
   compare("getTComm", getTComm(0,true,globalAddrArray)==FAKE_COMM1);
   compare("getTComm", getTComm(0,false,globalAddrArray)==FAKE_COMM2);
   removeTComm(FAKE_COMM1, 0, globalAddrArray);
-  compare("get_tcomm", getTComm(0,true,globalAddrArray)==NULL);
+  compare("getTComm", getTComm(0,true,globalAddrArray)==NULL);
   addTComm(FAKE_COMM1, 0, globalAddrArray, true);
-  compare("get_tcomm", getTComm(0,true,globalAddrArray)==FAKE_COMM1);
+  compare("getTComm", getTComm(0,true,globalAddrArray)==FAKE_COMM1);
 
   memset(ip,65+SEARCHED_INDEX,MAX_LEN_IP);
   ip[MAX_LEN_IP-1] = '\0';

@@ -33,13 +33,26 @@
 ADDR* globalAddrArray;
 
 // Max length of a line read in LOCALISATION file
-#define MAX_LEN_LINE_IN_FILE (MAX_LEN_RANK + 1 + MAX_LEN_IP + 1 + MAX_LEN_CHAN)
+#define MAX_LEN_LINE_IN_FILE 1024
+
+//give the length of a char *, or 0 if the char * == NULL
+//this function has been created because strlen was not sufficient for our purpose
+int stringLength(char * stringToEvaluate){
+  int i = 0;
+
+  if (stringToEvaluate == NULL )
+    return 0;
+  while (stringToEvaluate[i] != '\0') {
+    i++;
+  }
+  return i;
+}
 
 //create an array of addresses
 ADDR* initAddrList(int length){
-  ADDR* result=calloc(length+1,sizeof(ADDR));//We calloc one more element, so that the last element of the array is an empty element
+  ADDR* result = calloc(length + 1, sizeof(ADDR)); //We calloc one more element, so that the last element of the array is an empty element
   assert(result != NULL);
-  return(result);
+  return (result);
 }
 
 //free an array of addresses
@@ -53,48 +66,58 @@ ADDR* addrGenerator(char* locate, int length){
   FILE * addrFile;
   ADDR * array = initAddrList(length);
   char * line = malloc(MAX_LEN_LINE_IN_FILE * sizeof(char));
-  char * tempLine = NULL;
   char * addrFull = NULL;
   char * ipOnly = NULL;
   char * rankStr = NULL;
   int rank;
   bool alreadyExist[length];
   int currentLine;
-  int i = 0;
+  int i;
   for (i = 0; i < length; i++) {
     alreadyExist[i] = false;
   }
 
-  addrFile = fopen (locate , "r");
+  addrFile = fopen(locate, "r");
   if (addrFile == NULL )
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "Error opening file");
+    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+        "Error opening file");
   else {
-    currentLine=0;
-      while (fgets(line, MAX_LEN_LINE_IN_FILE, addrFile) != NULL ) {
+    currentLine = 0;
+    //Delete the spaces at the beginning of the first line
+    char blank;
+    while ((blank = fgetc(addrFile)) == ' ') {
+    };
+    ungetc(blank, addrFile);
+
+    while (fgets(line, MAX_LEN_LINE_IN_FILE, addrFile) != NULL ) {
       currentLine++;
-      tempLine = line;
+      //Char storage for later tests
+      int lineLength = strlen(line);
+      char lastLineChar = line[lineLength - 1];
 
-      //Delete the spaces at the beginning of the line
-      while (tempLine[0] == ' ') {
-        tempLine++;
-      }
-
-
-      if ((tempLine[0] != '#') && (tempLine[0] != '\n')) {
-        rankStr = strtok(tempLine, ":");
+      if ((line[0] != '#') && (line[0] != '\n')) {
+        rankStr = strtok(line, ":");
         rank = atoi(rankStr);
         ipOnly = strtok(NULL, ":");
-        addrFull = strtok(NULL, ":\n");
+        addrFull = strtok(NULL, ":\n #");
+
         // Error manager
-        if (rank < 0 || rank >= 16 || ipOnly == NULL || addrFull == NULL
-            || alreadyExist[rank]) {
+        if (lastLineChar != '\n' || rank < 0 || rank >= 16 || ipOnly == NULL
+            || addrFull == NULL || stringLength(ipOnly) >= MAX_LEN_IP
+            || stringLength(addrFull) >= MAX_LEN_CHAN || alreadyExist[rank]) {
 
-          char * errorType = malloc(64*sizeof(char));
-
-          if (rank < 0 || rank >= 16) {
+          char * errorType = malloc(64 * sizeof(char));
+          if (lastLineChar != '\n') {
+            sprintf(errorType, "LINE too long (should be at most %d char)",
+                MAX_LEN_LINE_IN_FILE);
+          } else if (rank < 0 || rank >= 16) {
             strcpy(errorType, "RANK error : should be between 0 and 15");
           } else if (ipOnly == NULL || addrFull == NULL ) {
-            strcpy(errorType, "RANK:HOSTNAME:PORT Semantic error");
+            strcpy(errorType, "RANK:HOSTNAME:PORT Syntax error");
+          } else if (stringLength(ipOnly) >= 64) {
+            strcpy(errorType, "HOSTNAME too long");
+          } else if (stringLength(addrFull) >= 64) {
+            strcpy(errorType, "PORT too long");
           } else if (alreadyExist[rank]) {
             strcpy(errorType, "RANK already exists in a previous line");
           }
@@ -129,75 +152,80 @@ ADDR* addrGenerator(char* locate, int length){
             if (!strcmp(array[i].chan, addrFull)) {
               error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
                   "\n%s:%d: This participant already exists in a previous line\n"
-                      "Each hostname:port pair should be unique\n",
-                  locate, currentLine);
+                      "Each hostname:port pair should be unique\n", locate,
+                  currentLine);
             }
           }
         }
-
         strcpy(array[rank].ip, ipOnly);
         strcpy(array[rank].chan, addrFull);
       }
+      //Delete the spaces at the beginning of the next line
+      while ((blank = fgetc(addrFile)) == ' ')
+        ;
+      ungetc(blank, addrFile);
+
     }
+
   }
   fclose(addrFile);
 
   //Place a fake participant in empty cells of the array to fulfill it
-  for (i = 0; i < NP; i++){
-    if (!alreadyExist[i]){
+  for (i = 0; i < NP; i++) {
+    if (!alreadyExist[i]) {
       strcpy(array[i].ip, "localhost");
-      strcpy(array[i].chan,"3000");
+      strcpy(array[i].chan, "3000");
     }
   }
 
   free(line);
-  return(array);
+  return (array);
 }
 
 //add a tcomm to a place in an ADDR*
 void addTComm(t_comm * tcomm, int i, ADDR * array, bool isPred){
-  if (array[i].tcomm[0] == NULL) {
-    array[i].tcomm[0]=tcomm;
-    array[i].isPred[0]=isPred;
+  if (array[i].tcomm[0] == NULL ) {
+    array[i].tcomm[0] = tcomm;
+    array[i].isPred[0] = isPred;
   } else {
-    array[i].tcomm[1]=tcomm;
-    array[i].isPred[1]=isPred;
+    array[i].tcomm[1] = tcomm;
+    array[i].isPred[1] = isPred;
   }
 }
 
 //Tries to return a non-NULL t_comm at place i in an ADDR*
 t_comm *getTComm(int i, bool isPred, ADDR * array){
-  if ((array[i].tcomm[0] != NULL) && (array[i].isPred[0] == isPred)) {
-    return array[i].tcomm[0];
-  } else if (array[i].isPred[1] == isPred) {
-    return array[i].tcomm[1];
-  } else {
-    return NULL;
-  }
+  if ((array[i].tcomm[0] != NULL )&& (array[i].isPred[0] == isPred)){
+  return array[i].tcomm[0];
+} else if (array[i].isPred[1] == isPred) {
+  return array[i].tcomm[1];
+} else {
+  return NULL;
+}
 }
 
 //remove a tcomm from a place in an ADDR*
 void removeTComm(t_comm * tcomm, int i, ADDR * array){
-  if (array[i].tcomm[0] == tcomm){
+  if (array[i].tcomm[0] == tcomm) {
     array[i].tcomm[0] = NULL;
-  } else if (array[i].tcomm[1] == tcomm){
+  } else if (array[i].tcomm[1] == tcomm) {
     array[i].tcomm[1] = NULL;
   }
 }
 
 //search a t_comm in an array
 void searchTComm(t_comm * tcomm, ADDR * array, int *prank, bool *pisPred){
-  int i=0;
+  int i = 0;
 
-  *prank=-1;
-  for(i=0;i<NP;i++){
-    if(array[i].tcomm[0] == tcomm){
-      *prank=i;
-      *pisPred=array[i].isPred[0];
+  *prank = -1;
+  for (i = 0; i < NP; i++) {
+    if (array[i].tcomm[0] == tcomm) {
+      *prank = i;
+      *pisPred = array[i].isPred[0];
       return;
-    } else if(array[i].tcomm[1] == tcomm){
-      *prank=i;
-      *pisPred=array[i].isPred[1];
+    } else if (array[i].tcomm[1] == tcomm) {
+      *prank = i;
+      *pisPred = array[i].isPred[1];
       return;
     }
   }
@@ -206,17 +234,16 @@ void searchTComm(t_comm * tcomm, ADDR * array, int *prank, bool *pisPred){
 //give the place in the array of a given address
 //return -1 if it's unfound
 int addrID(char * ip, char * chan, ADDR * array){
-  int i=0;
+  int i = 0;
 
   while ((array[i].ip[0] != '\0')
       && (strcmp(array[i].ip, ip) != 0 || strcmp(array[i].chan, chan) != 0)) {
     i++;
   }
 
-  if(array[i].ip[0] != '\0'){
-    return(i);
-  }
-  else{
-    return(-1);
+  if (array[i].ip[0] != '\0') {
+    return (i);
+  } else {
+    return (-1);
   }
 }
