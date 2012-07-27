@@ -124,8 +124,9 @@ t_comm *commNewAndConnect(char *hostname, char *port, int connectTimeout){
   hints.ai_socktype = SOCK_STREAM; /* Stream socket */
   hints.ai_flags = 0;
   hints.ai_protocol = 0;          /* Any protocol */
-
+  
   s = getaddrinfo(hostname, port, &hints, &result);
+  printf("<%s:%s>",hostname,port);
   if (s != 0) {
     fprintf(stderr, "%s:%d: getaddrinfo: %s\n", __FILE__, __LINE__, gai_strerror(s));
     exit(EXIT_FAILURE);
