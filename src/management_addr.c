@@ -102,21 +102,16 @@ ADDR* addrGenerator(char* locate, int length){
         addrFull = strtok(NULL, ":\n #");
 
         // Error manager
-        if (lastLineChar != '\n' || rank < 0 || rank >= 16 || ipOnly == NULL
+        blank = fgetc(addrFile);
+        if ((lastLineChar != '\n' && blank != EOF)
+            || rank < 0 || rank >= 16 || ipOnly == NULL
             || addrFull == NULL || stringLength(ipOnly) >= MAX_LEN_IP
             || stringLength(addrFull) >= MAX_LEN_CHAN || alreadyExist[rank]) {
 
           char * errorType = malloc(64 * sizeof(char));
-          if (lastLineChar != '\n') {
-            if ((blank = fgetc(addrFile)) == EOF) {
-              sprintf(errorType,
-                  "Last line of %s should be an empty or a comment line",
-                  locate);
-              ungetc(blank, addrFile);
-            } else {
+          if (lastLineChar != '\n' && blank != EOF) {
               sprintf(errorType, "LINE too long (should be at most %d char)",
                   MAX_LEN_LINE_IN_FILE);
-            }
           } else if (rank < 0 || rank >= 16) {
             strcpy(errorType, "RANK error : should be between 0 and 15");
           } else if (ipOnly == NULL || addrFull == NULL ) {
@@ -141,7 +136,7 @@ ADDR* addrGenerator(char* locate, int length){
 
           free(errorType);
         }
-
+        ungetc(blank, addrFile);
         alreadyExist[rank] = true;
 
         // if localhost is detected in addr_file, we replace it with the actual hostname
