@@ -378,7 +378,6 @@ void startTest(){
       message *mp = NULL;
       if (pingMessagesCounter == 0) {
         mp = newLatencyMsg(pingMessageSize, AM_PING);
-
         if (mp == NULL ) {
           trError_at_line(rc, trErrno, __FILE__, __LINE__, "newPingMsg()");
           exit(EXIT_FAILURE);
