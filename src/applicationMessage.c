@@ -58,31 +58,6 @@ message *newmsg(int payloadSize){
   return mp;
 }
 
-
-message *newLatencyMsg(int payloadSize, char type){
-  message *mp;
-  counters.newmsg++;
-  MUTEX_LOCK(mutexWagonToSend);
-
-  // We check that we have enough space for the message the caller wants to allocate
-  while ((wagonToSend->p_wagon->header.len + sizeof(messageHeader) + payloadSize
-      > WAGON_MAX_LEN)&&
-  (wagonToSend->p_wagon->header.len != sizeof(wagonHeader))){
-  counters.flowControl++;
-  int rc = pthread_cond_wait(&condWagonToSend, &mutexWagonToSend);
-  if (rc < 0)
-  error_at_line(EXIT_FAILURE,rc,__FILE__,__LINE__,"pthread_cond_wait");
-}
-
-  mp = mallocWiw(payloadSize);
-  mp->header.typ = type;
-
-  // MUTEX_UNLOCK will be done in utoBroadcast
-  // MUTEX_UNLOCK(mutexWagonToSend);
-  //
-  return mp;
-}
-
 int utoBroadcast(message *mp){
   //  MUTEX_LOCK(stateMachineMutex);
   if (automatonState == ALONE_INSERT_WAIT) {

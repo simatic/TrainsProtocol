@@ -102,7 +102,6 @@ message * mallocWiw(int payloadSize){
   wagon *w;
   int newWomimLen = sizeof(prefix) + wagonToSend->p_wagon->header.len +
     sizeof(messageHeader) + payloadSize;
-  fprintf(stderr, "reallocation");
   wagonToSend->p_womim = realloc(wagonToSend->p_womim, newWomimLen);
   assert(wagonToSend->p_womim != NULL);
   w = &(wagonToSend->p_womim->wagon);

@@ -180,7 +180,8 @@ void callbackUtoDeliver(address sender, message *mp){
   if (mp->header.typ == AM_PING) {
     if (myAddress == 1) { //TODO:real test to know which participant has to respond to pong messages
 
-      message *pongMsg = newLatencyMsg(pingMessageSize, AM_PONG);
+      message *pongMsg = newmsg(pingMessageSize);
+      pongMsg->header.typ = AM_PONG;
       strcpy(pongMsg->payload, mp->payload);
 
       int rc;
@@ -377,16 +378,13 @@ void startTest(){
     do {
       message *mp = NULL;
       if (pingMessagesCounter == 0) {
-        mp = newLatencyMsg(pingMessageSize, AM_PING);
+        mp = newmsg(pingMessageSize);
         if (mp == NULL ) {
           trError_at_line(rc, trErrno, __FILE__, __LINE__, "newPingMsg()");
           exit(EXIT_FAILURE);
         }
         rankMessage++;
-
-        //TODO: C'est ici qu'on écrit le SENDER du message PING ainsi que la DATE
-        //NB : sprintf formaté ? du type sender:dateSeconde:dateMillisec
-
+        mp->header.typ = AM_PING;
         gettimeofday(&sendTime, NULL);
         sprintf(mp->payload, "%hd:%ld:%ld", myAddress, sendTime.tv_sec, sendTime.tv_usec);
 
