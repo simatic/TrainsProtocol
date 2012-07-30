@@ -42,6 +42,7 @@
 #include <semaphore.h>
 #include <strings.h>
 #include <pthread.h>
+#include <string.h>
 #include "trains.h"
 #include "counter.h"
 #include "param.h"
@@ -63,6 +64,10 @@ struct timeval timeTrInitBegin, timeTrInitEnd;
 char *programName;
 
 /* Parameters of the program */
+short pingSender;
+struct timeval sendTime, sendDate, receiveDate, latency;
+int pingMessageSize = sizeof(address) + sizeof(time_t) + sizeof(suseconds_t) + 2;
+int frequencyOfPingMessages = 10000;
 int broadcasters = -1;
 int cooldown = 10; /* Default value = 10 seconds */
 int measurement = 600; /* Default value = 600 seconds */
@@ -172,7 +177,30 @@ void callbackUtoDeliver(address sender, message *mp){
   char s[MAX_LEN_ADDRESS_AS_STR];
   static int nbRecMsg = 0;
 
-  if (payloadSize(mp) != size) {
+  if (mp->header.typ == AM_PING) {
+    if (myAddress == 1) { //TODO:real test to know which participant has to respond to pong messages
+
+      message *pongMsg = newLatencyMsg(pingMessageSize, AM_PONG);
+      strcpy(pongMsg->payload, mp->payload);
+
+      int rc;
+      if ((rc = utoBroadcast(pongMsg)) < 0) {
+        trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
+        exit(EXIT_FAILURE);
+      }
+    }
+  } else if (mp->header.typ == AM_PONG) {
+
+    sscanf(mp->payload, "%hd:%ld:%ld", &pingSender, &(sendDate.tv_sec), &(sendDate.tv_usec));
+    gettimeofday(&receiveDate, NULL);
+
+    if (pingSender == myAddress){
+      timersub(&receiveDate, &sendDate, &latency);
+      printf("Ping : %.3lfms\n", ( ( (float) latency.tv_sec * 1000 ) + ( (float) latency.tv_usec / 1000 ) ) );
+    }
+
+
+  }else if (payloadSize(mp) != size) {
     fprintf(stderr,
         "Error in file %s:%d : Payload size is incorrect: it is %lu when it should be %d\n",
         __FILE__, __LINE__, payloadSize(mp), size);
@@ -311,6 +339,7 @@ void startTest(){
   int rc;
   int rankMessage = 0;
   pthread_t thread;
+  int pingMessagesCounter = 0;
 
   rc = sem_init(&semWaitEnoughMembers, 0, 0);
   if (rc)
@@ -346,17 +375,38 @@ void startTest(){
   if (rank < broadcasters) {
     // It is the case
     do {
-      message *mp = newmsg(size);
-      if (mp == NULL ) {
-        trError_at_line(rc, trErrno, __FILE__, __LINE__, "newmsg()");
-        exit(EXIT_FAILURE);
+      message *mp = NULL;
+      if (pingMessagesCounter == 0) {
+        mp = newLatencyMsg(pingMessageSize, AM_PING);
+
+        if (mp == NULL ) {
+          trError_at_line(rc, trErrno, __FILE__, __LINE__, "newPingMsg()");
+          exit(EXIT_FAILURE);
+        }
+        rankMessage++;
+
+        //TODO: C'est ici qu'on écrit le SENDER du message PING ainsi que la DATE
+        //NB : sprintf formaté ? du type sender:dateSeconde:dateMillisec
+
+        gettimeofday(&sendTime, NULL);
+        sprintf(mp->payload, "%hd:%ld:%ld", myAddress, sendTime.tv_sec, sendTime.tv_usec);
+
+      } else {
+        mp = newmsg(size);
+        if (mp == NULL ) {
+          trError_at_line(rc, trErrno, __FILE__, __LINE__, "newmsg()");
+          exit(EXIT_FAILURE);
+        }
+        rankMessage++;
+        *((int*) (mp->payload)) = rankMessage;
       }
-      rankMessage++;
-      *((int*) (mp->payload)) = rankMessage;
+
+      pingMessagesCounter = (pingMessagesCounter + 1) % frequencyOfPingMessages;
       if (utoBroadcast(mp) < 0) {
         trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
         exit(EXIT_FAILURE);
       }
+
     } while (1);
   }
 }

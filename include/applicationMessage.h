@@ -71,6 +71,16 @@ typedef struct message{
  */
 #define AM_TERMINATE 3
 
+/**
+ *@brief Type of message used for latency test
+ */
+#define AM_PING 4
+
+/**
+ *@brief Type of message used for latency test
+ */
+#define AM_PONG 5
+
 /** 
  * @brief Payload when arrival or departure
  */
@@ -128,6 +138,14 @@ extern CallbackUtoDeliver theCallbackUtoDeliver;
  * (in which case, @a trErrno is set appropriately)
  */
 message *newmsg(int payloadSize);
+
+/**
+ * @brief Request for a pointer on a new latency test message with a payload of size @a payloadSize
+ * @param[in] payloadSize Size requested for the @a payload field of the returned message
+ * @param[in] type Type of the message (PING or PONG)
+ * @return pointer on a message upon successful completion, or NULL if an error occurred
+ */
+message *newLatencyMsg(int payloadSize, char type);
 
 /**
  * @brief uto-broadcast of message @a mp

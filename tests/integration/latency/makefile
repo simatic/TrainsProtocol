@@ -1,7 +1,7 @@
 ### Configuration.  ####################################################
 
 # Binaries to build
-BIN		= perf
+BIN		= latency
 # C source files for the binaries
 SOURCES		= $(wildcard *.c)
 # Object files corresponding to source files
