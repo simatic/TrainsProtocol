@@ -73,7 +73,7 @@ do
                 # find why :-( ==> Solved. Now get hostname automatically
 		perfdir="TrainsProtocol/tests/integration/perf/"
 		opt="--broadcasters $number --cooldown $cooldown --measurement $measurement --number $number --size $size --trainsNumber $ntr --warmup $warmup"
-		dist="\"export TRAINS_PORT=2000 ; cd $perfdir ; ./perf $opt > ~/res/$ficname \""
+		dist="\"export TRAINS_PORT=2000 ; cd $perfdir ; ./perf $opt > ~/results/$ficname \""
 		cmd="$cmd (ssh ${hostnames[$i]} $dist &);"
 		echo -e "################################################################\n$opt\n----------------------------------------------------------"
             done
@@ -84,10 +84,10 @@ do
                 # find why :-( ==> Solved. Now get hostname automatically
 		perfdir="TrainsProtocol/tests/integration/perf/"
 		opt="--broadcasters $number --cooldown $cooldown --measurement $measurement --number $number --size $size --trainsNumber $ntr --warmup $warmup"
-		dist="\"export TRAINS_PORT=2000 ; cd $perfdir ; ./perf $opt > ~/res/$ficname \""
+		dist="\"export TRAINS_PORT=2000 ; cd $perfdir ; ./perf $opt > ~/results/$ficname \""
 		cmd="$cmd (ssh ${hostnames[$last]} $dist );"
             # we launch the test
-	    echo -e "$cmd\n################################################################"
+	    echo -e "$cmd\n"
 	    eval "$cmd"
             # we do the sleep after cooldown
 	    sleep $sleepAfterCooldown;

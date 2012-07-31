@@ -1,9 +1,10 @@
 #!/bin/bash
-# Script to launch series of perf tests
+# Script to launch series of latency tests
 #  - on 2 to maxnumber machines 
 #  - with the size listed in listsize
 # The machines used are listed in hostnames
 # It is also possible to specify the following parameters
+#  - ntr (number of trains)
 #  - warmup
 #  - measurement
 #  - cooldown
@@ -11,7 +12,7 @@
 #
 # Each test generates 2 or more file (depending on the number of
 # participants to the protocol) named for instance
-#   perf_cooldown_10_measurement_600_number_5_size_7000_warmup_300_concernedHost
+#   latency_cooldown_10_measurement_600_number_5_size_7000_warmup_300_concernedHost
 
 ##########################################
 # Parameters of the different tests
@@ -36,17 +37,17 @@ warmup=1
 measurement=1
 
 # Times (in seconds) related to cooldown phase
-#cooldown=10 # done by perf program
+#cooldown=10 # done by latency program
 cooldown=1
 #sleepAfterCooldown=1 # done by script program. Should be 290 (because cooldown+sleepAfterCooldown must be 300) for real tests
 sleepAfterCooldown=0
 # Array of hostnames on which to launch the test
 # WARNING : if hostnames does not contain any localhost, then in the following ficname definition, 
 #           take off final '_'$i
-hostnames=('b313-01' 'b313-02' 'b313-03' 'b313-04' 'b313-05')
+hostnames=('b313-01' 'b313-02' 'b313-04' 'b313-05')
 #hostnames=('localhost' 'localhost' 'localhost' 'localhost' 'localhost')
 
-# Maximum number of machines for simultaneous launch of perf code
+# Maximum number of machines for simultaneous launch of latency code
 # NB : Cannot be more than the size hostname list
 maxnumber=2
 
@@ -65,27 +66,27 @@ do
 	    cmd=''
             for ((i=0; i<$number-1; i+=1))
 	    do
-		ficname='perf_cooldown_'$cooldown'_measurement_'$measurement'_number_'$number'_ntr_'$ntr'_size_'$size'_warmup_'$warmup'_'${hostnames[$i]}'_'$i
+		ficname='latency_cooldown_'$cooldown'_measurement_'$measurement'_number_'$number'_ntr_'$ntr'_size_'$size'_warmup_'$warmup'_'${hostnames[$i]}'_'$i
 	        # NB : About the 'export FAKE=toAVoidBug' hereafter, if it is not here, the 
                 # export TRAINS_HOST=${hostnames[$i]} which follows is not taken into account. I did not
                 # find why :-( ==> Solved. Now get hostname automatically
-		perfdir="TrainsProtocol/tests/integration/perf/"
+		latencydir="TrainsProtocol/tests/integration/latency/"
 		opt="--broadcasters $number --cooldown $cooldown --measurement $measurement --number $number --size $size --trainsNumber $ntr --warmup $warmup"
-		dist="\"export TRAINS_PORT=2000 ; cd $perfdir ; ./perf $opt > ~/res/$ficname \""
+		dist="\"export TRAINS_PORT=2000 ; cd $latencydir ; ./latency $opt > ~/results/$ficname \""
 		cmd="$cmd (ssh ${hostnames[$i]} $dist &);"
 		echo -e "################################################################\n$opt\n----------------------------------------------------------"
             done
 	    last=$number-1
-	    ficname='perf_cooldown_'$cooldown'_measurement_'$measurement'_number_'$number'_ntr_'$ntr'_size_'$size'_warmup_'$warmup'_'${hostnames[$last]}'_'$last
+	    ficname='latency_cooldown_'$cooldown'_measurement_'$measurement'_number_'$number'_ntr_'$ntr'_size_'$size'_warmup_'$warmup'_'${hostnames[$last]}'_'$last
 	        # NB : About the 'export FAKE=toAVoidBug' hereafter, if it is not here, the 
                 # export TRAINS_HOST=${hostnames[$i]} which follows is not taken into account. I did not
                 # find why :-( ==> Solved. Now get hostname automatically
-		perfdir="TrainsProtocol/tests/integration/latency/"
+		latencydir="TrainsProtocol/tests/integration/latency/"
 		opt="--broadcasters $number --cooldown $cooldown --measurement $measurement --number $number --size $size --trainsNumber $ntr --warmup $warmup"
-		dist="\"export TRAINS_PORT=2000 ; cd $perfdir ; ./latency $opt > ~/res/$ficname \""
+		dist="\"export TRAINS_PORT=2000 ; cd $latencydir ; ./latency $opt > ~/results/$ficname \""
 		cmd="$cmd (ssh ${hostnames[$last]} $dist );"
             # we launch the test
-	    echo -e "$cmd\n################################################################"
+	    echo -e "$cmd\n"
 	    eval "$cmd"
             # we do the sleep after cooldown
 	    sleep $sleepAfterCooldown;
