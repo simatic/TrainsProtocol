@@ -66,8 +66,8 @@ char *programName;
 /* Parameters of the program */
 short pingSender;
 struct timeval sendTime, sendDate, receiveDate, latency;
-int pingMessageSize = sizeof(address) + sizeof(time_t) + sizeof(suseconds_t) + 2;
-int frequencyOfPingMessages = 10000;
+int pingMessageSize = sizeof(address) + sizeof(struct timeval);
+int pingMessagesFrequency = 10000;
 int broadcasters = -1;
 int cooldown = 10; /* Default value = 10 seconds */
 int measurement = 600; /* Default value = 600 seconds */
@@ -182,7 +182,7 @@ void callbackUtoDeliver(address sender, message *mp){
 
       message *pongMsg = newmsg(pingMessageSize);
       pongMsg->header.typ = AM_PONG;
-      strcpy(pongMsg->payload, mp->payload);
+      memcpy(pongMsg->payload, mp->payload, sizeof(address) + sizeof(struct timeval));
 
       int rc;
       if ((rc = utoBroadcast(pongMsg)) < 0) {
@@ -192,7 +192,8 @@ void callbackUtoDeliver(address sender, message *mp){
     }
   } else if (mp->header.typ == AM_PONG) {
 
-    sscanf(mp->payload, "%hd:%ld:%ld:", &pingSender, &(sendDate.tv_sec), &(sendDate.tv_usec));
+    memcpy(&pingSender, mp->payload, sizeof(address));
+    memcpy(&sendDate, mp->payload + sizeof(address), sizeof(struct timeval));
     gettimeofday(&receiveDate, NULL);
 
     if (pingSender == myAddress){
@@ -378,7 +379,7 @@ void startTest(){
     do {
       message *mp = NULL;
       if (pingMessagesCounter == 0) {
-        mp = newmsg(size);
+        mp = newmsg(pingMessageSize);
         if (mp == NULL ) {
           trError_at_line(rc, trErrno, __FILE__, __LINE__, "newPingMsg()");
           exit(EXIT_FAILURE);
@@ -386,7 +387,8 @@ void startTest(){
         rankMessage++;
         mp->header.typ = AM_PING;
         gettimeofday(&sendTime, NULL);
-        sprintf(mp->payload, "%hd:%ld:%ld:", myAddress, sendTime.tv_sec, sendTime.tv_usec);
+        memcpy(mp->payload, &myAddress, sizeof(address));
+        memcpy((mp->payload) + sizeof(address), &sendTime, sizeof(struct timeval));
 
       } else {
         mp = newmsg(size);
@@ -398,7 +400,7 @@ void startTest(){
         *((int*) (mp->payload)) = rankMessage;
       }
 
-      pingMessagesCounter = (pingMessagesCounter + 1) % frequencyOfPingMessages;
+      pingMessagesCounter = (pingMessagesCounter + 1) % pingMessagesFrequency;
       if (utoBroadcast(mp) < 0) {
         trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
         exit(EXIT_FAILURE);

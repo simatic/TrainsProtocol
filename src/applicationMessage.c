@@ -108,13 +108,9 @@ void *utoDeliveries(void *null){
       counters.messages_bytes_delivered += payloadSize(mp);
 
       switch (mp->header.typ) {
-      case AM_BROADCAST:
-        (*theCallbackUtoDeliver)(w->header.sender, mp);
-        break;
       case AM_PING:
-        (*theCallbackUtoDeliver)(w->header.sender, mp);
-        break;
       case AM_PONG:
+      case AM_BROADCAST:
         (*theCallbackUtoDeliver)(w->header.sender, mp);
         break;
       case AM_ARRIVAL:
