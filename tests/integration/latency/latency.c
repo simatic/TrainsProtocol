@@ -192,7 +192,7 @@ void callbackUtoDeliver(address sender, message *mp){
     }
   } else if (mp->header.typ == AM_PONG) {
 
-    sscanf(mp->payload, "%hd:%ld:%ld", &pingSender, &(sendDate.tv_sec), &(sendDate.tv_usec));
+    sscanf(mp->payload, "%hd:%ld:%ld:", &pingSender, &(sendDate.tv_sec), &(sendDate.tv_usec));
     gettimeofday(&receiveDate, NULL);
 
     if (pingSender == myAddress){
@@ -378,7 +378,7 @@ void startTest(){
     do {
       message *mp = NULL;
       if (pingMessagesCounter == 0) {
-        mp = newmsg(pingMessageSize);
+        mp = newmsg(size);
         if (mp == NULL ) {
           trError_at_line(rc, trErrno, __FILE__, __LINE__, "newPingMsg()");
           exit(EXIT_FAILURE);
@@ -386,7 +386,7 @@ void startTest(){
         rankMessage++;
         mp->header.typ = AM_PING;
         gettimeofday(&sendTime, NULL);
-        sprintf(mp->payload, "%hd:%ld:%ld", myAddress, sendTime.tv_sec, sendTime.tv_usec);
+        sprintf(mp->payload, "%hd:%ld:%ld:", myAddress, sendTime.tv_sec, sendTime.tv_usec);
 
       } else {
         mp = newmsg(size);
