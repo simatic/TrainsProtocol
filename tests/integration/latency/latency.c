@@ -60,14 +60,17 @@ static bool measurementDone = false;
 /* Storage to measure execution time of trInit */
 struct timeval timeTrInitBegin, timeTrInitEnd;
 
+/* Global variables of the program */
+address pingResponder;
+short pingSender;
+struct timeval sendTime, sendDate, receiveDate, latency;
+int pingMessageSize = sizeof(address) + sizeof(struct timeval);
+
 /* Storage of the program name, which we'll use in error messages.  */
 char *programName;
 
 /* Parameters of the program */
-short pingSender;
-struct timeval sendTime, sendDate, receiveDate, latency;
-int pingMessageSize = sizeof(address) + sizeof(struct timeval);
-int pingMessagesFrequency = 10000;
+int pingMessagesFrequency = 10000; /* Default value = 10 000 */
 int broadcasters = -1;
 int cooldown = 10; /* Default value = 10 seconds */
 int measurement = 600; /* Default value = 600 seconds */
@@ -166,6 +169,22 @@ void callbackCircuitChange(circuitView *cp){
       ;
     // We can start the experience
     printf("!!! ******** enough members to start utoBroadcasting\n");
+
+    // The participants choose the pingResponder : the participant which will respond to the AM_PING messages
+    addressSet circuit = 0;
+    int i;
+    for (i = 0; i < MAX_MEMB; i++){
+      circuit |= cp->cv_members[i];
+    }
+    pingResponder = 1;
+    int pingResponderRank = 0;
+    while ( !( pingResponder & circuit) ){
+      pingResponder <<= 1;
+      pingResponderRank++;
+    }
+    printf("!!! The pingResponder rank for this experience is : %d\n", pingResponderRank);
+
+    // The experience starts
     int rc = sem_post(&semWaitEnoughMembers);
     if (rc)
       error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_post()");
@@ -178,7 +197,7 @@ void callbackUtoDeliver(address sender, message *mp){
   static int nbRecMsg = 0;
 
   if (mp->header.typ == AM_PING) {
-    if (myAddress == 1) { //TODO:real test to know which participant has to respond to pong messages
+    if (myAddress == pingResponder) {
 
       message *pongMsg = newmsg(pingMessageSize);
       pongMsg->header.typ = AM_PONG;
@@ -193,12 +212,13 @@ void callbackUtoDeliver(address sender, message *mp){
   } else if (mp->header.typ == AM_PONG) {
 
     memcpy(&pingSender, mp->payload, sizeof(address));
-    memcpy(&sendDate, mp->payload + sizeof(address), sizeof(struct timeval));
-    gettimeofday(&receiveDate, NULL);
-
-    if (pingSender == myAddress){
+    //The (unsigned short) cast is done for the process number 15 is also able to recognize his own address
+    if ((unsigned short)pingSender == myAddress) {
+      memcpy(&sendDate, mp->payload + sizeof(address), sizeof(struct timeval));
+      gettimeofday(&receiveDate, NULL );
       timersub(&receiveDate, &sendDate, &latency);
-      printf("Ping : %.3lfms\n", ( ( (float) latency.tv_sec * 1000 ) + ( (float) latency.tv_usec / 1000 ) ) );
+      printf("Ping : %.3lfms\n",
+          (((float) latency.tv_sec * 1000) + ((float) latency.tv_usec / 1000)));
     }
 
 
