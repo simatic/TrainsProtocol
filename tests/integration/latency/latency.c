@@ -70,37 +70,50 @@ int pingMessageSize = sizeof(address) + sizeof(struct timeval);
 char *programName;
 
 /* Parameters of the program */
-int pingMessagesFrequency = 10000; /* Default value = 10 000 */
-int broadcasters = -1;
-int cooldown = 10; /* Default value = 10 seconds */
-int measurement = 600; /* Default value = 600 seconds */
-int number = -1;
-int size = -1;
-int trainsNumber = -1;
-bool verbose = false; /* Default value = limited display */
-int warmup = 300; /* Default value = 300 seconds */
+int broadcasters           = -1;
+int cooldown               = 10; /* Default value = 10 seconds */
+int frequencyOfPing  = 10000; /* Default value = 10 000 */
+int alternateMaxWagonLen   = (1<<15); /* Default value 32768 */
+int measurement            = 600; /* Default value = 600 seconds */
+int number                 = -1;
+int size                   = -1;
+int trainsNumber           = -1;
+bool verbose               = false; /* Default value = limited display */
+int warmup                 = 300; /* Default value = 300 seconds */
 
 /* Description of long options for getopt_long.  */
-static const struct option longOptions[] = { { "broadcasters", 1, NULL, 'b' }, {
-    "cooldown", 1, NULL, 'c' }, { "help", 0, NULL, 'h' }, { "measurement", 1,
-    NULL, 'm' }, { "number", 1, NULL, 'n' }, { "size", 1, NULL, 's' }, {
-    "trainsNumber", 1, NULL, 't' }, { "verbose", 0, NULL, 'v' }, { "warmup", 1,
-    NULL, 'w' }, { NULL, 0, NULL, 0 } };
+static const struct option longOptions[] = {
+    { "broadcasters",     1, NULL, 'b' },
+    { "cooldown",         1, NULL, 'c' },
+    { "frequencyOfPing",  1, NULL, 'f' },
+    { "help",             0, NULL, 'h' },
+    { "wagonMaxLen",      1, NULL, 'l' },
+    { "measurement",      1, NULL, 'm' },
+    { "number",           1, NULL, 'n' },
+    { "size",             1, NULL, 's' },
+    { "trainsNumber",     1, NULL, 't' },
+    { "verbose",          0, NULL, 'v' },
+    { "warmup",           1, NULL, 'w' },
+    { NULL,               0, NULL, 0   }
+};
 
 /* Description of short options for getopt_long.  */
-static const char* const shortOptions = "b:c:hm:n:s:t:vw:";
+static const char* const shortOptions = "b:c:f:hl:m:n:s:t:vw:";
 
 /* Usage summary text.  */
 static const char* const usageTemplate =
     "Usage: %s [ options ]\n"
         "  -b, --broadcasters number       Number of broadcasting processes.\n"
         "  -c, --cooldown seconds          Duration of cool-down phase (default = 10).\n"
+        "  -f, --frequencyPing             Frequency of AM_PING messages (default = 10000)\n"
         "  -h, --help                      Print this information.\n"
+        "  -l, --wagonMaxLen               Maximum length of wagons (default = 32768)\n"
         "  -m, --measurement seconds       Duration of measurement phase (default = 600).\n"
         "  -n, --number                    Number of participating processes.\n"
         "  -s, --size bytes                Bytes contained in each application message uto-broadcasted.\n"
         "  -t, --trainsNumber              Number of trains which should be used by the protocol.\n"
         "  -v, --verbose                   Print verbose messages.\n"
+        ""
         "  -w, --warmup seconds            Duration of warm-up phase (default = 300).\n";
 
 /* Print usage information and exit.  If IS_ERROR is non-zero, write to
@@ -420,7 +433,7 @@ void startTest(){
         *((int*) (mp->payload)) = rankMessage;
       }
 
-      pingMessagesCounter = (pingMessagesCounter + 1) % pingMessagesFrequency;
+      pingMessagesCounter = (pingMessagesCounter + 1) % frequencyOfPing;
       if (utoBroadcast(mp) < 0) {
         trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
         exit(EXIT_FAILURE);
@@ -450,9 +463,17 @@ int main(int argc, char *argv[]){
       cooldown = optArgToCorrectValue();
       break;
 
+    case 'f':
+      frequencyOfPing = optArgToCorrectValue();
+      break;
+
     case 'h':
       /* User specified -h or --help.  */
       printUsage(EXIT_SUCCESS);
+      break;
+
+    case 'l':
+      alternateMaxWagonLen = optArgToCorrectValue();
       break;
 
     case 'm':
@@ -512,6 +533,7 @@ int main(int argc, char *argv[]){
 
   /* Initialize data external to this mudule */
   ntr = trainsNumber;
+  wagonMaxLen = alternateMaxWagonLen;
 
   /* We can start the test */
   startTest();

@@ -39,6 +39,7 @@
  * @brief Maximum length of a wagon containing several messages. NB: if an application message
  * is bigger than WAGON_MAX_LEN, it is accepted by the communication middleware, but must
  * be stored alone in the wagon.
+ * @note DEPRECATED
  */
 #define WAGON_MAX_LEN (1<<15)
 

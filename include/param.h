@@ -67,6 +67,11 @@
 extern int ntr;
 
 /**
+ * @brief Max size of a wagon
+ */
+ extern int wagonMaxLen;
+
+/**
  * @brief The limit of time to wait
  */
 extern int waitNbMax;

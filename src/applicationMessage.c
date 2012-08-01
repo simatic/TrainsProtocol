@@ -41,7 +41,7 @@ message *newmsg(int payloadSize){
 
   // We check that we have enough space for the message the caller wants to allocate
   while ((wagonToSend->p_wagon->header.len + sizeof(messageHeader) + payloadSize
-      > WAGON_MAX_LEN)&&
+      > wagonMaxLen)&&
   (wagonToSend->p_wagon->header.len != sizeof(wagonHeader))){
   counters.flowControl++;
   int rc = pthread_cond_wait(&condWagonToSend, &mutexWagonToSend);

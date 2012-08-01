@@ -165,7 +165,7 @@ int main(){
   rc = pthread_detach(thread);
   if (rc < 0)
     error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
-  mp = newmsg(WAGON_MAX_LEN); // This message is too big to fit into the current wagon. We must wait till the wagon is made empty.
+  mp = newmsg(wagonMaxLen); // This message is too big to fit into the current wagon. We must wait till the wagon is made empty.
   MUTEX_UNLOCK(mutexWagonToSend);
   compare("newmsg (which calls mallocmsg_outdated) test3",
 	  mp == firstMsg(wagonToSend->p_wagon));

@@ -26,5 +26,6 @@
 
 
 int ntr=1;
+int wagonMaxLen = (1<<15);
 int waitNbMax=10 ;
 int waitDefaultTime=2 ;
