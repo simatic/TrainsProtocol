@@ -33,63 +33,75 @@ listsize="10 100"
 warmup=1
 
 # Measure time in seconds
-#measurement=600
-measurement=1
+measurement=600
 
 # Times (in seconds) related to cooldown phase
-#cooldown=10 # done by latency program
-cooldown=1
-#sleepAfterCooldown=1 # done by script program. Should be 290 (because cooldown+sleepAfterCooldown must be 300) for real tests
-sleepAfterCooldown=0
+cooldown=10 # done by latency program
+
+sleepAfterCooldown=290 # done by script program. Should be 290 (because cooldown+sleepAfterCooldown must be 300) for real tests
+
 # Array of hostnames on which to launch the test
 # WARNING : if hostnames does not contain any localhost, then in the following ficname definition, 
 #           take off final '_'$i
-hostnames=('b313-01' 'b313-02' 'b313-04' 'b313-05')
+#hostnames=('b313-01' 'b313-02' 'b313-03' 'b313-04' 'b313-05')
 #hostnames=('localhost' 'localhost' 'localhost' 'localhost' 'localhost')
+hostnames=('localhost')
 
 # Maximum number of machines for simultaneous launch of latency code
 # NB : Cannot be more than the size hostname list
-maxnumber=2
+maxnumber=1
+
+# List of frequencies for a PING message
+listfreq="10000"
+
+# List of maximum length for a wagon
+listwagon="1024 2048 4096 8192 16384 32768"
 
 
 ##########################################
 # Let's go for the different tests
 ##########################################
 
-for ((number=2; number<=$maxnumber; number+=1))
+for ((number=1; number<=$maxnumber; number+=1))
 do
     for ((ntr=$mintr; ntr<=$maxtr; ntr+=1))
     do
 	for size in $listsize
 	do
-            # We build the different ssh commands to be lauched for this iteration
-	    cmd=''
-            for ((i=0; i<$number-1; i+=1))
+	    for length in $listwagon
 	    do
-		ficname='latency_cooldown_'$cooldown'_measurement_'$measurement'_number_'$number'_ntr_'$ntr'_size_'$size'_warmup_'$warmup'_'${hostnames[$i]}'_'$i
-	        # NB : About the 'export FAKE=toAVoidBug' hereafter, if it is not here, the 
-                # export TRAINS_HOST=${hostnames[$i]} which follows is not taken into account. I did not
-                # find why :-( ==> Solved. Now get hostname automatically
-		latencydir="TrainsProtocol/tests/integration/latency/"
-		opt="--broadcasters $number --cooldown $cooldown --measurement $measurement --number $number --size $size --trainsNumber $ntr --warmup $warmup"
-		dist="\"export TRAINS_PORT=2000 ; cd $latencydir ; ./latency $opt > ~/results/$ficname \""
-		cmd="$cmd (ssh ${hostnames[$i]} $dist &);"
-		echo -e "################################################################\n$opt\n----------------------------------------------------------"
-            done
-	    last=$number-1
-	    ficname='latency_cooldown_'$cooldown'_measurement_'$measurement'_number_'$number'_ntr_'$ntr'_size_'$size'_warmup_'$warmup'_'${hostnames[$last]}'_'$last
-	        # NB : About the 'export FAKE=toAVoidBug' hereafter, if it is not here, the 
-                # export TRAINS_HOST=${hostnames[$i]} which follows is not taken into account. I did not
-                # find why :-( ==> Solved. Now get hostname automatically
-		latencydir="TrainsProtocol/tests/integration/latency/"
-		opt="--broadcasters $number --cooldown $cooldown --measurement $measurement --number $number --size $size --trainsNumber $ntr --warmup $warmup"
-		dist="\"export TRAINS_PORT=2000 ; cd $latencydir ; ./latency $opt > ~/results/$ficname \""
-		cmd="$cmd (ssh ${hostnames[$last]} $dist );"
-            # we launch the test
-	    echo -e "$cmd\n"
-	    eval "$cmd"
-            # we do the sleep after cooldown
-	    sleep $sleepAfterCooldown;
+		for freq in $listfreq
+		do
+                    # We build the different ssh commands to be lauched for this iteration
+		    cmd=''
+		    for ((i=0; i<$number-1; i+=1))
+		    do
+			ficname='latency_cooldown'$cooldown'_freqOfPing'$freq'_wagonMaxLength'$length'_measurement'$measurement'_number'$number'_ntr'$ntr'_size'$size'_warmup'$warmup'_'${hostnames[$i]}'_'$i
+                        # NB : About the 'export FAKE=toAVoidBug' hereafter, if it is not here, the 
+                        # export TRAINS_HOST=${hostnames[$i]} which follows is not taken into account. I did not
+                        # find why :-( ==> Solved. Now get hostname automatically
+			latencydir="TrainsProtocol/tests/integration/latency/"
+			opt="-b $number -c $cooldown -f $freq -l $length -m $measurement -n $number -s $size -t $ntr -w $warmup"
+			dist="\"export TRAINS_PORT=2000 ; cd $latencydir ; ./latency $opt > ~/results/$ficname \""
+			cmd="$cmd (ssh ${hostnames[$i]} $dist &);"
+			echo -e "################################################################\n$opt\n$(w)\n----------------------------------------------------------"
+		    done
+		    last=$number-1
+		    ficname='latency_cooldown'$cooldown'_freqOfPing'$freq'_wagonMaxLength'$length'_measurement'$measurement'_number'$number'_ntr'$ntr'_size'$size'_warmup'$warmup'_'${hostnames[$last]}'_'$last
+                    # NB : About the 'export FAKE=toAVoidBug' hereafter, if it is not here, the 
+                    # export TRAINS_HOST=${hostnames[$i]} which follows is not taken into account. I did not
+                    # find why :-( ==> Solved. Now get hostname automatically
+		    latencydir="TrainsProtocol/tests/integration/latency/"
+		    opt="-b $number -c $cooldown -f $freq -l $length -m $measurement -n $number -s $size -t $ntr -w $warmup"
+		    dist="\"export TRAINS_PORT=2000 ; cd $latencydir ; ./latency $opt > ~/results/$ficname \""
+		    cmd="$cmd (ssh ${hostnames[$last]} $dist );"
+                    # we launch the test
+		    echo -e "$cmd\n"
+		    eval "$cmd"
+                    # we do the sleep after cooldown
+		    sleep $sleepAfterCooldown;
+		done
+	    done
 	done
     done
 done
