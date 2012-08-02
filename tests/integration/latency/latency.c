@@ -229,8 +229,8 @@ void callbackUtoDeliver(address sender, message *mp){
       memcpy(&sendDate, mp->payload + sizeof(address), sizeof(struct timeval));
       gettimeofday(&receiveDate, NULL );
       timersub(&receiveDate, &sendDate, &latency);
-      printf("Ping : %.3lfms\n",
-          (((float) latency.tv_sec * 1000) + ((float) latency.tv_usec / 1000)));
+      //printf("Ping : %.3lfms\n",
+       //   (((float) latency.tv_sec * 1000) + ((float) latency.tv_usec / 1000)));
     }
 
 
@@ -267,6 +267,7 @@ void *timeKeeper(void *null){
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "getrusage");
   countersBegin = counters;
 
+  printf("Beginning of measurement phase\n");
   usleep(measurement * 1000000);
 
   if (gettimeofday(&timeEnd, NULL ) < 0)
@@ -275,8 +276,8 @@ void *timeKeeper(void *null){
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "getrusage");
   countersEnd = counters;
 
+  printf("End of measurement phase");
   measurementDone = true;
-
   // Cool-down phase
   usleep(cooldown * 1000000);
 
