@@ -7,7 +7,9 @@ It is designed to be a throughput-efficient protocol, especially for short messa
 
 Compilation of Trains protocol middleware
 -----------------------------------------
-make (with no target) generates the library, the unit and integration tests, and the doxygen documentation.
+make (with no target) generates the library, the unit and integration tests, 
+
+make doc              generates the doxygen documentation.
 
 There is no installation target.
 
@@ -21,13 +23,12 @@ To link, you should add "-Lsrc -ltrains -pthread" (where "src" is the path to "s
 
 Running an application using Trains protocol
 -----------------------------------------------
-In the directory where you will launch your apoplication, create a file called addr_file which contains 16 lines and for each line:
-- the name of a host (may be localhost) on which you will run your application
-- the port which shall be used by your application
+In the directory where you will launch your application, create a file called addr_file which describes the participants processes. Each line should follow the rank:hostname:port rule syntax.
+- rank : the rank the protocol participant process will have in your application (between 0 and 15)
+- hostname : the name of a host (may be localhost) on which you will run your application
+- port : the port which shall be used by your application
 
 See tests/integration/basic/addr_file for an example
-
-export TRAINS_HOST=hostname on which application is run
 
 export TRAINS_PORT=port to be used by application
 
