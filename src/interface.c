@@ -35,7 +35,12 @@
 sem_t sem_init_done;
 
 int trErrno;
-
+/**
+ * @brief Function called to initialize the protocol
+ * @param[in] callbackCircuitChange function to call upon circuitChange
+ * @param[in] callbackUtoDeliver function to call upon application message receive
+ * @return 0 on success, error_at_line otherwise
+ */
 int trInit(CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver callbackUtoDeliver){
   int rc;
   pthread_t thread;
@@ -86,11 +91,25 @@ int trInit(CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver callb
   return 0;
 }
 
+/**
+ * @brief TrainsProtocol version of error_at_line
+ * @param[in] status
+ * @param[in] errnum
+ * @param[in] filename
+ * @param[in] linenum
+ * @param[in] format
+ * @return void
+ */
 void trError_at_line(int status, int errnum, const char *filename, unsigned int linenum, const char *format){
   fflush(stdout);
   fprintf(stderr, "basic version of tr_error_at_line\n");
 }
 
+/**
+ * @brief TrainsProtocol version of perror
+ * @param[in] errnum
+ * @return void
+ */
 void trPerror(int errnum){
   fprintf(stderr, "basic version of tr_perror");
 }

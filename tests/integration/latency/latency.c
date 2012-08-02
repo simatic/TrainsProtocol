@@ -62,7 +62,7 @@ struct timeval timeTrInitBegin, timeTrInitEnd;
 
 /* Global variables of the program */
 address pingResponder;
-short pingSender;
+address pingSender;
 struct timeval sendTime, sendDate, receiveDate, latency;
 int pingMessageSize = sizeof(address) + sizeof(struct timeval);
 
@@ -225,8 +225,7 @@ void callbackUtoDeliver(address sender, message *mp){
   } else if (mp->header.typ == AM_PONG) {
 
     memcpy(&pingSender, mp->payload, sizeof(address));
-    //The (unsigned short) cast is done for the process number 15 is also able to recognize his own address
-    if ((unsigned short)pingSender == myAddress) {
+    if (pingSender == myAddress) {
       memcpy(&sendDate, mp->payload + sizeof(address), sizeof(struct timeval));
       gettimeofday(&receiveDate, NULL );
       timersub(&receiveDate, &sendDate, &latency);

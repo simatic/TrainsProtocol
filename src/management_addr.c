@@ -35,8 +35,6 @@ ADDR* globalAddrArray;
 // Max length of a line read in LOCALISATION file
 #define MAX_LEN_LINE_IN_FILE 1024
 
-//give the length of a char *, or 0 if the char * == NULL
-//this function has been created because strlen was not sufficient for our purpose
 int stringLength(char * stringToEvaluate){
   int i = 0;
 

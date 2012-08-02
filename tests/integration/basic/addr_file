@@ -1,5 +1,5 @@
-0:debian:2000
-1:localhost:2001
+0:inf-8941:2000
+1:b313-01.int-evry.fr:3000
 2:localhost:2002
 3:localhost:2003
 4:localhost:2004
@@ -7,7 +7,7 @@
 6:localhost:2006
 7:localhost:2007
 8:localhost:2008
-8:localhost:2009
+9:localhost:2009
 10:localhost:2010
 11:localhost:2011
 12:localhost:2012

@@ -61,6 +61,17 @@ typedef struct
   bool isPred[2];/**<indicates if the corresponding tcomm is the one of a predecessor or not */
 }ADDR;
 
+
+//give the length of a char *, or 0 if the char * == NULL
+//this function has been created because strlen was not sufficient for our purpose
+
+/**
+ * @brief Alternative version of strlen we created because strlen can not evaluate NULL
+ * @param[in] stringToEvaluate
+ * @return The length of a char*, or 0 if stringToEvaluate == NULL
+ */
+int stringLength(char * stringToEvaluate);
+
 /**
  * @brief Create an array of @a length empty ADDR
  * @param[in] length The length of the array
