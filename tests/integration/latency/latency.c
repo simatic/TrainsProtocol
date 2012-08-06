@@ -22,9 +22,9 @@
  */
 
 /*
- Program for doing performance tests
+ Program for doing  latency performance tests
  Syntax:
- perf --help
+ latency --help
 
  For the printf, we have used ";" as the separator between data.
  As explained in http://forthescience.org/blog/2009/04/16/change-separator-in-gnuplot/, to change
@@ -46,6 +46,7 @@
 #include "trains.h"
 #include "counter.h"
 #include "param.h"
+#include "latencyData.h"
 
 /* Semaphore used to block main thread until there are enough participants */
 static sem_t semWaitEnoughMembers;
@@ -57,10 +58,14 @@ static int rank;
 /* Boolean indicating that the measurement phase is over */
 static bool measurementDone = false;
 
+/* Boolean indicating that the measurement phase is processing */
+bool measurementPhase = false;
+
 /* Storage to measure execution time of trInit */
 struct timeval timeTrInitBegin, timeTrInitEnd;
 
 /* Global variables of the program */
+pingRecord record;
 address pingResponder;
 address pingSender;
 struct timeval sendTime, sendDate, receiveDate, latency;
@@ -229,12 +234,11 @@ void callbackUtoDeliver(address sender, message *mp){
       memcpy(&sendDate, mp->payload + sizeof(address), sizeof(struct timeval));
       gettimeofday(&receiveDate, NULL );
       timersub(&receiveDate, &sendDate, &latency);
-      //printf("Ping : %.3lfms\n",
-       //   (((float) latency.tv_sec * 1000) + ((float) latency.tv_usec / 1000)));
+      if (measurementPhase) {
+        recordValue(latency, &record);
+      }
     }
-
-
-  }else if (payloadSize(mp) != size) {
+  } else if (payloadSize(mp) != size) {
     fprintf(stderr,
         "Error in file %s:%d : Payload size is incorrect: it is %lu when it should be %d\n",
         __FILE__, __LINE__, payloadSize(mp), size);
@@ -257,6 +261,7 @@ void *timeKeeper(void *null){
   struct timeval timeBegin, timeEnd;
   struct timeval startSomme, stopSomme, diffCPU, diffTimeval;
 
+  measurementPhase = false;
   // Warm-up phase
   usleep(warmup * 1000000);
 
@@ -267,7 +272,7 @@ void *timeKeeper(void *null){
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "getrusage");
   countersBegin = counters;
 
-  printf("Beginning of measurement phase\n");
+  measurementPhase = true;
   usleep(measurement * 1000000);
 
   if (gettimeofday(&timeEnd, NULL ) < 0)
@@ -276,15 +281,15 @@ void *timeKeeper(void *null){
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "getrusage");
   countersEnd = counters;
 
-  printf("End of measurement phase");
+  measurementPhase = false;
   measurementDone = true;
   // Cool-down phase
   usleep(cooldown * 1000000);
 
   // We display the results
   printf(
-      "%s --broadcasters %d --cooldown %d --measurement %d --number %d --size %d --trainsNumber %d  --warmup %d\n",
-      programName, broadcasters, cooldown, measurement, number, size,
+      "%s --broadcasters %d --cooldown %d --frequencyPing %d --wagonMaxLen %d --measurement %d --number %d --size %d --trainsNumber %d  --warmup %d\n",
+      programName, broadcasters, cooldown, frequencyOfPing, wagonMaxLen, measurement, number, size,
       trainsNumber, warmup);
 
   printDiffTimeval("time for tr_init (in sec)", timeTrInitEnd, timeTrInitBegin);
@@ -359,7 +364,23 @@ void *timeKeeper(void *null){
       ((double) (diffCPU.tv_sec * 1000000 + diffCPU.tv_usec)
           / (double) (diffTimeval.tv_sec * 1000000 + diffTimeval.tv_usec)));
 
+  // Latency results
+  setStatistics(&record);
+
+  printf("\n\n"
+      "Number of ping records during this experience : %u\n"
+      "Average latency         : %lf\n"
+      "Variance                : %lf\n"
+      "Standard deviation      : %lf\n"
+      "95%% confidence interval : %lf - %lf\n"
+      "99%% confidence interval : %lf - %lf\n",
+      record.currentRecordsNb, record.mean, record.variance, record.standardDeviation,
+      record.min95confidenceInterval, record.max95confidenceInterval,
+      record.min99confidenceInterval, record.max99confidenceInterval);
+
+
   // Termination phase
+  freePingRecord(&record);
   rc = trTerminate();
   if (rc < 0) {
     trError_at_line(rc, trErrno, __FILE__, __LINE__, "tr_init()");
@@ -375,6 +396,7 @@ void startTest(){
   int rankMessage = 0;
   pthread_t thread;
   int pingMessagesCounter = 0;
+  record = newPingRecord();
 
   rc = sem_init(&semWaitEnoughMembers, 0, 0);
   if (rc)
