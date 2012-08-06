@@ -108,12 +108,5 @@ int setStatistics(pingRecord * record){
   record->min99confidenceInterval = record->mean - 3 * record->standardDeviation;
   record->max99confidenceInterval = record->mean + 3 * record->standardDeviation;
 
-  if (record->min99confidenceInterval < 0) {
-    if (record->min95confidenceInterval < 0) {
-      record->min95confidenceInterval = 0;
-    }
-    record->min99confidenceInterval;
-  }
-
   return 0;
 }

@@ -369,11 +369,11 @@ void *timeKeeper(void *null){
 
   printf("\n\n"
       "Number of ping records during this experience : %u\n"
-      "Average latency         : %lf\n"
+      "Average latency  (ms)   : %.2lf\n"
       "Variance                : %lf\n"
       "Standard deviation      : %lf\n"
-      "95%% confidence interval : %lf - %lf\n"
-      "99%% confidence interval : %lf - %lf\n",
+      "95%% confidence interval : %.2lf - %.2lf\n"
+      "99%% confidence interval : %.2lf - %.2lf\n",
       record.currentRecordsNb, record.mean, record.variance, record.standardDeviation,
       record.min95confidenceInterval, record.max95confidenceInterval,
       record.min99confidenceInterval, record.max99confidenceInterval);
