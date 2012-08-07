@@ -422,7 +422,6 @@ void startTest(){
         rankMessage++;
         mp->header.typ = AM_PING;
         gettimeofday(&sendTime, NULL);
-        printf("envoi de sendTime : %ld.%ld\n", sendTime.tv_sec, sendTime.tv_usec);
         memcpy(mp->payload, &myAddress, sizeof(address));
         memcpy((mp->payload) + sizeof(address), &sendTime, sizeof(struct timeval));
 
