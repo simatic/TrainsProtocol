@@ -103,6 +103,7 @@ int setStatistics(pingRecord * record){
   //Calculation of the standard deviation
   record->standardDeviation = sqrt(record->variance);
 
+  //Calculation of the confidence intervals
   record->min95confidenceInterval = record->mean - 2 * record->standardDeviation;
   record->max95confidenceInterval = record->mean + 2 * record->standardDeviation;
   record->min99confidenceInterval = record->mean - 3 * record->standardDeviation;

@@ -234,9 +234,11 @@ void callbackUtoDeliver(address sender, message *mp){
       memcpy(&sendDate, mp->payload + sizeof(address), sizeof(struct timeval));
       gettimeofday(&receiveDate, NULL );
       timersub(&receiveDate, &sendDate, &latency);
+
       if (measurementPhase) {
         recordValue(latency, &record);
       }
+
     }
   } else if (payloadSize(mp) != size) {
     fprintf(stderr,
@@ -305,46 +307,24 @@ void *timeKeeper(void *null){
   timeradd(&rusageEnd.ru_utime, &rusageEnd.ru_stime, &stopSomme);
   printDiffTimeval("ru_utime+ru_stime (in sec)", stopSomme, startSomme);
 
-  printf("number of messages delivered to the application ; %llu\n",
-      countersEnd.messages_delivered - countersBegin.messages_delivered);
-  printf("number of bytes delivered to the application ; %llu\n",
-      countersEnd.messages_bytes_delivered
-          - countersBegin.messages_bytes_delivered);
-  printf("number of bytes of trains received from the network ; %llu\n",
-      countersEnd.trains_bytes_received - countersBegin.trains_bytes_received);
-  printf("number of trains received from the network ; %llu\n",
-      countersEnd.trains_received - countersBegin.trains_received);
-  printf("number of bytes of recent trains received from the network ; %llu\n",
-      countersEnd.recent_trains_bytes_received
-          - countersBegin.recent_trains_bytes_received);
-  printf("number of recent trains received from the network ; %llu\n",
-      countersEnd.recent_trains_received
-          - countersBegin.recent_trains_received);
-  printf("number of wagons delivered to the application ; %llu\n",
-      countersEnd.wagons_delivered - countersBegin.wagons_delivered);
-  printf("number of times automaton has been in state WAIT ; %llu\n",
-      countersEnd.wait_states - countersBegin.wait_states);
-  printf("number of calls to comm_read() ; %llu\n",
-      countersEnd.comm_read - countersBegin.comm_read);
-  printf("number of bytes read by comm_read() calls ; %llu\n",
-      countersEnd.comm_read_bytes - countersBegin.comm_read_bytes);
-  printf("number of calls to comm_readFully() ; %llu\n",
-      countersEnd.comm_readFully - countersBegin.comm_readFully);
-  printf("number of bytes read by comm_readFully() calls ; %llu\n",
-      countersEnd.comm_readFully_bytes - countersBegin.comm_readFully_bytes);
-  printf("number of calls to comm_write() ; %llu\n",
-      countersEnd.comm_write - countersBegin.comm_write);
-  printf("number of bytes written by comm_write() calls ; %llu\n",
-      countersEnd.comm_write_bytes - countersBegin.comm_write_bytes);
-  printf("number of calls to comm_writev() ; %llu\n",
-      countersEnd.comm_writev - countersBegin.comm_writev);
-  printf("number of bytes written by comm_writev() calls ; %llu\n",
-      countersEnd.comm_writev_bytes - countersBegin.comm_writev_bytes);
-  printf("number of calls to newmsg() ; %llu\n",
-      countersEnd.newmsg - countersBegin.newmsg);
-  printf(
-      "number of times there was flow control when calling newmsg() ; %llu\n",
-      countersEnd.flowControl - countersBegin.flowControl);
+  printf("number of messages delivered to the application ; %llu\n", countersEnd.messages_delivered - countersBegin.messages_delivered);
+  printf("number of bytes delivered to the application ; %llu\n", countersEnd.messages_bytes_delivered - countersBegin.messages_bytes_delivered);
+  printf("number of bytes of trains received from the network ; %llu\n", countersEnd.trains_bytes_received - countersBegin.trains_bytes_received);
+  printf("number of trains received from the network ; %llu\n", countersEnd.trains_received - countersBegin.trains_received);
+  printf("number of bytes of recent trains received from the network ; %llu\n", countersEnd.recent_trains_bytes_received - countersBegin.recent_trains_bytes_received);
+  printf("number of recent trains received from the network ; %llu\n", countersEnd.recent_trains_received - countersBegin.recent_trains_received);
+  printf("number of wagons delivered to the application ; %llu\n", countersEnd.wagons_delivered - countersBegin.wagons_delivered);
+  printf("number of times automaton has been in state WAIT ; %llu\n", countersEnd.wait_states - countersBegin.wait_states);
+  printf("number of calls to comm_read() ; %llu\n", countersEnd.comm_read - countersBegin.comm_read);
+  printf("number of bytes read by comm_read() calls ; %llu\n", countersEnd.comm_read_bytes - countersBegin.comm_read_bytes);
+  printf("number of calls to comm_readFully() ; %llu\n", countersEnd.comm_readFully - countersBegin.comm_readFully);
+  printf("number of bytes read by comm_readFully() calls ; %llu\n", countersEnd.comm_readFully_bytes - countersBegin.comm_readFully_bytes);
+  printf("number of calls to comm_write() ; %llu\n", countersEnd.comm_write - countersBegin.comm_write);
+  printf("number of bytes written by comm_write() calls ; %llu\n", countersEnd.comm_write_bytes - countersBegin.comm_write_bytes);
+  printf("number of calls to comm_writev() ; %llu\n", countersEnd.comm_writev - countersBegin.comm_writev);
+  printf("number of bytes written by comm_writev() calls ; %llu\n", countersEnd.comm_writev_bytes - countersBegin.comm_writev_bytes);
+  printf("number of calls to newmsg() ; %llu\n", countersEnd.newmsg - countersBegin.newmsg);
+  printf("number of times there was flow control when calling newmsg() ; %llu\n", countersEnd.flowControl - countersBegin.flowControl);
 
   timersub(&stopSomme, &startSomme, &diffCPU);
   timersub(&timeEnd, &timeBegin, &diffTimeval);
@@ -367,7 +347,7 @@ void *timeKeeper(void *null){
   // Latency results
   setStatistics(&record);
 
-  printf("\n\n"
+  printf("\n"
       "Number of ping records during this experience : %u\n"
       "Average latency  (ms)   : %.2lf\n"
       "Variance                : %lf\n"
@@ -442,6 +422,7 @@ void startTest(){
         rankMessage++;
         mp->header.typ = AM_PING;
         gettimeofday(&sendTime, NULL);
+        printf("envoi de sendTime : %ld.%ld\n", sendTime.tv_sec, sendTime.tv_usec);
         memcpy(mp->payload, &myAddress, sizeof(address));
         memcpy((mp->payload) + sizeof(address), &sendTime, sizeof(struct timeval));
 
