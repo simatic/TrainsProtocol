@@ -21,6 +21,13 @@
  Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Nathan Reboud
  */
 
+/**
+ * @brief Definitions related to the data treatment required for the latency test
+ * @file latencyData.h
+ * @author Arthur Foltz
+ * @date 07 august 2012
+ */
+
 #include <sys/time.h>
 
 typedef struct {
@@ -39,10 +46,31 @@ typedef struct {
 
 } pingRecord;
 
+
+/**
+ * @brief Create a new pingRecord struct
+ * @return the newly created pingRecord
+ */
 pingRecord newPingRecord();
 
+/**
+ * @brief Free the previously allocated fields of a pingRecord struct
+ * @param[in] record The pingRecord struct to free
+ * @return void
+ */
 void freePingRecord(pingRecord * record);
 
+/**
+ * @brief Record a value in the timevalRecords fiels of a pingRecord struct
+ * @param[in] value The value to record
+ * @param[in] pingRec The pingRecord which the value must be recorded in
+ * @return 0 on success
+ */
 int recordValue(struct timeval value, pingRecord * pingRec);
 
+/**
+ * @brief Calculate the statistics related fields of a pingRecord struct
+ * @param[in] record the pingRecord to work on
+ * @return 0 on success
+ */
 int setStatistics(pingRecord * record);

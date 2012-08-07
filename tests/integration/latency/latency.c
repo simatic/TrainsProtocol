@@ -372,8 +372,8 @@ void *timeKeeper(void *null){
       "Average latency  (ms)   : %.2lf\n"
       "Variance                : %lf\n"
       "Standard deviation      : %lf\n"
-      "95%% confidence interval : %.2lf - %.2lf\n"
-      "99%% confidence interval : %.2lf - %.2lf\n",
+      "95%% confidence interval : [%.2lf ; %.2lf]\n"
+      "99%% confidence interval : [%.2lf ; %.2lf]\n",
       record.currentRecordsNb, record.mean, record.variance, record.standardDeviation,
       record.min95confidenceInterval, record.max95confidenceInterval,
       record.min99confidenceInterval, record.max99confidenceInterval);
