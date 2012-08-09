@@ -47,6 +47,7 @@
 #include "counter.h"
 #include "param.h"
 #include "latencyData.h"
+#include "management_addr.h"
 
 /* Semaphore used to block main thread until there are enough participants */
 static sem_t semWaitEnoughMembers;
@@ -196,10 +197,13 @@ void callbackCircuitChange(circuitView *cp){
     }
 
     pingResponder = 0x0001;
-    while ( !( pingResponder & circuit) ){
+    while (!(pingResponder & circuit)) {
       pingResponder <<= 1;
     }
-    printf("!!! The pingResponder rank for this experience is : %d\n", addrToRank(pingResponder));
+    i = addrToRank(pingResponder);
+
+    printf("!!! The pingResponder for this experience is %d:%s:%s\n",
+        i, globalAddrArray[i].ip, globalAddrArray[i].chan);
 
     // The experience starts
     int rc = sem_post(&semWaitEnoughMembers);
