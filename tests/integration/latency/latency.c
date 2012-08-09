@@ -194,13 +194,12 @@ void callbackCircuitChange(circuitView *cp){
     for (i = 0; i < MAX_MEMB; i++){
       circuit |= cp->cv_members[i];
     }
-    pingResponder = 1;
-    int pingResponderRank = 0;
+
+    pingResponder = 0x0001;
     while ( !( pingResponder & circuit) ){
       pingResponder <<= 1;
-      pingResponderRank++;
     }
-    printf("!!! The pingResponder rank for this experience is : %d\n", pingResponderRank);
+    printf("!!! The pingResponder rank for this experience is : %d\n", addrToRank(pingResponder));
 
     // The experience starts
     int rc = sem_post(&semWaitEnoughMembers);
@@ -436,7 +435,7 @@ void startTest(){
       }
 
       pingMessagesCounter = (pingMessagesCounter + 1) % frequencyOfPing;
-      if (utoBroadcast(mp) < 0) {
+      if ((rc = utoBroadcast(mp)) < 0) {
         trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
         exit(EXIT_FAILURE);
       }

@@ -79,7 +79,7 @@ womim * receive(t_comm * aComm){
   return(msg_ext);
 }
 
-//Use to sendall the messages Msg, even the TRAIN ones, but in fact, TRAIN messages will never be created for the sending, but use only on reception... Thus, to send TRAIN messages, sendTrain will be used.
+//Use to send all the messages Msg, even the TRAIN ones, but in fact, TRAIN messages will never be created for the sending, but use only on reception... Thus, to send TRAIN messages, sendTrain will be used.
 //use globalAddrArray defined in management_addr.h
 int sendOther(address addr, bool isPred, MType type, address sender){
   int length;
@@ -91,7 +91,7 @@ int sendOther(address addr, bool isPred, MType type, address sender){
   Msg * msg;
 
   if(type==TRAIN){
-    error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"Wrong MType given to send_other");
+    error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"Wrong MType given to sendOther");
     return(-1);
   }
   else{
@@ -181,7 +181,7 @@ int sendTrain(address addr, bool isPred, ltsStruct lts){
     }
   else{
     //should return an error if the addr is out of rank
-    error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"Sending failure in send_other");
+    error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"Sending failure in sendOther");
     return(-1);//same error as commWritev !!
   }
 }

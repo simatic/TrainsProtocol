@@ -432,10 +432,12 @@ void stateMachine (womim* p_womim) {
 	  freeWomim(p_womim);	  
 	  break;
 	case INSERT :
+	  MUTEX_LOCK(mutexWagonToSend);
 	  sendOther(p_womim->msg.body.insert.sender,true,ACK_INSERT, myAddress);
 	  prec=p_womim->msg.body.insert.sender;
 	  freeWomim(p_womim);	  
 	  nextState(ALONE_CONNECTION_WAIT);
+	  MUTEX_UNLOCK(mutexWagonToSend);
 	  break;
 	default :
 	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : received message %s in state %s",msgTypeToStr(p_womim->msg.type),stateToStr(automatonState));
@@ -516,6 +518,7 @@ void stateMachine (womim* p_womim) {
 	  freeWomim(p_womim);	  
 	  break;
 	case DISCONNECT_PRED :
+	  MUTEX_LOCK(mutexWagonToSend);
 	  while (!(addrIsEqual(prec,myAddress)))
 	    {
 	      if (openConnection(prec,true)!=(-1))
@@ -524,6 +527,7 @@ void stateMachine (womim* p_womim) {
 		  freeWomim(p_womim);	  
 		  nextState(SEVERAL);
 		  MUTEX_UNLOCK(stateMachineMutex);
+		  MUTEX_UNLOCK(mutexWagonToSend);
 		  return;
 		}
 	      addrAppendGone(&cameProc,&goneProc,prec);
@@ -548,6 +552,7 @@ void stateMachine (womim* p_womim) {
 	  freeWomim(p_womim);	  
 	  nextState(ALONE_INSERT_WAIT);
 	  MUTEX_UNLOCK(stateMachineMutex);
+	  MUTEX_UNLOCK(mutexWagonToSend);
 	  break;
 	case DISCONNECT_SUCC :
 	  succ=0;

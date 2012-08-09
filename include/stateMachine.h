@@ -52,7 +52,7 @@ typedef enum {
   OFFLINE_CONNECTION_ATTEMPT, /**<refers to the out of cirucit state when the process aims to connect*/
   OFFLINE_CONFIRMATION_WAIT, /**<the process is waiting for a train which proves that it is in the circuit*/
   ALONE_INSERT_WAIT, /**<when the process is alone in the circuit*/
-  ALONE_CONNECTION_WAIT, /**<the proc is alone and recieve an Insert*/
+  ALONE_CONNECTION_WAIT, /**<the proc is alone and receive an Insert*/
   SEVERAL, /**<there are more than 1 process in the circuit*/
   WAIT /**<when the process is waiting for new try connect*/
 } State;
