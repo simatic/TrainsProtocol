@@ -52,7 +52,7 @@ void compare(void *s, char *target){
 int main() {
   int rc;
   pthread_t thread;
-  t_list *l;
+  trList *l;
 
   q = newBqueue();
 

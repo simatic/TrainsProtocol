@@ -49,46 +49,46 @@ typedef struct{
   LINK * first;              /**< Pointer on head of the list */
   LINK * last;               /**< Pointer on tail of the list */
   pthread_mutex_t listMutex; /**< Mutex to handle concurrent access to the list */
-} t_list;
+} trList;
 
 /**
  * @brief Creates a new list
  * @return Pointer to the new list
  */
-t_list *newList();
+trList *newList();
 
 /**
  * @brief Removes the first element of @a aList
  * @param[in] aList List to work on
  * @return The first element of \a aList or NULL if \a aList is empty
  */
-void *listRemoveFirst(t_list *aList);
+void *listRemoveFirst(trList *aList);
 
 /**
  * @brief Appends element @a anElt to @a aList
  * @param[in] aList List to work on
  * @param[in] anElt Element to add to \a aList
  */
-void listAppend(t_list *aList, void *anElt);
+void listAppend(trList *aList, void *anElt);
 
 /**
  * @brief Extends @a aList with the @a b_list at queue
  * @param[in] aList The list which will be extended
  * @param[in] b_list The list which will be added at the queue of @a aList
  */
-void listExtend(t_list* aList, t_list* b_list);
+void listExtend(trList* aList, trList* b_list);
 
 /**
  * @brief Removes all the elements from @a aList but let it alive
  * @param[in] aList The list which is going to be cleaned
  */
-void cleanList(t_list* aList);
+void cleanList(trList* aList);
 
 /**
  * @brief Frees @a aList
  * @param[in] aList List to work on
  * @warning If elements of @a aList were pointers to allocated structures, these elements are not freed.
  */
-void freeList(t_list *aList);
+void freeList(trList *aList);
 
 #endif /* _LIST_H_ */

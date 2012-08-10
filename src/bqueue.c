@@ -61,7 +61,7 @@ void bqueueEnqueue(trBqueue *aBQueue, void *anElt){
     error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_post");
 }
 
-void bqueueExtend(trBqueue *aBQueue, t_list *list){
+void bqueueExtend(trBqueue *aBQueue, trList *list){
   LINK *link;
 
   link=list->first;

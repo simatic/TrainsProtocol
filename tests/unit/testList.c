@@ -40,8 +40,8 @@ void compare(char *testType, void *s, char *target){
 }
 
 int main() {
-  t_list *l = newList();
-  t_list *l2 = newList();
+  trList *l = newList();
+  trList *l2 = newList();
 
   listAppend(l, a);
   listAppend(l, b);

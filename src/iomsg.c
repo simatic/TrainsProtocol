@@ -33,7 +33,7 @@
 
 
 womim * receive(trComm * aComm){
-  womim * msg_ext;
+  womim * msgExt;
   int nbRead, nbRead2;
   int length;
   int j;
@@ -41,16 +41,16 @@ womim * receive(trComm * aComm){
 
   nbRead = commReadFully(aComm, &length, sizeof(length));
   if (nbRead == sizeof(length)){
-    msg_ext = calloc(length+sizeof(prefix),sizeof(char));
-    assert(msg_ext != NULL);
-    nbRead2 = commReadFully(aComm, ((char*)msg_ext)+sizeof(prefix)+nbRead, (length-nbRead));
+    msgExt = calloc(length+sizeof(prefix),sizeof(char));
+    assert(msgExt != NULL);
+    nbRead2 = commReadFully(aComm, ((char*)msgExt)+sizeof(prefix)+nbRead, (length-nbRead));
     if (nbRead2 == length-nbRead) {
-      pthread_mutex_init(&(msg_ext->pfx.mutex),NULL);
-      msg_ext->pfx.counter=1; 
-      msg_ext->msg.len=length;
-      return(msg_ext);
+      pthread_mutex_init(&(msgExt->pfx.mutex),NULL);
+      msgExt->pfx.counter=1; 
+      msgExt->msg.len=length;
+      return(msgExt);
     } else {
-      free(msg_ext);
+      free(msgExt);
     }
   }
 
@@ -63,20 +63,20 @@ womim * receive(trComm * aComm){
     // this connection loss, there is nothing to do.
     return NULL;
   }
-  //create the DICONNECT to return
+  //create the DISCONNECT to return
   MType disconnectType;
   if (isPred){
     disconnectType = DISCONNECT_PRED;
   } else {
     disconnectType = DISCONNECT_SUCC;
   }    
-  msg_ext = calloc(sizeof(prefix)+sizeof(newMsg(disconnectType,rankToAddr(j))),sizeof(char));
-  pthread_mutex_init(&(msg_ext->pfx.mutex),NULL);
-  msg_ext->pfx.counter=1;
-  msg_ext->msg=newMsg(disconnectType,rankToAddr(j));
+  msgExt = calloc(sizeof(prefix)+sizeof(newMsg(disconnectType,rankToAddr(j))),sizeof(char));
+  pthread_mutex_init(&(msgExt->pfx.mutex),NULL);
+  msgExt->pfx.counter=1;
+  msgExt->msg=newMsg(disconnectType,rankToAddr(j));
   //close the connection
   closeConnection(rankToAddr(j),isPred);
-  return(msg_ext);
+  return(msgExt);
 }
 
 //Use to send all the messages Msg, even the TRAIN ones, but in fact, TRAIN messages will never be created for the sending, but use only on reception... Thus, to send TRAIN messages, sendTrain will be used.

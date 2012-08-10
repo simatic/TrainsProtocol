@@ -30,9 +30,9 @@
 
 #define NULLINK ((LINK*)NULL)
 
-t_list *newList(){
-  t_list *aList;
-  aList = malloc(sizeof(t_list));
+trList *newList(){
+  trList *aList;
+  aList = malloc(sizeof(trList));
   assert(aList != NULL);
   pthread_mutex_init(&(aList->listMutex),NULL);
   // The list always contains an element. If the list is empty, this element
@@ -46,7 +46,7 @@ t_list *newList(){
   return aList;
 }
 
-void *listRemoveFirst(t_list *aList){
+void *listRemoveFirst(trList *aList){
   LINK *link;
   void *val = NULL;
 
@@ -62,7 +62,7 @@ void *listRemoveFirst(t_list *aList){
   return val;
 }
 
-void listAppend(t_list *aList, void *anElt){
+void listAppend(trList *aList, void *anElt){
   LINK *link, *exLast;
 
   if (!anElt)
@@ -82,7 +82,7 @@ void listAppend(t_list *aList, void *anElt){
   MUTEX_UNLOCK(aList->listMutex);
 }
 
-void listExtend(t_list* aList, t_list* b_list){
+void listExtend(trList* aList, trList* b_list){
   LINK *link;
 
   // We append the elements of b_list in alist
@@ -92,7 +92,7 @@ void listExtend(t_list* aList, t_list* b_list){
 }
 
 //list_clean just remove all the elements from at_list but let it alive
-void cleanList(t_list* aList){
+void cleanList(trList* aList){
   LINK *link, *next;
   // We free all the LINK elements which value is not NULL
   MUTEX_LOCK(aList->listMutex);
@@ -108,7 +108,7 @@ void cleanList(t_list* aList){
   MUTEX_UNLOCK(aList->listMutex);
 }
 
-void freeList(t_list *aList){
+void freeList(trList *aList){
   LINK *link, *next;
 
   // We free the remaining LINK elements in the list

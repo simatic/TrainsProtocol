@@ -43,7 +43,7 @@ addressSet goneProc=0;
 int waitNb=0;
 int lis; //last id sent
 ltsArray lts; //last trains sent
-t_list* unstableWagons[MAX_NTR][NR];
+trList* unstableWagons[MAX_NTR][NR];
 trBqueue* wagonsToDeliver;
 
 void stateMachine (womim* p_womim);
@@ -266,7 +266,8 @@ int randSleep(int nbwait) {
 
 void waitBeforConnect () {
   if (waitNb>waitNbMax) {
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "wait_nb_max owerflowed");
+    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+        "waitNbMax owerflowed");
   }
   participate(false);
   closeConnection(prec,true);
@@ -328,7 +329,8 @@ void nextState (State s) {
     automatonState=SEVERAL;
     break;
   default :
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected Automaton State : %d",s);
+    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+        "unexpected Automaton State : %d",s);
     break;
   }
 }
@@ -360,7 +362,10 @@ void stateMachine (womim* p_womim) {
 	  nextState(OFFLINE_CONFIRMATION_WAIT);
 	  break;
 	default :
-	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : received message %s in state %s",msgTypeToStr(p_womim->msg.type),stateToStr(automatonState));
+	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+	      "unexpected case : received message %s in state %s",
+	      msgTypeToStr(p_womim->msg.type),
+	      stateToStr(automatonState));
 	  break;
 	}
       break;
@@ -409,14 +414,18 @@ void stateMachine (womim* p_womim) {
 	  freeWomim(p_womim);
 	  break;
 	default :
-	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : received message %s in state %s",msgTypeToStr(p_womim->msg.type),stateToStr(automatonState));
+	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+	      "unexpected case : received message %s in state %s",
+	      msgTypeToStr(p_womim->msg.type),
+	      stateToStr(automatonState));
 	  freeWomim(p_womim);	  
 	  break;
 	}
       break;
 
     case WAIT :
-      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected reception while WAIT");
+      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+          "unexpected reception while WAIT");
       freeWomim(p_womim);	  
       break;
       
@@ -440,7 +449,10 @@ void stateMachine (womim* p_womim) {
 	  MUTEX_UNLOCK(mutexWagonToSend);
 	  break;
 	default :
-	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : received message %s in state %s",msgTypeToStr(p_womim->msg.type),stateToStr(automatonState));
+	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+	      "unexpected case : received message %s in state %s",
+	      msgTypeToStr(p_womim->msg.type),
+	      stateToStr(automatonState));
 	  freeWomim(p_womim);	  
 	  break;
 	}
@@ -475,7 +487,10 @@ void stateMachine (womim* p_womim) {
 	  nextState(SEVERAL);
 	  break;
 	default :
-	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : received message %s in state %s",msgTypeToStr(p_womim->msg.type),stateToStr(automatonState));
+	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+	      "unexpected case : received message %s in state %s",
+	      msgTypeToStr(p_womim->msg.type),
+	      stateToStr(automatonState));
 	  freeWomim(p_womim);	  
 	  break;
 	}
@@ -496,7 +511,8 @@ void stateMachine (womim* p_womim) {
 	    }
 	  else
 	    {
-	      error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__, "my_address not in the circuit ==> Suicide");
+	      error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
+	          "myAddress not in the circuit ==> Suicide");
 	    }
 	  freeWomim(p_womim);	  
 	  break;
@@ -559,12 +575,17 @@ void stateMachine (womim* p_womim) {
 	  freeWomim(p_womim);	  
 	  break;
 	default:
-	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "unexpected case : received message %s in state %s",msgTypeToStr(p_womim->msg.type),stateToStr(automatonState));
+	  error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+	      "unexpected case : received message %s in state %s",
+	      msgTypeToStr(p_womim->msg.type),
+	      stateToStr(automatonState));
       break;
 	}
        break;
     default :
-      error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__, "Unknown state : %d",automatonState);
+      error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
+          "Unknown state : %d",
+          automatonState);
       freeWomim(p_womim);	  
       break;
     }

@@ -100,7 +100,7 @@ extern ltsArray lts;
 /**
 * @brief matrix of list of unstable wagons.
 */
-extern t_list* unstableWagons[MAX_NTR][NR];
+extern trList* unstableWagons[MAX_NTR][NR];
 
 /**
 * @brief bqueue of wagon to deliver.

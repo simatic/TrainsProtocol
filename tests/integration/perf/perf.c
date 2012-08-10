@@ -247,14 +247,14 @@ void *timeKeeper(void *null) {
   printf("number of recent trains received from the network ; %llu\n", countersEnd.recent_trains_received - countersBegin.recent_trains_received);
   printf("number of wagons delivered to the application ; %llu\n", countersEnd.wagons_delivered - countersBegin.wagons_delivered);
   printf("number of times automaton has been in state WAIT ; %llu\n", countersEnd.wait_states - countersBegin.wait_states);
-  printf("number of calls to comm_read() ; %llu\n", countersEnd.comm_read - countersBegin.comm_read);
-  printf("number of bytes read by comm_read() calls ; %llu\n", countersEnd.comm_read_bytes - countersBegin.comm_read_bytes);
-  printf("number of calls to comm_readFully() ; %llu\n", countersEnd.comm_readFully - countersBegin.comm_readFully);
-  printf("number of bytes read by comm_readFully() calls ; %llu\n", countersEnd.comm_readFully_bytes - countersBegin.comm_readFully_bytes);
-  printf("number of calls to comm_write() ; %llu\n", countersEnd.comm_write - countersBegin.comm_write);
-  printf("number of bytes written by comm_write() calls ; %llu\n", countersEnd.comm_write_bytes - countersBegin.comm_write_bytes);
-  printf("number of calls to comm_writev() ; %llu\n", countersEnd.comm_writev - countersBegin.comm_writev);
-  printf("number of bytes written by comm_writev() calls ; %llu\n", countersEnd.comm_writev_bytes - countersBegin.comm_writev_bytes);
+  printf("number of calls to commRead() ; %llu\n", countersEnd.comm_read - countersBegin.comm_read);
+  printf("number of bytes read by commRead() calls ; %llu\n", countersEnd.comm_read_bytes - countersBegin.comm_read_bytes);
+  printf("number of calls to commReadFully() ; %llu\n", countersEnd.comm_readFully - countersBegin.comm_readFully);
+  printf("number of bytes read by commReadFully() calls ; %llu\n", countersEnd.comm_readFully_bytes - countersBegin.comm_readFully_bytes);
+  printf("number of calls to commWrite() ; %llu\n", countersEnd.comm_write - countersBegin.comm_write);
+  printf("number of bytes written by commWrite() calls ; %llu\n", countersEnd.comm_write_bytes - countersBegin.comm_write_bytes);
+  printf("number of calls to commWritev() ; %llu\n", countersEnd.comm_writev - countersBegin.comm_writev);
+  printf("number of bytes written by commWritev() calls ; %llu\n", countersEnd.comm_writev_bytes - countersBegin.comm_writev_bytes);
   printf("number of calls to newmsg() ; %llu\n", countersEnd.newmsg - countersBegin.newmsg);
   printf("number of times there was flow control when calling newmsg() ; %llu\n", countersEnd.flowControl - countersBegin.flowControl);
 

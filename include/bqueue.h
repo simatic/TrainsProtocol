@@ -38,7 +38,7 @@
  * @brief Data structure holding a queue
  */
 typedef struct{
-  t_list *list;   /**< List holding the different values in the queue */
+  trList *list;   /**< List holding the different values in the queue */
   sem_t  readSem; /**< Semaphore used to determine how many values are present in \a list */
 } trBqueue;
 
@@ -67,7 +67,7 @@ void bqueueEnqueue(trBqueue *aBQueue, void *anElt);
  * @param[in] aBQueue The pointer on the trBqueue wich is bouned to grow
  * @param[in] list The pointer on the list to enqueue
  */
-void bqueueExtend(trBqueue *aBQueue, t_list *list);
+void bqueueExtend(trBqueue *aBQueue, trList *list);
 
 /**
  * @brief Frees @a aBQueue
