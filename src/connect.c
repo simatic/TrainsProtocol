@@ -33,7 +33,7 @@
 
 int openConnection(address addr, bool isPred){
   int rank;
-  t_comm * tcomm;
+  trComm * tcomm;
 
   rank=addrToRank(addr);
   if (rank==-1){
@@ -61,7 +61,7 @@ int openConnection(address addr, bool isPred){
 
 void closeConnection(address addr, bool isPred){
   int rank;
-  t_comm * tcomm;
+  trComm * tcomm;
   
   rank=addrToRank(addr);
   if (rank==-1)
@@ -100,9 +100,9 @@ address searchSucc(address add){
 }
 
 void *msgTreatment(void *arg){
-  t_commAndQueue *commAndQueue = (t_commAndQueue*)arg;
-  t_bqueue *msgToTreatQueue = commAndQueue->msgQueue;
-  t_comm *aComm = commAndQueue->aComm;
+  trCommAndQueue *commAndQueue = (trCommAndQueue*)arg;
+  trBqueue *msgToTreatQueue = commAndQueue->msgQueue;
+  trComm *aComm = commAndQueue->aComm;
   womim *msg_ext;
   bool theEnd = false;
 
@@ -141,13 +141,13 @@ void *msgTreatment(void *arg){
 
 void *connectionMgt(void *arg) {
   pthread_t treatmentThread;
-  t_commAndQueue *commAndQueue;
-  t_bqueue *msgQueue = newBqueue();
-  t_comm *aComm = (t_comm*)arg;
+  trCommAndQueue *commAndQueue;
+  trBqueue *msgQueue = newBqueue();
+  trComm *aComm = (trComm*)arg;
   womim * msg_ext;
   int rc;
 
-  commAndQueue = malloc(sizeof(t_commAndQueue));
+  commAndQueue = malloc(sizeof(trCommAndQueue));
   assert(commAndQueue != NULL);
 
   commAndQueue->aComm = aComm;

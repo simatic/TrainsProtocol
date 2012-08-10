@@ -47,7 +47,7 @@ static pthread_t pthread_null;
  * @brief Variable containing the communication handle which is currently
  * doing a \a connect() system call
  */
-static t_comm *commDoingConnect = NULL;
+static trComm *commDoingConnect = NULL;
 
 /**
  * @brief Initializes communication module
@@ -62,12 +62,12 @@ void commInitialize(){
 }
 
 /**
- * @brief Allocates and initializes a \a t_comm structure with \a fd
+ * @brief Allocates and initializes a \a trComm structure with \a fd
  * @param[in] fd File descriptor managed by the allocated communication handle
  * @return The communication handle
  */
-t_comm *commAlloc(int fd){
-  t_comm *aComm = malloc(sizeof(t_comm));
+trComm *commAlloc(int fd){
+  trComm *aComm = malloc(sizeof(trComm));
   assert(aComm != NULL);
   aComm->fd = fd;
   pthread_mutex_init(&(aComm->mutexForSynch),NULL);
@@ -80,7 +80,7 @@ t_comm *commAlloc(int fd){
  * @brief Prepares the communication module to do a long IO (read, write, accept, connect).
  * @param[in] aComm Communication handle to work on
  */
-void commLongIOBegin(t_comm *aComm){
+void commLongIOBegin(trComm *aComm){
   // We lock mutexForSynch, so that if there is a commAbort() on this long
   // IO, the commAbort() will wait until we are indeed done with  the IO
   aComm->ownerMutexForSynch = pthread_self();
@@ -92,7 +92,7 @@ void commLongIOBegin(t_comm *aComm){
  * @brief Notifies the communication module that a long IO (read, write, accept, connect) is done.
  * @param[in] aComm Communication handle to work on
  */
-void commLongIOEnd(t_comm *aComm){
+void commLongIOEnd(trComm *aComm){
   aComm->ownerMutexForSynch = pthread_null;
   aComm->aborted = false;
 
@@ -101,9 +101,9 @@ void commLongIOEnd(t_comm *aComm){
   MUTEX_UNLOCK(aComm->mutexForSynch);
 }
 
-t_comm *commNewAndConnect(char *hostname, char *port, int connectTimeout){
+trComm *commNewAndConnect(char *hostname, char *port, int connectTimeout){
   int fd;
-  t_comm *aComm;
+  trComm *aComm;
   struct addrinfo hints;
   struct addrinfo *result, *rp;
   int s;
@@ -210,7 +210,7 @@ t_comm *commNewAndConnect(char *hostname, char *port, int connectTimeout){
   return aComm;
 }
 
-t_comm *commNewForAccept(char *port){
+trComm *commNewForAccept(char *port){
   int fd, s, on = 1;
   struct addrinfo hints;
   struct addrinfo *result, *rp;
@@ -274,7 +274,7 @@ t_comm *commNewForAccept(char *port){
   return commAlloc(fd);
 }
 
-t_comm *commAccept(t_comm *aComm){
+trComm *commAccept(trComm *aComm){
   int connection;
   int status=1;
 
@@ -317,7 +317,7 @@ void commAbortWhenIT(){
   }
 }
 
-void commAbort(t_comm *aComm){
+void commAbort(trComm *aComm){
   aComm->aborted = true;
 
   if (!pthread_equal(aComm->ownerMutexForSynch,pthread_null)) {
@@ -332,7 +332,7 @@ void commAbort(t_comm *aComm){
   }
 }
 
-int commRead(t_comm *aComm, void *buf, size_t count){
+int commRead(trComm *aComm, void *buf, size_t count){
   int nb;
 
   if (aComm->aborted){
@@ -355,7 +355,7 @@ int commRead(t_comm *aComm, void *buf, size_t count){
   return nb;
 }
 
-int commReadFully(t_comm *aComm, void *buf, size_t count){
+int commReadFully(trComm *aComm, void *buf, size_t count){
   int nb;
   int nbTotal = 0;
 
@@ -377,7 +377,7 @@ int commReadFully(t_comm *aComm, void *buf, size_t count){
   return nbTotal;
 }
 
-int commWrite(t_comm *aComm, const void *buf, size_t count){
+int commWrite(trComm *aComm, const void *buf, size_t count){
   int nb;
 
   if (aComm->aborted){
@@ -400,7 +400,7 @@ int commWrite(t_comm *aComm, const void *buf, size_t count){
   return nb;
 }
 
-int commWritev(t_comm *aComm, const struct iovec *iov, int iovcnt){
+int commWritev(trComm *aComm, const struct iovec *iov, int iovcnt){
   int nb;
 
   if (aComm->aborted){
@@ -428,7 +428,7 @@ int commWritev(t_comm *aComm, const struct iovec *iov, int iovcnt){
   return nb;
 }
 
-void freeComm(t_comm *aComm){
+void freeComm(trComm *aComm){
   int rc;
   commAbort(aComm);
   if (close(aComm->fd) < 0)

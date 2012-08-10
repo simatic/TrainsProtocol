@@ -48,7 +48,7 @@
 bool full_or_not=false; // To say if commReadFully is used instead of commRead
 
 void *connectionMgt(void *arg) {
-  t_comm *aComm = (t_comm*)arg;
+  trComm *aComm = (trComm*)arg;
   message *msg;
   int nbRead;
 
@@ -93,8 +93,8 @@ void *connectionMgt(void *arg) {
 
 // Thread taking care of commAccept for standard connection tests
 void *acceptMgt(void *arg) {
-  t_comm *commForAccept = (t_comm*)arg;
-  t_comm *aComm;
+  trComm *commForAccept = (trComm*)arg;
+  trComm *aComm;
 
   do{
     aComm = commAccept(commForAccept);
@@ -121,8 +121,8 @@ void *acceptMgt(void *arg) {
 // Thread taking care of commAccept for testing that freeComm() works 
 // correctly with a thread blocked on commRead()
 void *acceptMgt2(void *arg) {
-  t_comm *commForAccept = (t_comm*)arg;
-  t_comm *aComm;
+  trComm *commForAccept = (trComm*)arg;
+  trComm *aComm;
   pthread_t thread;
   int rc;
 
@@ -154,8 +154,8 @@ void *acceptMgt2(void *arg) {
 }
 
 int main() {
-  t_comm *commForAccept;
-  t_comm *commForConnect;
+  trComm *commForAccept;
+  trComm *commForConnect;
   int rc;
   pthread_t thread;
   message *msg;

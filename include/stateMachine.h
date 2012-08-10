@@ -105,7 +105,7 @@ extern t_list* unstableWagons[MAX_NTR][NR];
 /**
 * @brief bqueue of wagon to deliver.
 */
-extern t_bqueue* wagonsToDeliver;
+extern trBqueue* wagonsToDeliver;
 
 
 /**

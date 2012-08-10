@@ -31,7 +31,7 @@
 #include "bqueue.h"
 #include "wagon.h"
 
-t_bqueue *wagonsToDeliver = NULL;
+trBqueue *wagonsToDeliver = NULL;
 
 message *firstMsg(wagon *w){
   if (w->header.len == sizeof(w->header))

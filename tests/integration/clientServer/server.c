@@ -41,7 +41,7 @@
 #define AVERAGE_SIZE 32 //This default value is estimated by considering the average size of received message
 
 void *connectionMgt(void *arg) {
-  t_comm *aComm = (t_comm*)arg;
+  trComm *aComm = (trComm*)arg;
   message *msg;
   int nbRead;
   int i;
@@ -90,8 +90,8 @@ void *connectionMgt(void *arg) {
 }
 
 int main(int argc, char *argv[]) {
-  t_comm *commForAccept;
-  t_comm *aComm;
+  trComm *commForAccept;
+  trComm *aComm;
 
   if (argc != 2){
     fprintf(stderr, "USAGE = %s port\n", argv[0]);

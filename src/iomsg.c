@@ -32,7 +32,7 @@
 
 
 
-womim * receive(t_comm * aComm){
+womim * receive(trComm * aComm){
   womim * msg_ext;
   int nbRead, nbRead2;
   int length;
@@ -86,7 +86,7 @@ int sendOther(address addr, bool isPred, MType type, address sender){
   int iovcnt=1;
   struct iovec iov[1];
   int rank=-1;
-  t_comm * aComm;
+  trComm * aComm;
   int result;
   Msg * msg;
 
@@ -126,7 +126,7 @@ int sendTrain(address addr, bool isPred, ltsStruct lts){
   int iovcnt=3;
   struct iovec iov[iovcnt];
   int rank=-1;
-  t_comm * aComm;
+  trComm * aComm;
   int result;
   
   rank=addrToRank(addr);

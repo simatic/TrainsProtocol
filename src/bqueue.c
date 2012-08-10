@@ -28,10 +28,10 @@
 
 #include "bqueue.h"
 
-t_bqueue *newBqueue(){
-  t_bqueue *aBQueue;
+trBqueue *newBqueue(){
+  trBqueue *aBQueue;
 
-  aBQueue = malloc(sizeof(t_bqueue));
+  aBQueue = malloc(sizeof(trBqueue));
   assert(aBQueue != NULL);
 
   aBQueue->list = newList();
@@ -42,7 +42,7 @@ t_bqueue *newBqueue(){
   return aBQueue;
 }
 
-void *bqueueDequeue(t_bqueue *aBQueue){
+void *bqueueDequeue(trBqueue *aBQueue){
   int rc;
 
   do {
@@ -54,14 +54,14 @@ void *bqueueDequeue(t_bqueue *aBQueue){
   return listRemoveFirst(aBQueue->list);
 }
 
-void bqueueEnqueue(t_bqueue *aBQueue, void *anElt){
+void bqueueEnqueue(trBqueue *aBQueue, void *anElt){
   listAppend(aBQueue->list, anElt);
 
   if (sem_post(&(aBQueue->readSem)))
     error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_post");
 }
 
-void bqueueExtend(t_bqueue *aBQueue, t_list *list){
+void bqueueExtend(trBqueue *aBQueue, t_list *list){
   LINK *link;
 
   link=list->first;
@@ -72,7 +72,7 @@ void bqueueExtend(t_bqueue *aBQueue, t_list *list){
 
 } 
 
-void freeBqueue(t_bqueue *aBQueue){
+void freeBqueue(trBqueue *aBQueue){
   freeList(aBQueue->list);
 
   if (sem_destroy(&(aBQueue->readSem)))

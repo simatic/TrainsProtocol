@@ -40,34 +40,34 @@
 typedef struct{
   t_list *list;   /**< List holding the different values in the queue */
   sem_t  readSem; /**< Semaphore used to determine how many values are present in \a list */
-} t_bqueue;
+} trBqueue;
 
 /**
  * @brief Creates a new bqueue
  * @return Pointer to the new bqueue
  */
-t_bqueue *newBqueue();
+trBqueue *newBqueue();
 
 /**
  * @brief Removes the first element of @a aBQueue. In case \a aBQueue is empty, blocks the executing thread until an other thread adds an element to \a aBQueue.
  * @param[in] aBQueue Bqueue to work on
  * @return The first element of \a aBQueue
  */
-void *bqueueDequeue(t_bqueue *aBQueue);
+void *bqueueDequeue(trBqueue *aBQueue);
 
 /**
  * @brief Enqueues element @a anElt at the end of queue @a aBQueue
  * @param[in] aBQueue Bqueue to work on
  * @param[in] anElt Element to add to \a aBQueue
  */
-void bqueueEnqueue(t_bqueue *aBQueue, void *anElt);
+void bqueueEnqueue(trBqueue *aBQueue, void *anElt);
 
 /**
  * @brief Do several enqueue of elements of @a list in @a aBQueue
- * @param[in] aBQueue The pointer on the t_bqueue wich is bouned to grow
+ * @param[in] aBQueue The pointer on the trBqueue wich is bouned to grow
  * @param[in] list The pointer on the list to enqueue
  */
-void bqueueExtend(t_bqueue *aBQueue, t_list *list);
+void bqueueExtend(trBqueue *aBQueue, t_list *list);
 
 /**
  * @brief Frees @a aBQueue
@@ -78,6 +78,6 @@ void bqueueExtend(t_bqueue *aBQueue, t_list *list);
  * <li>Freeing a \a bqueue that other threads are currently blocked on (in \a bqueueDequeue) produces undefined behavior.</li>
  * </ol>
  */
-void freeBqueue(t_bqueue *aBQueue);
+void freeBqueue(trBqueue *aBQueue);
 
 #endif /* _BQUEUE_H_ */

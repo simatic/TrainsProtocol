@@ -37,12 +37,12 @@
 #include "bqueue.h"
 
 /**
- * @brief Data structure holding a t_comm and a queue
+ * @brief Data structure holding a trComm and a queue
  */
 typedef struct{
-  t_comm *aComm;      /**< t_comm to transmit to the treatment thread */
-  t_bqueue *msgQueue; /**< Queue holding the different messages to transfer to the treatment thread */
-} t_commAndQueue;
+  trComm *aComm;      /**< trComm to transmit to the treatment thread */
+  trBqueue *msgQueue; /**< Queue holding the different messages to transfer to the treatment thread */
+} trCommAndQueue;
 
 /**
  * @brief Open the connection with @a addr

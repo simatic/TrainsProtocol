@@ -44,7 +44,7 @@ int waitNb=0;
 int lis; //last id sent
 ltsArray lts; //last trains sent
 t_list* unstableWagons[MAX_NTR][NR];
-t_bqueue* wagonsToDeliver;
+trBqueue* wagonsToDeliver;
 
 void stateMachine (womim* p_womim);
 void nextState (State s);
@@ -96,8 +96,8 @@ char *msgTypeToStr(MType mtype){
 }
 
 void *acceptMgt(void *arg) {
-  t_comm *commForAccept = (t_comm*)arg;
-  t_comm *aComm;
+  trComm *commForAccept = (trComm*)arg;
+  trComm *aComm;
 
   do{
     aComm = commAccept(commForAccept);
@@ -118,7 +118,7 @@ void *acceptMgt(void *arg) {
 
 
 void participate(bool b){
-  static t_comm *commForAccept = NULL;
+  static trComm *commForAccept = NULL;
   pthread_t thread;
 
   if (b){

@@ -29,7 +29,7 @@
 #include "bqueue.h"
 #include "list.h"
 
-t_bqueue *q;
+trBqueue *q;
 
 char *a = "A";
 char *b = "B";

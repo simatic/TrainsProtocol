@@ -184,7 +184,7 @@ ADDR* addrGenerator(char* locate, int length){
 }
 
 //add a tcomm to a place in an ADDR*
-void addTComm(t_comm * tcomm, int i, ADDR * array, bool isPred){
+void addTComm(trComm * tcomm, int i, ADDR * array, bool isPred){
   if (array[i].tcomm[0] == NULL ) {
     array[i].tcomm[0] = tcomm;
     array[i].isPred[0] = isPred;
@@ -194,8 +194,8 @@ void addTComm(t_comm * tcomm, int i, ADDR * array, bool isPred){
   }
 }
 
-//Tries to return a non-NULL t_comm at place i in an ADDR*
-t_comm *getTComm(int i, bool isPred, ADDR * array){
+//Tries to return a non-NULL trComm at place i in an ADDR*
+trComm *getTComm(int i, bool isPred, ADDR * array){
   if ((array[i].tcomm[0] != NULL )&& (array[i].isPred[0] == isPred)){
   return array[i].tcomm[0];
 } else if (array[i].isPred[1] == isPred) {
@@ -206,7 +206,7 @@ t_comm *getTComm(int i, bool isPred, ADDR * array){
 }
 
 //remove a tcomm from a place in an ADDR*
-void removeTComm(t_comm * tcomm, int i, ADDR * array){
+void removeTComm(trComm * tcomm, int i, ADDR * array){
   if (array[i].tcomm[0] == tcomm) {
     array[i].tcomm[0] = NULL;
   } else if (array[i].tcomm[1] == tcomm) {
@@ -214,8 +214,8 @@ void removeTComm(t_comm * tcomm, int i, ADDR * array){
   }
 }
 
-//search a t_comm in an array
-void searchTComm(t_comm * tcomm, ADDR * array, int *prank, bool *pisPred){
+//search a trComm in an array
+void searchTComm(trComm * tcomm, ADDR * array, int *prank, bool *pisPred){
   int i = 0;
 
   *prank = -1;

@@ -42,7 +42,7 @@ typedef struct{
   pthread_mutex_t mutexForSynch; /**< Mutex used to guarantee a correct synchronization between \ref commAbort() and the long IO in progress */
   pthread_t ownerMutexForSynch;  /**< Thread owning \a mutexForSynch (if \a pthread_equal to \a pthread_null, then no owner) */
   bool aborted;                  /**< True if \ref commAbort() was called during a long IO */
-} t_comm;
+} trComm;
 
 /**
  * @brief Creates a new handle and connects it to host with \a hostname on \a port
@@ -56,7 +56,7 @@ typedef struct{
  * <li>When there is a connect timeout, \a errno is either \a EINTR or \a ETIMEDOUT.</li>
  * </ul>
  */
-t_comm *commNewAndConnect(char *hostname, char *port, int connectTimeout);
+trComm *commNewAndConnect(char *hostname, char *port, int connectTimeout);
 
 /**
  * @brief Creates a new handle which will be used for accepting connections on \a port (thanks to \ref commAccept()).
@@ -64,7 +64,7 @@ t_comm *commNewAndConnect(char *hostname, char *port, int connectTimeout);
  * @return Pointer to the communication handle or NULL if there was an error.
  * @note If \a NULL is returned, \a errno is positionned.
  */
-t_comm *commNewForAccept(char *port);
+trComm *commNewForAccept(char *port);
 
 /**
  * @brief Waits until a connection request is receive or \ref commAbort() is called on this communication handle
@@ -72,13 +72,13 @@ t_comm *commNewForAccept(char *port);
  * @return The new communication handle (if a connection request has been received) or \a NULL.
  * @note If \a NULL is returned, \a errno contains \a EINTR in case \ref commAbort() has been called on this communication handle or an other value otherwise.
  */
-t_comm *commAccept(t_comm *aComm);
+trComm *commAccept(trComm *aComm);
 
 /**
  * @brief Aborts the I/O taking place on \a aComm
  * @param[in] aComm Communication handle to work on
  */
-void commAbort(t_comm *aComm);
+void commAbort(trComm *aComm);
 
 /**
  * @brief Attempts to read up to \a count bytes from communication handle \a aComm into the buffer starting at \a buf.
@@ -88,7 +88,7 @@ void commAbort(t_comm *aComm);
  * @return Number of bytes read or -1 in case of interrupted read or error.
  * @note If -1 is returned, \a errno contains \a EINTR in case \ref commAbort() has been called on this communication handle or an other value otherwise.
  */
-int commRead(t_comm *aComm, void *buf, size_t count);
+int commRead(trComm *aComm, void *buf, size_t count);
 
 /**
  * @brief Attempts to read up to \a count bytes from communication handle \a aComm into the buffer starting at \a buf. The difference between \ref commRead() and commReadFully() is that comm_readfully() blocks until it has read \a count bytes or there is an interruption or an error. 
@@ -98,7 +98,7 @@ int commRead(t_comm *aComm, void *buf, size_t count);
  * @return Number of bytes read or 0 in case of interrupted read or error.
  * @note If 0 is returned, \a errno contains \a EINTR in case \ref commAbort() has been called on this communication handle or an other value otherwise.
  */
-int commReadFully(t_comm *aComm, void *buf, size_t count);
+int commReadFully(trComm *aComm, void *buf, size_t count);
 
 /**
  * @brief Writes up to \a count bytes from the buffer pointed \a buf to the communication handle \a aComm
@@ -108,7 +108,7 @@ int commReadFully(t_comm *aComm, void *buf, size_t count);
  * @return Number of bytes written or -1 in case of interrupted write or error. 
  * @note If -1 is returned, \a errno contains \a EINTR in case \ref commAbort() has been called on this communication handle or an other value otherwise.
  */
-int commWrite(t_comm *aComm, const void *buf, size_t count);
+int commWrite(trComm *aComm, const void *buf, size_t count);
 
 /**
  * @brief Writes \a iovcnt buffers of data described by \a iov to the communication handle \a aComm.
@@ -118,7 +118,7 @@ int commWrite(t_comm *aComm, const void *buf, size_t count);
  * @return Number of bytes written or -1 in case of interrupted write or error.
  * @note If -1 is returned, \a errno contains \a EINTR in case \ref commAbort() has been called on this communication handle or an other value otherwise.
  */
-int commWritev(t_comm *aComm, const struct iovec *iov, int iovcnt);
+int commWritev(trComm *aComm, const struct iovec *iov, int iovcnt);
 
 
 /**
@@ -130,6 +130,6 @@ int commWritev(t_comm *aComm, const struct iovec *iov, int iovcnt);
  * <li>This procedure calls \ref commAbort() in order to abort any long I/O done on this communication handle.</li>
  * </ol>
  */
-void freeComm(t_comm *aComm);
+void freeComm(trComm *aComm);
 
 #endif /* _COMM_H_ */

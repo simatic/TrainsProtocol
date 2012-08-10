@@ -57,7 +57,7 @@ typedef struct
 {
   char ip[MAX_LEN_IP];    /**<String holding the ip address*/
   char chan[MAX_LEN_CHAN];  /**<String holding the channel*/
-  t_comm* tcomm[2];/**<t_comm pointers to have the file descriptor (we need to store 2 t_comm pointers as a process may have 2 connections with another process)*/
+  trComm* tcomm[2];/**<trComm pointers to have the file descriptor (we need to store 2 trComm pointers as a process may have 2 connections with another process)*/
   bool isPred[2];/**<indicates if the corresponding tcomm is the one of a predecessor or not */
 }ADDR;
 
@@ -95,12 +95,12 @@ ADDR* addrGenerator(char* locate, int length);
 
 /**
  * @brief Add a @a tcomm to @a array at the @a i place
- * @param[in] tcomm The t_comm
+ * @param[in] tcomm The trComm
  * @param[in] i The place where @a tcomm will be add
  * @param[in] array The ADDR*
  * @param[in] isPred the value the isPred field should have
  */
-void addTComm(t_comm * tcomm, int i, ADDR * array, bool isPred);
+void addTComm(trComm * tcomm, int i, ADDR * array, bool isPred);
 
 /**
  * @brief Tries to return a non-NULL @a tcomm from @a array at the @a i place
@@ -111,24 +111,24 @@ void addTComm(t_comm * tcomm, int i, ADDR * array, bool isPred);
  * @return tcomm[0] if it is non-NULL and has the right isPred, or tcomm[1] 
  *         for the same reasons or NULL
  */
-t_comm *getTComm(int i, bool isPred, ADDR * array);
+trComm *getTComm(int i, bool isPred, ADDR * array);
 
 /**
  * @brief Remove a @a tcomm from @a array at the @a i place
- * @param[in] tcomm The t_comm
+ * @param[in] tcomm The trComm
  * @param[in] i The place from where @a tcomm will be removed
  * @param[in] array The ADDR*
  */
-void removeTComm(t_comm * tcomm, int i, ADDR * array);
+void removeTComm(trComm * tcomm, int i, ADDR * array);
 
 /**
  * @brief Search if a @a tcomm is present in @a array
- * @param[in] tcomm The t_comm to search for
+ * @param[in] tcomm The trComm to search for
  * @param[in] array The ADDR array to crowl
  * @param[out] prank Rank of the found @a tcomm (-1 if unfound)
  * @param[out] pisPred Set to true if the @a tcomm found is the one of a pred
  */
-void searchTComm(t_comm * tcomm, ADDR * array, int *prank, bool *pisPred);
+void searchTComm(trComm * tcomm, ADDR * array, int *prank, bool *pisPred);
 
 /**
  * @brief Give the place in the @a array of a given address
