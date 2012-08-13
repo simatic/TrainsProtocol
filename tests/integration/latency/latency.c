@@ -348,19 +348,22 @@ void *timeKeeper(void *null){
           / (double) (diffTimeval.tv_sec * 1000000 + diffTimeval.tv_usec)));
 
   // Latency results
-  setStatistics(&record);
 
+  setStatistics(&record);
+  if (rank >= broadcasters) {
+    printf("\nWARNING : This participant was not a broadcaster\n"
+        "It didn't send any PING message\n");
+  }
   printf("\n"
       "Number of ping records during this experience : %u\n"
       "Average latency  (ms)   : %.2lf\n"
       "Variance                : %lf\n"
       "Standard deviation      : %lf\n"
       "95%% confidence interval : [%.2lf ; %.2lf]\n"
-      "99%% confidence interval : [%.2lf ; %.2lf]\n",
-      record.currentRecordsNb, record.mean, record.variance, record.standardDeviation,
+      "99%% confidence interval : [%.2lf ; %.2lf]\n", record.currentRecordsNb,
+      record.mean, record.variance, record.standardDeviation,
       record.min95confidenceInterval, record.max95confidenceInterval,
       record.min99confidenceInterval, record.max99confidenceInterval);
-
 
   // Termination phase
   freePingRecord(&record);
@@ -445,6 +448,11 @@ void startTest(){
       }
 
     } while (1);
+  } else {
+    printf("\nWARNING : this process is not a broadcaster\n"
+        "It will not send PING messages during this experience\n"
+        "Thus the ping results are not to be taken into account\n\n");
+    while (1);
   }
 }
 

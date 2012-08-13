@@ -137,8 +137,7 @@ trComm *commNewAndConnect(char *hostname, char *port, int connectTimeout){
   // and) try the next address. */
   
   for (rp = result; rp != NULL; rp = rp->ai_next) {
-    fd = socket(rp->ai_family, rp->ai_socktype,
-		 rp->ai_protocol);
+    fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
     if (fd == -1)
       continue;
     aComm->fd = fd;
@@ -160,7 +159,7 @@ trComm *commNewAndConnect(char *hostname, char *port, int connectTimeout){
 
       // We launch the timer
       // Upon expiration, this will deliver SIGALRM which, as defined in
-      // signalMgt.c, calls comm_timeout().
+      // signalMgt.c, calls commTimeout().
       aTimer.it_value.tv_sec = connectTimeout/1000;
       aTimer.it_value.tv_usec = (connectTimeout%1000)*1000;
       aTimer.it_interval.tv_sec = 0;
