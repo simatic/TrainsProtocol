@@ -59,11 +59,17 @@ message *newmsg(int payloadSize){
 }
 
 int utoBroadcast(message *mp){
-  //  MUTEX_LOCK(stateMachineMutex);
+  //  MUTEX_LOCK(stateMachineMutex); // We DO NOT take this mutex
+  // state ALONE_INSERT_WAIT => ALONE_CONNECTION_WAIT require mutexWagonToSend
+  // thus cannot corrupt this sending
+  // state SEVERAL => ALONE_INSERT_WAIT also require mutexWagonToSend
+
   if (automatonState == ALONE_INSERT_WAIT) {
     bqueueEnqueue(wagonsToDeliver, wagonToSend);
     wagonToSend = newWiw();
   }
+
+  //See comment above
   //MUTEX_UNLOCK(stateMachineMutex);
 
   // Message is already in wagonToSend. All we have to do is to unlock the mutex.

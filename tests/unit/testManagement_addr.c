@@ -28,9 +28,9 @@
 #include "management_addr.h"
 
 #define NB_LINES_IN_FILE 16
-#define FAKE_COMM1 ((t_comm*)0xFFFFFFFF)
-#define FAKE_COMM2 ((t_comm*)0x8FFFFFFF)
-#define FAKE_COMM3 ((t_comm*)0x88FFFFFF)
+#define FAKE_COMM1 ((trComm*)0xFFFFFFFF)
+#define FAKE_COMM2 ((trComm*)0x8FFFFFFF)
+#define FAKE_COMM3 ((trComm*)0x88FFFFFF)
 #define SEARCHED_INDEX 8
 
 void compare(char *testType, bool result){

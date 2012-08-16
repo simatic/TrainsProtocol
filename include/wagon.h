@@ -64,7 +64,7 @@ typedef struct wagon{
  * @brief Bqueue containing the wagons (received from trains protocol) which can be delivered
  * to the application layer
  */
-extern t_bqueue *wagonsToDeliver;
+extern trBqueue *wagonsToDeliver;
 
 /**
  * @brief Search the first message contained in a wagon @a w

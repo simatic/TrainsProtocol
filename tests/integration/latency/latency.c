@@ -47,6 +47,7 @@
 #include "counter.h"
 #include "param.h"
 #include "latencyData.h"
+#include "management_addr.h"
 
 /* Semaphore used to block main thread until there are enough participants */
 static sem_t semWaitEnoughMembers;
@@ -194,13 +195,15 @@ void callbackCircuitChange(circuitView *cp){
     for (i = 0; i < MAX_MEMB; i++){
       circuit |= cp->cv_members[i];
     }
-    pingResponder = 1;
-    int pingResponderRank = 0;
-    while ( !( pingResponder & circuit) ){
+
+    pingResponder = 0x0001;
+    while (!(pingResponder & circuit)) {
       pingResponder <<= 1;
-      pingResponderRank++;
     }
-    printf("!!! The pingResponder rank for this experience is : %d\n", pingResponderRank);
+    i = addrToRank(pingResponder);
+
+    printf("!!! The pingResponder for this experience is %d:%s:%s\n",
+        i, globalAddrArray[i].ip, globalAddrArray[i].chan);
 
     // The experience starts
     int rc = sem_post(&semWaitEnoughMembers);
@@ -315,14 +318,14 @@ void *timeKeeper(void *null){
   printf("number of recent trains received from the network ; %llu\n", countersEnd.recent_trains_received - countersBegin.recent_trains_received);
   printf("number of wagons delivered to the application ; %llu\n", countersEnd.wagons_delivered - countersBegin.wagons_delivered);
   printf("number of times automaton has been in state WAIT ; %llu\n", countersEnd.wait_states - countersBegin.wait_states);
-  printf("number of calls to comm_read() ; %llu\n", countersEnd.comm_read - countersBegin.comm_read);
-  printf("number of bytes read by comm_read() calls ; %llu\n", countersEnd.comm_read_bytes - countersBegin.comm_read_bytes);
-  printf("number of calls to comm_readFully() ; %llu\n", countersEnd.comm_readFully - countersBegin.comm_readFully);
-  printf("number of bytes read by comm_readFully() calls ; %llu\n", countersEnd.comm_readFully_bytes - countersBegin.comm_readFully_bytes);
-  printf("number of calls to comm_write() ; %llu\n", countersEnd.comm_write - countersBegin.comm_write);
-  printf("number of bytes written by comm_write() calls ; %llu\n", countersEnd.comm_write_bytes - countersBegin.comm_write_bytes);
-  printf("number of calls to comm_writev() ; %llu\n", countersEnd.comm_writev - countersBegin.comm_writev);
-  printf("number of bytes written by comm_writev() calls ; %llu\n", countersEnd.comm_writev_bytes - countersBegin.comm_writev_bytes);
+  printf("number of calls to commRead() ; %llu\n", countersEnd.comm_read - countersBegin.comm_read);
+  printf("number of bytes read by commRead() calls ; %llu\n", countersEnd.comm_read_bytes - countersBegin.comm_read_bytes);
+  printf("number of calls to commReadFully() ; %llu\n", countersEnd.comm_readFully - countersBegin.comm_readFully);
+  printf("number of bytes read by commReadFully() calls ; %llu\n", countersEnd.comm_readFully_bytes - countersBegin.comm_readFully_bytes);
+  printf("number of calls to commWrite() ; %llu\n", countersEnd.comm_write - countersBegin.comm_write);
+  printf("number of bytes written by commWrite() calls ; %llu\n", countersEnd.comm_write_bytes - countersBegin.comm_write_bytes);
+  printf("number of calls to commWritev() ; %llu\n", countersEnd.comm_writev - countersBegin.comm_writev);
+  printf("number of bytes written by commWritev() calls ; %llu\n", countersEnd.comm_writev_bytes - countersBegin.comm_writev_bytes);
   printf("number of calls to newmsg() ; %llu\n", countersEnd.newmsg - countersBegin.newmsg);
   printf("number of times there was flow control when calling newmsg() ; %llu\n", countersEnd.flowControl - countersBegin.flowControl);
 
@@ -345,19 +348,22 @@ void *timeKeeper(void *null){
           / (double) (diffTimeval.tv_sec * 1000000 + diffTimeval.tv_usec)));
 
   // Latency results
-  setStatistics(&record);
 
+  setStatistics(&record);
+  if (rank >= broadcasters) {
+    printf("\nWARNING : This participant was not a broadcaster\n"
+        "It didn't send any PING message\n");
+  }
   printf("\n"
       "Number of ping records during this experience : %u\n"
       "Average latency  (ms)   : %.2lf\n"
       "Variance                : %lf\n"
       "Standard deviation      : %lf\n"
       "95%% confidence interval : [%.2lf ; %.2lf]\n"
-      "99%% confidence interval : [%.2lf ; %.2lf]\n",
-      record.currentRecordsNb, record.mean, record.variance, record.standardDeviation,
+      "99%% confidence interval : [%.2lf ; %.2lf]\n", record.currentRecordsNb,
+      record.mean, record.variance, record.standardDeviation,
       record.min95confidenceInterval, record.max95confidenceInterval,
       record.min99confidenceInterval, record.max99confidenceInterval);
-
 
   // Termination phase
   freePingRecord(&record);
@@ -436,12 +442,17 @@ void startTest(){
       }
 
       pingMessagesCounter = (pingMessagesCounter + 1) % frequencyOfPing;
-      if (utoBroadcast(mp) < 0) {
+      if ((rc = utoBroadcast(mp)) < 0) {
         trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
         exit(EXIT_FAILURE);
       }
 
     } while (1);
+  } else {
+    printf("\nWARNING : this process is not a broadcaster\n"
+        "It will not send PING messages during this experience\n"
+        "Thus the ping results are not to be taken into account\n\n");
+    while (1);
   }
 }
 

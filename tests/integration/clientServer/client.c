@@ -47,7 +47,7 @@
 #define IOVCNT (1 + NB_CHUNKS)
 
 int main(int argc, char *argv[]) {
-  t_comm *commForConnect;
+  trComm *commForConnect;
   message *msg;
   int len, lenIncomplete, nbWritten;
   struct iovec iov[IOVCNT];

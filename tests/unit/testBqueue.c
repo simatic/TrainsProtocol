@@ -29,7 +29,7 @@
 #include "bqueue.h"
 #include "list.h"
 
-t_bqueue *q;
+trBqueue *q;
 
 char *a = "A";
 char *b = "B";
@@ -52,7 +52,7 @@ void compare(void *s, char *target){
 int main() {
   int rc;
   pthread_t thread;
-  t_list *l;
+  trList *l;
 
   q = newBqueue();
 
