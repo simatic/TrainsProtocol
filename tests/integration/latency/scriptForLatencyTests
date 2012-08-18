@@ -40,7 +40,8 @@ hostnames=('b313-01' 'b313-02' 'b313-04' 'b313-05' 'b313-06' 'b313-07' 'b313-08'
 
 # Maximum number of machines for simultaneous launch of latency code
 # NB : Cannot be more than the size hostname list
-numbermachines=(2 4 7 9)
+#numbermachines=(2 4 7 9) # Error noticed Thu Agu, 16th (see error-120816 file)
+numbermachines=(4 7 9)
 
 # List of trains. Each cell in this array is a list of number of
 # trains for each number of machines in the previous array
