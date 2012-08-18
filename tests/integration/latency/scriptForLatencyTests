@@ -20,7 +20,7 @@
 ##########################################
 
 # List of sizes for the messages
-listsize="10 100 200 500 1000 2000 5000 10000 15000 20000"
+listsize=(10 100 200 500 1000 2000 5000 10000 15000 20000)
 
 # Warmup time in seconds
 warmup=300
@@ -50,21 +50,76 @@ liststrains=([2]="1 2 3 4" [4]="1 3 4 5" [7]="1 3 7 9" [9]="1 3 7 9 11")
 freq="10000"
 
 # List of maximum length for a wagon
-listwagon="8192 16384 32768 65536"
+listwagon=(8192 16384 32768 65536)
 
-
+if [[ $# -eq 4 ]]; then
+# if a test fail, we start again with the last parameters used.
+# NB: relaunch the script with the 4 parameters from the failed test:
+#       - number of participants
+#       - number of trains
+#       - maximum length for a wagon
+#       - size of a message
+    brokennumber=$1
+    brokentrain=$2
+    brokenwagon=$3
+    brokensize=$4
+    for i in ${!numbermachines[*]}; do
+	if [[ ${numbermachines[$i]} == $brokennumber ]]; then
+	    brokennumberindex=$i
+	    break
+	fi
+    done
+    trains=(${liststrains[$brokennumber]})
+    for i in ${!trains[*]}; do
+	if [[ ${trains[$i]} == $brokentrain ]]; then
+	    brokentrainindex=$i
+	    break
+	fi
+    done
+    for i in ${!listwagon[*]}; do
+	if [[ ${listwagon[$i]} == $brokenwagon ]]; then
+	    brokenwagonindex=$i
+	    break
+	fi
+    done
+    for i in ${!listsize[*]}; do
+	if [[ ${listsize[$i]} == $brokensize ]]; then
+	    brokensizeindex=$i
+	    break
+	fi
+    done
+    numbermachines=(${numbermachines[*]:$brokennumberindex})
+fi
 ##########################################
 # Let's go for the different tests
 ##########################################
 
 for i in ${!numbermachines[*]}; do
     echo "####### Number of machines: ${numbermachines[$i]}"
+    if [[ ${numbermachines[$i]} -eq $brokennumber ]]; then
+	tmptrains=(${liststrains[${numbermachines[$i]}]})
+	liststrains[${numbermachines[$i]}]=${tmptrains[*]:$brokentrainindex}
+    fi
     for ntr in ${liststrains[${numbermachines[$i]}]};do
 	echo "##### Number of trains: $ntr"
-	for size in $listsize; do
-	    echo "### Size of a message: $size"
-	    for length in $listwagon; do
-		echo "# Length of a wagon: $length"
+	if [[ ${numbermachines[$i]} -eq $brokennumber && $ntr -eq $brokentrain ]]; then
+	    tmpwagons=(${listwagon[*]})
+	    listwagon=(${tmpwagons[*]:$brokenwagonindex})
+	fi
+	for length in ${listwagon[*]}; do
+	    if [[ ${numbermachines[$i]} -eq $brokennumber && $ntr -eq $brokentrain ]]; then
+		listwagon=(${tmpwagons[*]})
+	    fi
+	    echo "# Length of a wagon: $length"
+	    if [[ ${numbermachines[$i]} -eq $brokennumber && $ntr -eq $brokentrain && $length -eq $brokenwagon ]]; then
+		tmpsizes=(${listsize[*]})
+		listsize=(${tmpsizes[*]:$brokensizeindex})
+	    fi
+	    for size in ${listsize[*]}; do
+		echo "### Size of a message: $size"
+		if [[ ${numbermachines[$i]} -eq $brokennumber && $ntr -eq $brokentrain && $length -eq $brokenwagon ]]; then
+		    listsize=(${tmpsizes[*]})
+		fi
 		# We build the different ssh commands to be lauched for this iteration
 		cmd=()
 		latencydir="TrainsProtocol/tests/integration/latency/"
@@ -85,7 +140,7 @@ for i in ${!numbermachines[*]}; do
 		eval "${cmd[${#cmd[*]}-1]}"
 		# we do the sleep after cooldown
 		sleep $sleaepAfterCooldown;
-	    done #length
-	done #size
+	    done #size
+	done #length
     done #ntr
 done #i
