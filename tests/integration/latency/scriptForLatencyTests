@@ -52,6 +52,12 @@ freq="10000"
 # List of maximum length for a wagon
 listwagon=(8192 16384 32768 65536)
 
+if [[ "$1" == "help" ]]; then
+#little reminder for the parameters
+    echo -e "\t1. brokennumber\n\t2. brokentrain\n\t3. brokenwagon\n\t4. brokensize"
+    exit 0
+fi
+
 if [[ $# -eq 4 ]]; then
 # if a test fail, we start again with the last parameters used.
 # NB: relaunch the script with the 4 parameters from the failed test:
@@ -144,3 +150,5 @@ for i in ${!numbermachines[*]}; do
 	done #length
     done #ntr
 done #i
+
+exit 0
