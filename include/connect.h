@@ -70,15 +70,15 @@ void closeConnection(address addr, bool isPred);
 address searchSucc(address add);
 
 /**
- * @brief Treat the messages received
- * @param[in] arg A pointer on a structure containing the arguments
- */
-void *msgTreatment(void *arg);
-
-/**
  * @brief Manage the connection : enqueue the messages received in a bqueue read by a second thread
  * @param[in] arg A pointer on an argument
  */
 void *connectionMgt(void *arg);
+
+/**
+ * @brief Treat the messages received
+ * @param[in] arg A pointer on a structure containing the arguments
+ */
+void *msgTreatment(void *arg);
 
 #endif /* _CONNECT_H */

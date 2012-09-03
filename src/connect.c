@@ -75,7 +75,6 @@ void closeConnection(address addr, bool isPred){
       commAbort(tcomm);
     }
   }
-
 }
 
 address searchSucc(address add){
@@ -100,6 +99,41 @@ address searchSucc(address add){
     }
   }
   return (result);
+}
+
+void *connectionMgt(void *arg){
+  pthread_t treatmentThread;
+  trCommAndQueue *commAndQueue;
+  trBqueue *msgQueue = newBqueue();
+  trComm *aComm = (trComm*) arg;
+  womim * msgExt;
+  int rc;
+
+  commAndQueue = malloc(sizeof(trCommAndQueue));
+  assert(commAndQueue != NULL);
+
+  commAndQueue->aComm = aComm;
+  commAndQueue->msgQueue = msgQueue;
+
+  rc = pthread_create(&treatmentThread, NULL, &msgTreatment,
+      (void *) commAndQueue);
+  if (rc < 0)
+    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+  rc = pthread_detach(treatmentThread);
+  if (rc < 0)
+    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
+
+  do {
+    msgExt = receive(aComm);
+    bqueueEnqueue(msgQueue, msgExt);
+  } while ((msgExt != NULL )&&
+      (msgExt->msg.type != DISCONNECT_PRED)&&
+      (msgExt->msg.type != DISCONNECT_SUCC));
+  // NB : The test cannot be
+  //} while (msgExt->msg.type != DISCONNECT);
+  // because msg.typ is freed inside stateMachine()
+
+  return NULL ;
 }
 
 void *msgTreatment(void *arg){
@@ -141,40 +175,5 @@ void *msgTreatment(void *arg){
   // because msg.typ is freed inside stateMachine()
 
   free(commAndQueue);
-  return NULL ;
-}
-
-void *connectionMgt(void *arg){
-  pthread_t treatmentThread;
-  trCommAndQueue *commAndQueue;
-  trBqueue *msgQueue = newBqueue();
-  trComm *aComm = (trComm*) arg;
-  womim * msgExt;
-  int rc;
-
-  commAndQueue = malloc(sizeof(trCommAndQueue));
-  assert(commAndQueue != NULL);
-
-  commAndQueue->aComm = aComm;
-  commAndQueue->msgQueue = msgQueue;
-
-  rc = pthread_create(&treatmentThread, NULL, &msgTreatment,
-      (void *) commAndQueue);
-  if (rc < 0)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
-  rc = pthread_detach(treatmentThread);
-  if (rc < 0)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
-
-  do {
-    msgExt = receive(aComm);
-    bqueueEnqueue(msgQueue, msgExt);
-  } while ((msgExt != NULL )&&
-      (msgExt->msg.type != DISCONNECT_PRED)&&
-      (msgExt->msg.type != DISCONNECT_SUCC));
-  // NB : The test cannot be
-  //} while (msgExt->msg.type != DISCONNECT);
-  // because msg.typ is freed inside stateMachine()
-
   return NULL ;
 }

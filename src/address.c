@@ -30,9 +30,9 @@ address nullAddress = 0;
 
 int addrToRank(address ad){
   int rank = 0;
-  while (((ad & 0x0001) == 0) && (rank < MAX_MEMB)){
+  while (((ad & 0x0001) == 0) && (rank < MAX_MEMB)) {
     ad /= 2;
-    rank ++;
+    rank++;
   }
   if (rank < MAX_MEMB)
     return rank;

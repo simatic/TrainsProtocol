@@ -312,7 +312,7 @@ void commAbortWhenIT(){
     }
     
     // We are under an IT ==> we must not call commLongIOBegin() as
-    // we do in com_abort(). Otherwise we will have a deadlock.
+    // we do in commAbort(). Otherwise we will have a deadlock.
   }
 }
 

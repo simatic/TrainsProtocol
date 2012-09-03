@@ -124,7 +124,7 @@ void participate(bool b){
   if (b){
     commForAccept = commNewForAccept(globalAddrArray[addrToRank(myAddress)].chan);
     if (commForAccept == NULL)
-      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newForAccept");
+      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "commNewForAccept");
     int rc = pthread_create(&thread, NULL, &acceptMgt, (void *)commForAccept);
     if (rc < 0)
       error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");

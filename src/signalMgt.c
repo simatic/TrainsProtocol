@@ -42,7 +42,7 @@ void commAbortWhenIT();
 /**
  * @brief Signal handler for SIGNAL_FOR_ABORT
  */
-void signalMgt_function(int num) {
+void signalMgtFunction(int num) {
   if (num != SIGNAL_FOR_ABORT)
     error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__, "received unexpected signal %d", num);
   // Otherwise we do nothing (except discard SIGNAL_FOR_ABORT silently)
@@ -51,7 +51,7 @@ void signalMgt_function(int num) {
 /**
  * @brief Thread to take care of signals
  */
-void *signalMgt_thread(void *null) {
+void *signalMgtThread(void *null) {
   siginfo_t info;
 
   int rc = pthread_detach(pthread_self());
@@ -105,14 +105,14 @@ void signalMgtInitialize() {
       error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_sigmask");
 
     // For SIGNAL_FOR_ABORT signal, we put in place a signal handler
-    action.sa_handler = signalMgt_function;
+    action.sa_handler = signalMgtFunction;
     sigemptyset(&(action.sa_mask));
     action.sa_flags = SA_INTERRUPT;
     if (sigaction(SIGNAL_FOR_ABORT, &action, NULL) != 0) 
       error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "sigaction");
 
     // Now we can create the thread which will take care of all signals.
-    rc = pthread_create(&thread, NULL, signalMgt_thread, NULL);
+    rc = pthread_create(&thread, NULL, signalMgtThread, NULL);
     if (rc < 0)
       error(EXIT_FAILURE, rc, "pthread_create");
 
