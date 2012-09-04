@@ -217,12 +217,19 @@ void callbackUtoDeliver(address sender, message *mp){
   char s[MAX_LEN_ADDRESS_AS_STR];
   static int nbRecMsg = 0;
 
+  if (payloadSize(mp) != size) {
+    fprintf(stderr,
+        "Error in file %s:%d : Payload size is incorrect: it is %lu when it should be %d\n",
+        __FILE__, __LINE__, payloadSize(mp), size);
+    exit(EXIT_FAILURE);
+  }
+
   if (mp->header.typ == AM_PING) {
     if (myAddress == pingResponder) {
 
-      message *pongMsg = newmsg(pingMessageSize);
+      message *pongMsg = newmsg(size);
       pongMsg->header.typ = AM_PONG;
-      memcpy(pongMsg->payload, mp->payload, sizeof(address) + sizeof(struct timeval));
+      memcpy(pongMsg->payload, mp->payload, pingMessageSize);
 
       int rc;
       if ((rc = utoBroadcast(pongMsg)) < 0) {
@@ -243,11 +250,6 @@ void callbackUtoDeliver(address sender, message *mp){
       }
 
     }
-  } else if (payloadSize(mp) != size) {
-    fprintf(stderr,
-        "Error in file %s:%d : Payload size is incorrect: it is %lu when it should be %d\n",
-        __FILE__, __LINE__, payloadSize(mp), size);
-    exit(EXIT_FAILURE);
   }
 
   nbRecMsg++;
@@ -420,7 +422,7 @@ void startTest(){
     do {
       message *mp = NULL;
       if (pingMessagesCounter == 0) {
-        mp = newmsg(pingMessageSize);
+        mp = newmsg(size);
         if (mp == NULL ) {
           trError_at_line(rc, trErrno, __FILE__, __LINE__, "newPingMsg()");
           exit(EXIT_FAILURE);
@@ -543,6 +545,11 @@ int main(int argc, char *argv[]){
   check(number, "number");
   check(size, "size");
   check(trainsNumber, "trainsNumber");
+
+  if (size < pingMessageSize){
+    fprintf(stderr, "Size too small ==> set to minimal value %d", pingMessageSize);
+    size = pingMessageSize;
+  }
 
   /* Initialize data external to this mudule */
   ntr = trainsNumber;
