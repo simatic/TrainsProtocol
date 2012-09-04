@@ -292,7 +292,7 @@ void *sleepTreatment(void *unused){
   return NULL;
 }
 
-void waitBeforConnect(){
+void waitBeforeConnect(){
   int rc;
   pthread_t sleepThread;
   if (waitNb > waitNbMax) {
@@ -327,7 +327,7 @@ void nextState(State s){
     automatonState = OFFLINE_CONFIRMATION_WAIT;
     break;
   case WAIT:
-    waitBeforConnect();
+    waitBeforeConnect();
     automatonState = WAIT;
     break;
   case ALONE_INSERT_WAIT:

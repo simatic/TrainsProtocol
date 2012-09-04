@@ -130,7 +130,7 @@ int randSleep(int nbwait) ;
 /**
 * @brief when a connection abort the automaton closes all connexion and waits.
 */
-void waitBeforConnect () ;
+void waitBeforeConnect () ;
 
 /**
 * @brief changes state and makes initialisations that go with it.

@@ -547,7 +547,7 @@ int main(int argc, char *argv[]){
   check(trainsNumber, "trainsNumber");
 
   if (size < pingMessageSize){
-    fprintf(stderr, "Size too small ==> set to minimal value %d", pingMessageSize);
+    fprintf(stderr, "Size too small ==> set to minimal value %d\n", pingMessageSize);
     size = pingMessageSize;
   }
 
