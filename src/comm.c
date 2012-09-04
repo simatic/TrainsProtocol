@@ -127,7 +127,7 @@ trComm *commNewAndConnect(char *hostname, char *port, int connectTimeout){
   
   s = getaddrinfo(hostname, port, &hints, &result);
   if (s != 0) {
-    fprintf(stderr, "%s:%d: getaddrinfo: %s\n", __FILE__, __LINE__, gai_strerror(s));
+    fprintf(stderr, "%s:%d: getaddrinfo on hostname \"%s\": %s\n", __FILE__, __LINE__, hostname, gai_strerror(s));
     exit(EXIT_FAILURE);
   }
   

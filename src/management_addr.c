@@ -102,38 +102,38 @@ ADDR* addrGenerator(char* locate, int length){
         // Error manager
         blank = fgetc(addrFile);
         if ((lastLineChar != '\n' && blank != EOF)
-            || rank < 0 || rank >= 16 || ipOnly == NULL
-            || addrFull == NULL || stringLength(ipOnly) >= MAX_LEN_IP
-            || stringLength(addrFull) >= MAX_LEN_CHAN || alreadyExist[rank]) {
+        || rank < 0 || rank >= 16 || ipOnly == NULL
+        || addrFull == NULL || stringLength(ipOnly) >= MAX_LEN_IP
+        || stringLength(addrFull) >= MAX_LEN_CHAN || alreadyExist[rank]){
 
-          char * errorType = malloc(64 * sizeof(char));
-          if (lastLineChar != '\n' && blank != EOF) {
-              sprintf(errorType, "LINE too long (should be at most %d char)",
-                  MAX_LEN_LINE_IN_FILE);
-          } else if (rank < 0 || rank >= 16) {
-            strcpy(errorType, "RANK error : should be between 0 and 15");
-          } else if (ipOnly == NULL || addrFull == NULL ) {
-            strcpy(errorType, "RANK:HOSTNAME:PORT Syntax error");
-          } else if (stringLength(ipOnly) >= 64) {
-            strcpy(errorType, "HOSTNAME too long");
-          } else if (stringLength(addrFull) >= 64) {
-            strcpy(errorType, "PORT too long");
-          } else if (alreadyExist[rank]) {
-            strcpy(errorType, "RANK already exists in a previous line");
-          }
-
-          error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
-              "\n%s:%d: %s\n\n"
-                  "Each line should be RANK:HOSTNAME:PORT\n"
-                  "\tRANK being a number between 0 and 15\n"
-                  "\tHOSTNAME being the... hostname ! (max length 63 char)\n"
-                  "\tPORT being the port on which the process works (max length 63 char)\n\n"
-                  "Comments line allowed (begin with #), empty lines allowed\n"
-                  "Comments after the RANK:HOSTNAME:PORT syntax are allowed\n",
-                  locate, currentLine, errorType);
-
-          free(errorType);
+        char* errorType = malloc(64 * sizeof(char));
+        if (lastLineChar != '\n' && blank != EOF) {
+          sprintf(errorType, "LINE too long (should be at most %d char)",
+              MAX_LEN_LINE_IN_FILE);
+        } else if (rank < 0 || rank >= 16) {
+          strcpy(errorType, "RANK error : should be between 0 and 15");
+        } else if (ipOnly == NULL || addrFull == NULL ) {
+          strcpy(errorType, "RANK:HOSTNAME:PORT Syntax error");
+        } else if (stringLength(ipOnly) >= 64) {
+          strcpy(errorType, "HOSTNAME too long");
+        } else if (stringLength(addrFull) >= 64) {
+          strcpy(errorType, "PORT too long");
+        } else if (alreadyExist[rank]) {
+          strcpy(errorType, "RANK already exists in a previous line");
         }
+
+        error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
+            "\n%s:%d: %s\n\n"
+            "Each line should be RANK:HOSTNAME:PORT\n"
+            "\tRANK being a number between 0 and 15\n"
+            "\tHOSTNAME being the... hostname ! (max length 63 char)\n"
+            "\tPORT being the port on which the process works (max length 63 char)\n\n"
+            "Comments line allowed (begin with #), empty lines allowed\n"
+            "Comments after the RANK:HOSTNAME:PORT syntax are allowed\n",
+            locate, currentLine, errorType);
+
+        free(errorType);
+      }
         ungetc(blank, addrFile);
         alreadyExist[rank] = true;
 
@@ -174,8 +174,8 @@ ADDR* addrGenerator(char* locate, int length){
   //Place a fake participant in empty cells of the array to fulfill it
   for (i = 0; i < NP; i++) {
     if (!alreadyExist[i]) {
-      strcpy(array[i].ip, "localhost");
-      strcpy(array[i].chan, "3000");
+      strcpy(array[i].ip, "");
+      strcpy(array[i].chan, "");
     }
   }
 
@@ -183,29 +183,32 @@ ADDR* addrGenerator(char* locate, int length){
   return (array);
 }
 
-//add a tcomm to a place in an ADDR*
+//add a trComm to a place in an ADDR*
 void addTComm(trComm * tcomm, int i, ADDR * array, bool isPred){
   if (array[i].tcomm[0] == NULL ) {
     array[i].tcomm[0] = tcomm;
     array[i].isPred[0] = isPred;
-  } else {
+  } else if (array[i].tcomm[1] == NULL ) {
     array[i].tcomm[1] = tcomm;
     array[i].isPred[1] = isPred;
+  } else {
+    fprintf(stderr, "Not enough room for another tcomm at rank %d\n", i);
+    abort();
   }
 }
 
 //Tries to return a non-NULL trComm at place i in an ADDR*
 trComm *getTComm(int i, bool isPred, ADDR * array){
-  if ((array[i].tcomm[0] != NULL )&& (array[i].isPred[0] == isPred)){
+  if ((array[i].tcomm[0] != NULL )&& ( array[i].isPred[0] == isPred ) ){
   return array[i].tcomm[0];
-} else if (array[i].isPred[1] == isPred) {
+} else if ((array[i].tcomm[1] != NULL ) && (array[i].isPred[1] == isPred)) {
   return array[i].tcomm[1];
 } else {
   return NULL;
 }
 }
 
-//remove a tcomm from a place in an ADDR*
+//remove a trComm from a place in an ADDR*
 void removeTComm(trComm * tcomm, int i, ADDR * array){
   if (array[i].tcomm[0] == tcomm) {
     array[i].tcomm[0] = NULL;
@@ -237,12 +240,12 @@ void searchTComm(trComm * tcomm, ADDR * array, int *prank, bool *pisPred){
 int addrID(char * ip, char * chan, ADDR * array){
   int i = 0;
 
-  while ((array[i].ip[0] != '\0')
+  while ((i < NP)
       && (strcmp(array[i].ip, ip) != 0 || strcmp(array[i].chan, chan) != 0)) {
     i++;
   }
 
-  if (array[i].ip[0] != '\0') {
+  if (i < NP) {
     return (i);
   } else {
     return (-1);

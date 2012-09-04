@@ -41,6 +41,8 @@ int openConnection(address addr, bool isPred){
         "Wrong address %d sent to openConnection", addr);
     return (-1);
   } else {
+    if (globalAddrArray[rank].chan[0] == '\0')
+      return (-1);
     tcomm = commNewAndConnect(globalAddrArray[rank].ip,
         globalAddrArray[rank].chan, CONNECT_TIMEOUT);
     if (tcomm == NULL )
@@ -72,7 +74,7 @@ void closeConnection(address addr, bool isPred){
     tcomm = getTComm(rank, isPred, globalAddrArray);
     if (tcomm != NULL ) {
       removeTComm(tcomm, rank, globalAddrArray);
-      commAbort(tcomm);
+      freeComm(tcomm);
     }
   }
 }
@@ -108,6 +110,7 @@ void *connectionMgt(void *arg){
   trComm *aComm = (trComm*) arg;
   womim * msgExt;
   int rc;
+  bool b;
 
   commAndQueue = malloc(sizeof(trCommAndQueue));
   assert(commAndQueue != NULL);
@@ -125,10 +128,11 @@ void *connectionMgt(void *arg){
 
   do {
     msgExt = receive(aComm);
+    b = ((msgExt != NULL ) &&
+        (msgExt->msg.type != DISCONNECT_PRED)&&
+        (msgExt->msg.type != DISCONNECT_SUCC));
     bqueueEnqueue(msgQueue, msgExt);
-  } while ((msgExt != NULL )&&
-      (msgExt->msg.type != DISCONNECT_PRED)&&
-      (msgExt->msg.type != DISCONNECT_SUCC));
+  } while (b);
   // NB : The test cannot be
   //} while (msgExt->msg.type != DISCONNECT);
   // because msg.typ is freed inside stateMachine()
