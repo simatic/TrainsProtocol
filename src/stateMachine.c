@@ -506,7 +506,8 @@ void stateMachine(womim* p_womim){
         if (isRecentTrain(p_womim->msg.body.train.stamp, lts, lis)) {
           trainHandling(p_womim);
           lis = p_womim->msg.body.train.stamp.id;
-          sendTrain(succ, false, lts[lis]);
+          if (succ != 0)
+            sendTrain(succ, false, lts[lis]);
         }
       } else {
         error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
@@ -522,7 +523,8 @@ void stateMachine(womim* p_womim){
       freeWomim(p_womim);
       break;
     case NEWSUCC:
-      closeConnection(succ, false);
+      if (succ != 0)
+        closeConnection(succ, false);
       succ = p_womim->msg.body.newSucc.sender;
       int i;
       for (i = 1; i <= ntr; i++) {
