@@ -140,7 +140,7 @@ void participate(bool b){
 void automatonInit(){
   int id;
   int round;
-  srand(getpid() + time(NULL));
+  srand(getpid() + time(NULL ));
   lis = ntr - 1;
   for (id = 0; id < ntr; id++) {
     //(lts[id]).lng is not initialized because lng is only set in sendTrain()
@@ -253,8 +253,8 @@ void trainHandling(womim *p_womim){
   lts[id].stamp.lc = p_womim->msg.body.train.stamp.lc + 1;
 }
 
-int randSleep(int maxsec){
-  int i = rand() % (maxsec + 1);
+int randSleep(int maxms){
+  int i = rand() % maxms;
   return i;
 }
 
@@ -281,15 +281,15 @@ void offlineInit(){
 }
 
 void *sleepTreatment(void *unused){
-  int sleep = randSleep((1<<waitNb) * waitDefaultTime) + 1;
+  int sleep = randSleep((1 << waitNb) * waitDefaultTime * 1000);
   //printf("waiting time : %d\n", sleep);
-  usleep(sleep*1000000);
+  usleep(sleep * 1000);
 
   waitNb++;
 
   offlineInit();
 
-  return NULL;
+  return NULL ;
 }
 
 void waitBeforeConnect(){
@@ -308,7 +308,7 @@ void waitBeforeConnect(){
     closeConnection(succ, false);
     succ = 0;
   }
-  rc = pthread_create(&sleepThread, NULL, &sleepTreatment, NULL);
+  rc = pthread_create(&sleepThread, NULL, &sleepTreatment, NULL );
   if (rc < 0)
     error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
   rc = pthread_detach(sleepThread);
