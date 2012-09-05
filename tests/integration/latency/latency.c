@@ -555,6 +555,10 @@ int main(int argc, char *argv[]){
   ntr = trainsNumber;
   wagonMaxLen = alternateMaxWagonLen;
 
+  if (wagonMaxLen < size){
+    fprintf(stderr, "wagonMaxLength too small ==> results will not be significative");
+  }
+
   /* We can start the test */
   startTest();
 

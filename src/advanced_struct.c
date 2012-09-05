@@ -33,10 +33,9 @@
 #include "common.h"
 
 wiw * wagonToSend = NULL;
+
 pthread_mutex_t mutexWagonToSend = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 pthread_cond_t condWagonToSend;
-
-
 
 wagon* nextWagon (womim* msg_ext, wagon* w) {
   wagon *w2= (wagon*)((char*)w+(w->header.len));
@@ -69,7 +68,7 @@ bool isRecentTrain(stamp tr_st,ltsArray lts, char last_id){
     diff=tr_st.lc - lts[waiting_id].stamp.lc;
     if(diff>0)
       return(diff<((1+M)/2));
-    else{ 
+    else{
       return(diff<((1-M)/2));
     }
   }
@@ -81,7 +80,7 @@ bool isRecentTrain(stamp tr_st,ltsArray lts, char last_id){
 wiw * newWiw(){
   wiw *pp;
   womim *pw;
-  pw = malloc(sizeof(prefix)+sizeof(wagonHeader));
+  pw = malloc(sizeof(prefix)+wagonMaxLen);
   assert(pw != NULL);
   pthread_mutex_init(&(pw->pfx.mutex),NULL);
   pw->pfx.counter = 1;
@@ -100,10 +99,6 @@ wiw * newWiw(){
 message * mallocWiw(int payloadSize){
   message *mp;
   wagon *w;
-  int newWomimLen = sizeof(prefix) + wagonToSend->p_wagon->header.len +
-    sizeof(messageHeader) + payloadSize;
-  wagonToSend->p_womim = realloc(wagonToSend->p_womim, newWomimLen);
-  assert(wagonToSend->p_womim != NULL);
   w = &(wagonToSend->p_womim->wagon);
   wagonToSend->p_wagon = w;
   mp =(message*)(((char*)w) + w->header.len);
