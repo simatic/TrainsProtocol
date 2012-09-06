@@ -9,7 +9,7 @@ OBJECTS		= $(SOURCES:.c=.o)
 # Include directory
 INCLUDEDIRS = -I../include
 # Compilation flags (the -fPIC flag is because the files are compiled for a dynamic library)
-CFLAGS = -g -Wall $(INCLUDEDIRS) -fPIC -lpthread
+CFLAGS = -g -Wall $(INCLUDEDIRS) $(GLOBALFLAGS) -fPIC -lpthread 
 # Link flags
 LDFLAGS = -g -shared
 
@@ -18,6 +18,9 @@ LDFLAGS = -g -shared
 .PHONY:         all clean
 
 all: depend $(BIN)
+
+tests: GLOBALFLAGS = -DLATENCY_TEST -DINSERTION_TEST
+tests: depend $(BIN)
 
 $(BIN): $(OBJECTS)
 	$(CC) $(LDFLAGS) $^ -o $@ 

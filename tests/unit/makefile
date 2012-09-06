@@ -7,7 +7,7 @@ SOURCES		= $(wildcard *.c)
 # Include directory
 INCLUDEDIRS = -I../../include
 # Compilation flags
-CFLAGS = -g -Wall $(INCLUDEDIRS)
+CFLAGS = -g -Wall $(INCLUDEDIRS) $(GLOBALFLAGS)
 # Link flags
 LDFLAGS = -g -L../../src -ltrains -pthread
 # Valgrind options
@@ -18,6 +18,9 @@ VALGRINDFLAGS =--leak-check=yes --leak-resolution=high --num-callers=40 --tool=m
 .PHONY:         all clean run valgrind
 
 all: depend $(BIN)
+
+tests: GLOBALFLAGS = -DLATENCY_TEST -DINSERTION_TEST
+tests: depend $(BIN)
 
 testAddress: testAddress.o
 	$(CC) $^ -o $@ $(LDFLAGS)

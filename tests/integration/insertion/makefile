@@ -1,7 +1,7 @@
 ### Configuration.  ####################################################
 
 # Binaries to build
-BIN		= basicTest
+BIN		= insertion
 # C source files for the binaries
 SOURCES		= $(wildcard *.c)
 # Object files corresponding to source files
@@ -11,7 +11,7 @@ INCLUDEDIRS = -I../../../include
 # Compilation flags
 CFLAGS = -Wall -g $(INCLUDEDIRS) $(GLOBALFLAGS)
 # Link flags
-LDFLAGS = -L../../../src -ltrains -pthread
+LDFLAGS = -g -L../../../src -ltrains -lm -pthread
 # Valgrind options
 VALGRINDFLAGS =--leak-check=yes --leak-resolution=high --num-callers=40 --tool=memcheck --show-reachable=yes
 

@@ -31,12 +31,15 @@
  the default separator " " in gnuplot, do:
  set datafile separator ";"
  */
+#include <stdlib.h>
+#include <stdio.h>
+
+#ifdef LATENCY_TEST
+
 #include <sys/time.h>
 #include <sys/resource.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <getopt.h>
-#include <stdio.h>
 #include <error.h>
 #include <errno.h>
 #include <semaphore.h>
@@ -458,11 +461,16 @@ void startTest(){
   }
 }
 
+#endif /* LATENCY_TEST */
+
 int main(int argc, char *argv[]){
+#ifdef LATENCY_TEST
   int next_option;
 
   /* Store the program name, which we'll use in error messages.  */
   programName = argv[0];
+
+
 
   /* Parse options.  */
   do {
@@ -561,6 +569,10 @@ int main(int argc, char *argv[]){
 
   /* We can start the test */
   startTest();
+
+#else /* LATENCY_TEST */
+  printf("To run latency tests, you have to compile the library with the tests target\n");
+#endif /* LATENCY_TEST */
 
   return EXIT_SUCCESS;
 }

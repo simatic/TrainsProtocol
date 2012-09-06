@@ -114,8 +114,10 @@ void *utoDeliveries(void *null){
       counters.messages_bytes_delivered += payloadSize(mp);
 
       switch (mp->header.typ) {
+#ifdef LATENCY_TEST
       case AM_PING:
       case AM_PONG:
+#endif /* LATENCY_TEST */
       case AM_BROADCAST:
         (*theCallbackUtoDeliver)(w->header.sender, mp);
         break;

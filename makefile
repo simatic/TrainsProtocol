@@ -6,6 +6,9 @@ SUBDIRS = $(dir $(wildcard */makefile) $(wildcard */*/makefile) $(wildcard */*/*
 all: WHATTODO=all
 all: ${SUBDIRS}
 
+tests: WHATTODO=tests
+tests: $(SUBDIRS)
+
 clean: WHATTODO=clean
 clean: ${SUBDIRS}
 	for i in '*'~ '*'.bak '*'.tmp; do find . -iname $$i -exec rm -f '{}' \+; done

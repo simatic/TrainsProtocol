@@ -71,6 +71,7 @@ typedef struct message{
  */
 #define AM_TERMINATE 3
 
+#ifdef LATENCY_TEST
 /**
  *@brief Type of message used for latency test
  */
@@ -80,6 +81,7 @@ typedef struct message{
  *@brief Type of message used for latency test
  */
 #define AM_PONG 5
+#endif /* LATENCY_TEST */
 
 /** 
  * @brief Payload when arrival or departure

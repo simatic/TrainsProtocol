@@ -33,6 +33,21 @@
 #include "connect.h"
 #include "counter.h"
 
+
+#ifdef INSERTION_TEST
+
+#include <sys/time.h>
+bool recentlyLostMyPred = false;
+address theLostPrec;
+struct timeval offlineInitDate, trainDate, insertionDuration;
+struct timeval discoPredDate;
+struct timeval firstRecentTrainDate, firstNewCircuitDate;
+struct timeval recoveryRecentTrainDuration, recoveryNewCircuitDuration;
+double floatInsertionDuration;
+double floatRecoveryRecentTrainDuration, floatRecoveryNewCircuitDuration;
+
+#endif /* INSERTION_TEST */
+
 State automatonState = OFFLINE_CONNECTION_ATTEMPT;
 pthread_mutex_t stateMachineMutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 address myAddress;
@@ -259,6 +274,11 @@ int randSleep(int maxms){
 }
 
 void offlineInit(){
+
+#ifdef INSERTION_TEST
+  gettimeofday(&offlineInitDate, NULL);
+#endif /* INSERTION_TEST */
+
   participate(true);
   succ = searchSucc(myAddress);
   if (addrIsMine(succ)) {
@@ -413,6 +433,13 @@ void stateMachine(womim* p_womim){
       lts[id].stamp = p_womim->msg.body.train.stamp;
       sendTrain(succ, false, lts[id]);
       if (isInLts(myAddress, lts)) {
+#ifdef INSERTION_TEST
+        gettimeofday(&trainDate, NULL);
+        timersub(&trainDate, &offlineInitDate, &insertionDuration);
+        floatInsertionDuration = ((double) insertionDuration.tv_sec) * 1000
+            + ((double) insertionDuration.tv_usec) / 1000;
+        printf("My insertion duration : %.3lfms\n", floatInsertionDuration);
+#endif /* INSERTION_TEST */
         lis = p_womim->msg.body.train.stamp.id;
         signalArrival(myAddress, lts[lis].circuit);
         nextState(SEVERAL);
@@ -504,6 +531,32 @@ void stateMachine(womim* p_womim){
     case TRAIN:
       if (addrIsMember(myAddress, p_womim->msg.body.train.circuit)) {
         if (isRecentTrain(p_womim->msg.body.train.stamp, lts, lis)) {
+#ifdef INSERTION_TEST
+          if (theLostPrec != 0){
+            if (recentlyLostMyPred){
+              gettimeofday(&firstRecentTrainDate, NULL);
+              recentlyLostMyPred = false;
+            }
+            if (!isInLts(theLostPrec,lts)){
+              gettimeofday(&firstNewCircuitDate, NULL);
+              theLostPrec = 0;
+
+              timersub(&firstRecentTrainDate, &discoPredDate, &recoveryRecentTrainDuration);
+              timersub(&firstNewCircuitDate, &discoPredDate, &recoveryNewCircuitDuration);
+
+              floatRecoveryRecentTrainDuration = ((double) recoveryRecentTrainDuration.tv_sec) * 1000
+                  + ((double) recoveryRecentTrainDuration.tv_usec) / 1000;
+
+              floatRecoveryNewCircuitDuration = ((double) recoveryNewCircuitDuration.tv_sec) * 1000
+                                + ((double) recoveryNewCircuitDuration.tv_usec) / 1000;
+
+              printf("Disconnection pred recovery :\n");
+              printf("\t- First recent train after %.3lfms\n", floatRecoveryRecentTrainDuration);
+              printf("\t- Up-to-date circuit received after %.3lfms\n", floatRecoveryNewCircuitDuration);
+
+            }
+          }
+#endif /* INSERTION_TEST */
           trainHandling(p_womim);
           lis = p_womim->msg.body.train.stamp.id;
           if (succ != 0)
@@ -533,6 +586,11 @@ void stateMachine(womim* p_womim){
       freeWomim(p_womim);
       break;
     case DISCONNECT_PRED:
+#ifdef INSERTION_TEST
+      gettimeofday(&discoPredDate, NULL);
+      recentlyLostMyPred = true;
+      theLostPrec = prec;
+#endif /* INSERTION_TEST */
       MUTEX_LOCK(mutexWagonToSend);
       while (!(addrIsEqual(prec,myAddress))) {
         if (openConnection(prec, true) != (-1)) {

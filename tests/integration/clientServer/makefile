@@ -9,7 +9,7 @@ OBJECTS		= $(SOURCES:.c=.o)
 # Include directory
 INCLUDEDIRS = -I../../../include
 # Compilation flags
-CFLAGS = -Wall -g $(INCLUDEDIRS)
+CFLAGS = -Wall -g $(INCLUDEDIRS) $(GLOBALFLAGS)
 # Link flags
 LDFLAGS = -L../../../src -ltrains -pthread
 # Valgrind options
@@ -20,6 +20,9 @@ VALGRINDFLAGS =--leak-check=yes --leak-resolution=high --num-callers=40 --tool=m
 .PHONY:         all clean
 
 all: depend $(BIN)
+
+tests: GLOBALFLAGS = -DLATENCY_TEST -DINSERTION_TEST
+tests: depend $(BIN)
 
 client: client.o
 	$(CC) $^ -o $@ $(LDFLAGS)
