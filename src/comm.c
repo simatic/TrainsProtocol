@@ -94,7 +94,6 @@ void commLongIOBegin(trComm *aComm){
  */
 void commLongIOEnd(trComm *aComm){
   aComm->ownerMutexForSynch = pthread_null;
-  aComm->aborted = false;
 
   // We release mutexForSynch, so that if an abort is waiting for
   // us to be done, it may proceed.
@@ -328,25 +327,28 @@ void commAbort(trComm *aComm){
     // and then we unlock the mutex
     commLongIOBegin(aComm);
     commLongIOEnd(aComm);
+
+    aComm->aborted = false;
   }
 }
 
 int commRead(trComm *aComm, void *buf, size_t count){
   int nb;
 
+  commLongIOBegin(aComm);
+
+  while (!aComm->aborted) {
+    nb = read(aComm->fd, buf, count);
+    if ((nb >= 0) || ((nb < 0) && (errno == EINTR) && aComm->aborted))
+      break;
+  }
+
+  commLongIOEnd(aComm);
+
   if (aComm->aborted){
-    aComm->aborted = false;
     errno = EINTR;
     return -1;
   }
-
-  commLongIOBegin(aComm);
-
-  do {
-    nb = read(aComm->fd, buf, count);
-  } while ((nb < 0) && (errno == EINTR) && !aComm->aborted);
-
-  commLongIOEnd(aComm);
 
   counters.comm_read++;
   counters.comm_read_bytes += nb;
@@ -379,19 +381,20 @@ int commReadFully(trComm *aComm, void *buf, size_t count){
 int commWrite(trComm *aComm, const void *buf, size_t count){
   int nb;
 
+  commLongIOBegin(aComm);
+
+  while (!aComm->aborted) {
+    nb = write(aComm->fd, buf, count);
+    if ((nb >= 0) || ((nb < 0) && (errno == EINTR) && aComm->aborted))
+      break;
+  }
+
+  commLongIOEnd(aComm);
+
   if (aComm->aborted){
-    aComm->aborted = false;
     errno = EINTR;
     return -1;
   }
-
-  commLongIOBegin(aComm);
-
-  do {
-    nb = write(aComm->fd, buf, count);
-  } while ((nb < 0) && (errno == EINTR) && !aComm->aborted);
-
-  commLongIOEnd(aComm);
 
   counters.comm_write++;
   counters.comm_write_bytes += nb;

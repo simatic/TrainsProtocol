@@ -622,6 +622,7 @@ void stateMachine(womim* p_womim){
       nextState(ALONE_INSERT_WAIT);
       MUTEX_UNLOCK(stateMachineMutex);
       MUTEX_UNLOCK(mutexWagonToSend);
+      pthread_cond_signal(&condWagonToSend);
       break;
     case DISCONNECT_SUCC:
       succ = 0;
