@@ -625,7 +625,7 @@ void stateMachine(womim* p_womim){
       floatRecoveryNewCircuitDuration = ((double) recoveryNewCircuitDuration.tv_sec) * 1000
                                       + ((double) recoveryNewCircuitDuration.tv_usec) / 1000;
       printf("I am alone !\n"
-          "%.3lfms since the DISCONNECT_PRED message\n");
+          "%.3lfms since the DISCONNECT_PRED message\n", floatRecoveryNewCircuitDuration);
 #endif /* INSERTION_TEST */
       nextState(ALONE_INSERT_WAIT);
       MUTEX_UNLOCK(stateMachineMutex);
