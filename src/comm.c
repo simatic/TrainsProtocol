@@ -316,12 +316,17 @@ void commAbortWhenIT(){
 }
 
 void commAbort(trComm *aComm){
+  pthread_t ownerMutex;
+
   aComm->aborted = true;
 
-  if (!pthread_equal(aComm->ownerMutexForSynch,pthread_null)) {
+  // To resist to change of aComm->ownerMutexForSynch
+  // between p_thread_equal and p_thread_kill
+  ownerMutex = aComm->ownerMutexForSynch;
+  if (!pthread_equal(ownerMutex,pthread_null)) {
     // We send a signal to that thread so that we interrupt the slow system 
     // call (read, write, connect, accept) it is making
-    pthread_kill(aComm->ownerMutexForSynch, SIGNAL_FOR_ABORT);
+    pthread_kill(ownerMutex, SIGNAL_FOR_ABORT);
   
     // We lock the mutex to wait until the slow system call is indeed over
     // and then we unlock the mutex
@@ -337,10 +342,10 @@ int commRead(trComm *aComm, void *buf, size_t count){
 
   commLongIOBegin(aComm);
 
-  while (!aComm->aborted) {
-    nb = read(aComm->fd, buf, count);
-    if ((nb >= 0) || ((nb < 0) && (errno == EINTR) && aComm->aborted))
-      break;
+  if (!aComm->aborted) {
+    do {
+      nb = read(aComm->fd, buf, count);
+    } while ((nb < 0) && (errno == EINTR) && !aComm->aborted);
   }
 
   commLongIOEnd(aComm);
@@ -383,10 +388,10 @@ int commWrite(trComm *aComm, const void *buf, size_t count){
 
   commLongIOBegin(aComm);
 
-  while (!aComm->aborted) {
-    nb = write(aComm->fd, buf, count);
-    if ((nb >= 0) || ((nb < 0) && (errno == EINTR) && aComm->aborted))
-      break;
+  if (!aComm->aborted) {
+    do {
+      nb = read(aComm->fd, buf, count);
+    } while ((nb < 0) && (errno == EINTR) && !aComm->aborted);
   }
 
   commLongIOEnd(aComm);

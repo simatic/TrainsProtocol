@@ -619,6 +619,14 @@ void stateMachine(womim* p_womim){
       bqueueEnqueue(wagonsToDeliver, wagonToSend);
       wagonToSend = newWiw();
       freeWomim(p_womim);
+#ifdef INSERTION_TEST
+      gettimeofday(&firstNewCircuitDate, NULL);
+      timersub(&firstNewCircuitDate, &discoPredDate, &recoveryNewCircuitDuration);
+      floatRecoveryNewCircuitDuration = ((double) recoveryNewCircuitDuration.tv_sec) * 1000
+                                      + ((double) recoveryNewCircuitDuration.tv_usec) / 1000;
+      printf("I am alone !\n"
+          "%.3lfms since the DISCONNECT_PRED message\n");
+#endif /* INSERTION_TEST */
       nextState(ALONE_INSERT_WAIT);
       MUTEX_UNLOCK(stateMachineMutex);
       MUTEX_UNLOCK(mutexWagonToSend);
