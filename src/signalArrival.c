@@ -43,6 +43,18 @@ static void signalArrivalDepartures(char typ, address ad, addressSet circuit){
   // for space in wagonToSend in the case the wagon is already full. If
   // newmsg was stuck, we would be in a dead lock (as only the thread processing
   // the train is able to empty wagonToSend).
+
+  // We must send a msg even if the wagon is full. Thus, if there is not enough
+  // space in the wagon, we realloc it.
+
+  if ((wagonMaxLen - wagonToSend->p_wagon->header.len)
+      < sizeof(payloadArrivalDeparture)) {
+    int newWomimLen = sizeof(prefix) + wagonToSend->p_wagon->header.len
+        + sizeof(messageHeader) + sizeof(payloadArrivalDeparture);
+    wagonToSend->p_womim = realloc(wagonToSend->p_womim, newWomimLen);
+    assert(wagonToSend->p_womim != NULL);
+  }
+
   mp = mallocWiw(sizeof(payloadArrivalDeparture));
 
   mp->header.typ = typ;
