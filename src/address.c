@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include "address.h"
+#include "management_addr.h"
 
 address myAddress;
 
@@ -82,4 +83,11 @@ address addrPrec(address ad, addressSet circuit){
   return rankToAddr(i);
 }
   
+char *addrToHostname(address ad){
+  return globalAddrArray[addrToRank(ad)].ip;
+}
+
+char *addrToPort(address ad){
+  return globalAddrArray[addrToRank(ad)].chan;
+}
 

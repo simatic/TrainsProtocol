@@ -28,7 +28,7 @@
 #include "advanced_struct.h"
 #include "iomsg.h"
 #include "stateMachine.h"
-#include "param.h"
+#include "trains.h"
 #include "counter.h"
 
 int openConnection(address addr, bool isPred){

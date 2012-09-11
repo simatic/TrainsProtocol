@@ -41,13 +41,27 @@ int trErrno;
  * @param[in] callbackUtoDeliver function to call upon application message receive
  * @return 0 on success, error_at_line otherwise
  */
-int trInit(CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver callbackUtoDeliver){
+int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime,
+    CallbackCircuitChange callbackCircuitChange,
+    CallbackUtoDeliver callbackUtoDeliver){
   int rc;
   pthread_t thread;
   char trainsHost[1024];
   char *trainsPort;
   int rank;
   
+  if (trainsNumber > 0)
+  ntr = trainsNumber;
+
+  if (wagonLength > 0)
+    wagonMaxLen = wagonLength;
+
+  if(waitNb > 0)
+    waitNbMax = waitNb;
+
+  if (waitTime > 0)
+    waitDefaultTime = waitTime;
+
 
   rc = sem_init(&sem_init_done,0,0);
   if(rc)

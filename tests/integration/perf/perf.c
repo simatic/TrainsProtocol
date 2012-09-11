@@ -319,7 +319,7 @@ void startTest(){
   // We initialize the trains protocol
   if (gettimeofday(&timeTrInitBegin, NULL ) < 0)
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "gettimeofday");
-  rc = trInit(callbackCircuitChange, callbackUtoDeliver);
+  rc = trInit(trainsNumber, wagonMaxLen, 0, 0, callbackCircuitChange, callbackUtoDeliver);
   if (rc < 0) {
     trError_at_line(rc, trErrno, __FILE__, __LINE__, "tr_init()");
     exit(EXIT_FAILURE);
@@ -440,9 +440,6 @@ int main(int argc, char *argv[]){
   check(number, "number");
   check(size, "size");
   check(trainsNumber, "trainsNumber");
-
-  /* Initialize data external to this mudule */
-  ntr = trainsNumber;
 
   /* We can start the test */
   startTest();

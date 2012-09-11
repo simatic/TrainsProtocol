@@ -134,7 +134,7 @@ int main(int argc, char *argv[]){
   }
 
   // We initialize the trains protocol
-  rc = trInit(callbackCircuitChange, callbackUtoDeliver);
+  rc = trInit(0, 0, 0, 0, callbackCircuitChange, callbackUtoDeliver);
   if (rc < 0) {
     trError_at_line(rc, trErrno, __FILE__, __LINE__, "tr_init()");
     return EXIT_FAILURE;

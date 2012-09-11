@@ -50,7 +50,6 @@
 #include "counter.h"
 #include "param.h"
 #include "latencyData.h"
-#include "management_addr.h"
 
 /* Semaphore used to block main thread until there are enough participants */
 static sem_t semWaitEnoughMembers;
@@ -193,20 +192,10 @@ void callbackCircuitChange(circuitView *cp){
     printf("!!! ******** enough members to start utoBroadcasting\n");
 
     // The participants choose the pingResponder : the participant which will respond to the AM_PING messages
-    addressSet circuit = 0;
-    int i;
-    for (i = 0; i < MAX_MEMB; i++){
-      circuit |= cp->cv_members[i];
-    }
-
-    pingResponder = 0x0001;
-    while (!(pingResponder & circuit)) {
-      pingResponder <<= 1;
-    }
-    i = addrToRank(pingResponder);
+    pingResponder = cp->cv_members[0];
 
     printf("!!! The pingResponder for this experience is %d:%s:%s\n",
-        i, globalAddrArray[i].ip, globalAddrArray[i].chan);
+        addrToRank(pingResponder), addrToHostname(pingResponder), addrToPort(pingResponder));
 
     // The experience starts
     int rc = sem_post(&semWaitEnoughMembers);
@@ -396,7 +385,7 @@ void startTest(){
   // We initialize the trains protocol
   if (gettimeofday(&timeTrInitBegin, NULL ) < 0)
     error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "gettimeofday");
-  rc = trInit(callbackCircuitChange, callbackUtoDeliver);
+  rc = trInit(trainsNumber, wagonMaxLen, 0, 0, callbackCircuitChange, callbackUtoDeliver);
   if (rc < 0) {
     trError_at_line(rc, trErrno, __FILE__, __LINE__, "tr_init()");
     exit(EXIT_FAILURE);

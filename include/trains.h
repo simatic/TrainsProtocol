@@ -35,6 +35,47 @@
 #include "address.h"
 #include "applicationMessage.h"
 
+/**
+ * @brief Localisation of the file where addresses are written
+ */
+#define LOCALISATION "./addr_file"/**<File's here.*/
+
+/**
+ * @brief The number of rounds used for the modulos
+ */
+#define NR 3
+
+/**
+ * @brief The limit number of processes in the circuit
+ * @note Set at 16
+ */
+#define MAX_NTR 16
+
+/**
+ * @brief Time to wait
+ */
+#define CONNECT_TIMEOUT 2000
+
+/**
+ * @brief Number of train allowed in the circuit
+ * @note The number should be adjust with care to make the protocol as performant as possible
+ */
+extern int ntr;
+
+/**
+ * @brief Max size of a wagon
+ */
+ extern int wagonMaxLen;
+
+/**
+ * @brief The limit of time to wait
+ */
+extern int waitNbMax;
+
+/**
+ * @brief The default time to wait
+ */
+extern int waitDefaultTime; /**<in microsecond*/
 
 /**
  * @brief Store the error number specific to errors in trains middleware
@@ -55,11 +96,14 @@ void trError_at_line(int status, int errnum, const char *filename, unsigned int 
 
 /**
  * @brief Initialization of trains protocol middleware
+ * @param[in] trainsNumber The number of trains on the circuit
+ * @param[in] wagonLength The length of the wagons in the trains
+ * @param[in] waitTime The time to wait (in microsecond)
  * @param[in] callbackCircuitChange Function to be called when there is a circuit changed (Arrival or departure of a process)
  * @param[in] callbackUtoDeliver    Function to be called when a message can be uto-delivered by trains protocol
  * @return 0 upon successful completion, or -1 if an error occurred (in which case, @a trErrno is set appropriately)
  */
-int trInit(CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver callbackUtoDeliver);
+int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime, CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver callbackUtoDeliver);
 
 /**
  * @brief Prints (trains middleware specific) error message

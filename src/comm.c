@@ -390,7 +390,7 @@ int commWrite(trComm *aComm, const void *buf, size_t count){
 
   if (!aComm->aborted) {
     do {
-      nb = read(aComm->fd, buf, count);
+      nb = write(aComm->fd, buf, count);
     } while ((nb < 0) && (errno == EINTR) && !aComm->aborted);
   }
 

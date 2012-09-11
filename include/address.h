@@ -144,8 +144,6 @@ void addrAppendGone(addressSet *arrivedSet, addressSet *goneSet, address ad);
  */
 addressSet addrUpdateCircuit(addressSet circuit, address ad, addressSet arrivedSet, addressSet goneSet);
 
-
-
 /**
  * @brief Return the prec address of process @a ad among processes of
  *        circuit @a circuit
@@ -154,5 +152,19 @@ addressSet addrUpdateCircuit(addressSet circuit, address ad, addressSet arrivedS
  * @return the prec address 
  */
 address addrPrec(address ad, addressSet circuit);
+
+/**
+ * @brief Return the hostname corresponding to the address in the globalAddrArray
+ * @param[in] ad the address you search the hostname of
+ * @return the hostname as a string
+ */
+char *addrToHostname(address ad);
+
+/**
+ * @brief Return the port corresponding to the address in the globalAddrArray
+ * @param[in] ad the address you search the port of
+ * @return the port as a string
+ */
+char *addrToPort(address ad);
 
 #endif /* _ADDRESS_H */

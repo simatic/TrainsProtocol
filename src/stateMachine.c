@@ -60,6 +60,9 @@ int lis; //last id sent
 ltsArray lts; //last trains sent
 trList* unstableWagons[MAX_NTR][NR];
 trBqueue* wagonsToDeliver;
+int ntr=1;
+int waitNbMax=10 ;
+int waitDefaultTime=2 ;
 
 void stateMachine(womim* p_womim);
 void nextState(State s);

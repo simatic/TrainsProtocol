@@ -32,6 +32,7 @@
 #include "wagon.h"
 
 trBqueue *wagonsToDeliver = NULL;
+int wagonMaxLen = (1<<15);
 
 message *firstMsg(wagon *w){
   if (w->header.len == sizeof(w->header))

@@ -35,7 +35,7 @@
 #include <errno.h>
 #include <error.h>
 #include <unistd.h> //for the sleep function
-#include "param.h"
+#include "trains.h"
 #include "address.h"
 #include "iomsg.h"
 #include "wagon.h"

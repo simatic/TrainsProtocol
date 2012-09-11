@@ -32,7 +32,7 @@
 #define _MANAGEMENT_ADDRESS_H
 
 #include "comm.h"
-#include "param.h"
+#include "trains.h"
 #include "address.h"
 
 /**
