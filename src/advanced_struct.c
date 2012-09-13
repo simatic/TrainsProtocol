@@ -106,8 +106,11 @@ message * mallocWiw(int payloadSize){
    * it properly : we need to increase the wagon length
    * The empty condition was checked before (in newmsg) so we don't have
    * to check it again.*/
-  if (payloadSize > wagonMaxLen)
-    wagonToSend->p_womim = realloc(wagonToSend->p_womim, payloadSize);
+  if (payloadSize > wagonMaxLen){
+    int newWomimLen = sizeof(prefix) + wagonToSend->p_wagon->header.len
+        + sizeof(messageHeader) + payloadSize;
+    wagonToSend->p_womim = realloc(wagonToSend->p_womim, newWomimLen);
+  }
 
   mp =(message*)(((char*)w) + w->header.len);
   mp->header.len = sizeof(messageHeader) + payloadSize;
