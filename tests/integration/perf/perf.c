@@ -44,7 +44,6 @@
 #include <pthread.h>
 #include "trains.h"
 #include "counter.h"
-#include "param.h"
 
 /* Semaphore used to block main thread until there are enough participants */
 static sem_t semWaitEnoughMembers;

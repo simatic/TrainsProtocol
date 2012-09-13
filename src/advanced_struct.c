@@ -101,6 +101,14 @@ message * mallocWiw(int payloadSize){
   wagon *w;
   w = &(wagonToSend->p_womim->wagon);
   wagonToSend->p_wagon = w;
+
+  /* If the message is too big whereas the wagon is empty, we have to send
+   * it properly : we need to increase the wagon length
+   * The empty condition was checked before (in newmsg) so we don't have
+   * to check it again.*/
+  if (payloadSize > wagonMaxLen)
+    wagonToSend->p_womim = realloc(wagonToSend->p_womim, payloadSize);
+
   mp =(message*)(((char*)w) + w->header.len);
   mp->header.len = sizeof(messageHeader) + payloadSize;
   w->header.len += mp->header.len;

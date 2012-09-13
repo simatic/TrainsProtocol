@@ -48,7 +48,6 @@
 #include <string.h>
 #include "trains.h"
 #include "counter.h"
-#include "param.h"
 #include "latencyData.h"
 
 /* Semaphore used to block main thread until there are enough participants */
@@ -553,7 +552,7 @@ int main(int argc, char *argv[]){
   wagonMaxLen = alternateMaxWagonLen;
 
   if (wagonMaxLen < size){
-    fprintf(stderr, "wagonMaxLength too small ==> results will not be significative");
+    fprintf(stderr, "wagonMaxLength too small (< size) ==> results will not be significative\n");
   }
 
   /* We can start the test */
