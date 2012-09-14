@@ -1,0 +1,230 @@
+#!/bin/bash
+# Script to launch series of latency tests
+#  - on numbermachines specified in the numbermachines array
+#  - with the size listed in listsize
+# The machines used are listed in the hostnames array
+# It is also possible to specify the following parameters
+#  - ntr                  /* the number of trains */
+#  - warmup               /* the warmup phase duration */
+#  - measurement          /* the measurement phase duration */
+#  - cooldown             /* the cooldown phase duration */
+#  - sleepAfterCooldown   /* to complete the cooldown phase */
+#  - freq                 /* the frequency of a PING message
+#                            among all the messages */
+#
+# Each test generates "number of participants" file (depending on the
+# number of participants to the protocol) named for instance
+# latency_cooldown_10_wagonMaxLength_32768_measurement_600_number_5_ntr_1_size_7000_warmup_300_concernedHost
+
+##########################################
+# Parameters of the different tests
+##########################################
+
+# List of sizes for the messages
+listsize=(10 100 200 500 1000 2000 5000 10000 15000 20000)
+
+# Warmup time in seconds
+warmup=300
+
+# Measure time in seconds
+measurement=600
+
+# Times (in seconds) related to cooldown phase
+cooldown=10 # done by latency program
+sleepAfterCooldown=290 # done by script program. Should be 290
+# (because cooldown + sleepAfterCooldown must be 300) for real tests
+
+# Array of hostnames on which to launch the test.
+# WARNING : if hostnames does not contain any localhost, then in the
+# following ficname definition, take off final '_'$j
+# EDIT : Easier to use the result if we keep this number attributed to
+# each participant
+hostnames=('b313-01' 'b313-02' 'b313-04' 'b313-06' 'b313-07' 'b313-08' 'b313-09' 'b313-10' 'b313-11' 'b313-12' 'b313-13')
+
+# List of trains.
+# Each cell in this array is a number of trains list and each index
+# corresponds to the number of particpants.
+# Thus, each number of participants has its own list of trains
+liststrains=([2]="1 2 3 4" [4]="1 3 4 5" [8]="1 3 7 8 9")
+
+# Maximum number of machines for simultaneous launch of latency code.
+# NB : Cannot be more than the size hostname list.
+# We put here all the index in the liststrains array, thus
+# numbermachines is a number of participants array
+numbermachines=(${!liststrains[*]})
+
+# Frequency of a PING message
+freq="10000"
+
+# Maximum length for a wagon array
+listwagon=(8192 16384 32768 65536)
+
+##########################################
+# Verify the different arguments
+##########################################
+
+# Must launch this script with 1 or 4 arguments (described below)
+# Little reminder for the order of the parameters if you want to start
+# from specific parameters
+if [[ $# -ne 1 && $# -ne 4 ]]; then
+  echo -e "Usage:\n  ./scriptForLatencyTests -d \t # To launch tests from the very begining\n or\n  ./scriptForLatencyTests \$number \$train \$wagon \$size \t # To launch tests with specifics arguments"
+  exit 0
+fi
+
+# To start tests from the very begining, must put the "-d" argument
+if [[ $# -eq 1 && $1 == "-d"  ]]; then
+  echo "Default Start"
+fi
+
+# If you want to start a series of tests from specific parameters
+# then, you have to call this script with 4 arguments in the order
+# described below:
+#       - number of participants
+#       - number of trains
+#       - maximum length for a wagon
+#       - size of a message
+if [[ $# -eq 4 ]]; then
+  startnumber=$1
+  starttrain=$2
+  startwagon=$3
+  startsize=$4
+  echo "{$startnumberindex} {$starttrainindex} {$startwagonindex} {$startsizeindex}"
+  # We collect the index of the different parameters chosen referifn
+  # to the arrays defined above
+
+  # If one argument does not correspond to any paramaters set below,
+  # it stops
+  for index in ${!numbermachines[*]}; do
+    if [[ ${numbermachines[$index]} == $startnumber ]]; then
+      startnumberindex=$index
+      break
+    fi
+  done
+  if [ ! $startnumberindex ]; then
+    echo "Wrong number of participants. Should be a number in \"${numbermachines[*]}\""
+    exit 0
+  fi
+
+  trains=(${liststrains[$startnumber]}) # We need here to extract the list of trains for the specific number of participants
+  for index in ${!trains[*]}; do
+    if [[ ${trains[$index]} == $starttrain ]]; then
+      starttrainindex=$index
+      break
+    fi
+  done
+  if [ ! $starttrainindex ]; then
+    echo "Wrong number of trains. Should be a number in \"${trains[*]}\""
+    exit 0
+  fi
+
+  for index in ${!listwagon[*]}; do
+    if [[ ${listwagon[$index]} == $startwagon ]]; then
+      startwagonindex=$index
+      break
+    fi
+  done
+  if [ ! $startwagonindex ]; then
+    echo "Wrong wagon max length. Should be a number in \"${listwagon[*]}\""
+    exit 0
+  fi
+
+  for index in ${!listsize[*]}; do
+    if [[ ${listsize[$index]} == $startsize ]]; then
+      startsizeindex=$index
+      break
+    fi
+  done
+  if [ ! $startsizeindex ]; then
+    echo "Wrong message size. Should be a number in \"${listsize[*]}\""
+    exit 0
+  fi
+
+  # We change the number of participants array to begin the list of
+  # participants with the number chosen
+  numbermachines=(${numbermachines[*]:$startnumberindex})
+fi
+
+##########################################
+# Let's go for the different tests
+##########################################
+
+### Loop on the number of participants
+for index in ${!numbermachines[*]}; do
+  # Modification of the liststrains array for the specific number of
+  # participants.  Thus, for the specific number of participants, we
+  # begin the list of trains with the number of trains chosen in the
+  # arguments
+  if [[ ${numbermachines[$index]} -eq $startnumber ]]; then
+    spectrains=(${liststrains[${numbermachines[$index]}]})
+    liststrains[${numbermachines[$index]}]=${spectrains[*]:$starttrainindex}
+  fi
+  
+  ### Loop on the number of trains
+  for ntr in ${liststrains[${numbermachines[$index]}]};do
+    # Modification of the list of wagon max lengths for the specific
+    # number of participants and specific number of trains.
+    # NB : We have to keep the default list in a specific variable
+    # (bakwagon here).
+    if [[ ${numbermachines[$index]} -eq $startnumber && $ntr -eq $starttrain ]]; then
+      bakwagons=(${listwagon[*]})
+      listwagon=(${bakwagons[*]:$startwagonindex})
+    fi
+    
+    ### Loop on the wagon max length
+    for length in ${listwagon[*]}; do
+      # The listwagon is put back to the initial value for the further loops
+      if [[ ${numbermachines[$index]} -eq $startnumber && $ntr -eq $starttrain ]]; then
+	listwagon=(${bakwagons[*]})
+      fi
+      # Modification of the list of sizes for the specific number of
+      # participants, specific number of trains and specific wagon max length
+      # NB : Likewise in the list of wagon max lengths modification,
+      # we have to keep the default list in a specific variable
+      # (baksizes)
+      if [[ ${numbermachines[$index]} -eq $startnumber && $ntr -eq $starttrain && $length -eq $startwagon ]]; then
+	baksizes=(${listsize[*]})
+	listsize=(${baksizes[*]:$startsizeindex})
+      fi
+
+      ### Loop on the messages sizes
+      for size in ${listsize[*]}; do
+	echo -e "********* Number of machines: ${numbermachines[$index]}\n******* Number of trains: $ntr\n***** Length of a wagon: $length\n*** Size of a message: $size\n*** $(date +"%d.%m.%y %H:%M:%S")"
+	# The listsize is put back to the initial value for the
+	# further loops
+	if [[ ${numbermachines[$index]} -eq $startnumber && $ntr -eq $starttrain && $length -eq $startwagon ]]; then
+	  listsize=(${baksizes[*]})
+	fi
+
+	# The different arguments for the latency program
+	opt="-b ${numbermachines[$index]} -c $cooldown -f $freq -l $length -m $measurement -n ${numbermachines[$index]} -s $size -t $ntr -w $warmup"
+
+	### We build the different ssh commands to be lauched for this
+	### iteration and put those in an array
+	cmd=()
+	for ((i=0;i<${numbermachines[$index]};i++)); do
+	  ficname='latency_cooldown_'$cooldown'_wagonMaxLength_'$length'_measurement_'$measurement'_number_'${numbermachines[$index]}'_ntr_'$ntr'_size_'$size'_warmup_'$warmup'_'${hostnames[$i]}'_'$i
+	  dist="\"who > ~/results/$ficname ; ./latency $opt >> ~/results/$ficname\""
+	  cmd[${#cmd[*]}]="ssh ${hostnames[$i]} $dist"
+	done #i
+
+	### We launch the test in background for the first
+	### numbermachines-1 participants
+	for((i=0;i<${#cmd[*]}-1;i++)); do
+	  echo "${cmd[$i]}"
+#	  eval "${cmd[$i]} &"
+	  sleep 1
+	done #i
+
+	### We launch the test in foreground for the last participant
+	echo -e "${cmd[${#cmd[*]}-1]}\n"
+#	eval "${cmd[${#cmd[*]}-1]}"
+
+	# We do the sleep after cooldown
+#	sleep $sleepAfterCooldown;
+	read	
+      done #size
+    done #length
+  done #ntr
+done #index
+
+exit 0
