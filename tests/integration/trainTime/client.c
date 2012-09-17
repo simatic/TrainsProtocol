@@ -45,6 +45,7 @@
 #define HW "Hello world!"
 #define LONG_MESSAGE "This is a long message: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define VERY_LONG_MESSAGE_SIZE 1000000
+#define MESSAGE_LOOP 100
 
 
 int main(int argc, char *argv[]){
@@ -111,7 +112,7 @@ int main(int argc, char *argv[]){
 
     /* *************************** FAKE TRAINS LOOP ****************/
 
-    for (j = 0; j < 1000; j++) {
+    for (j = 0; j < MESSAGE_LOOP; j++) {
 
       len = sizeof(messageHeader) + sizeArray[i];
       msg = malloc(len);
@@ -204,7 +205,7 @@ int main(int argc, char *argv[]){
 
     /* *************************** FAKE TRAINS LOOP ****************/
 
-    for (j = 0; j < 1000; j++) {
+    for (j = 0; j < MESSAGE_LOOP; j++) {
 
       len = sizeof(messageHeader) + sizeArray[i];
       msg = malloc(len);
