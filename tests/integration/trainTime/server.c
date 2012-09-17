@@ -78,8 +78,8 @@ void *connectionMgt(void *arg){
           timersub(&(finCPU.ru_stime), &(debutCPU.ru_stime), &(dureeCPU.ru_stime));
           timersub(&fin, &debut, &duree);
 
-          printf("Temps absolu écoulé :          %9d usec\n", duree.tv_usec);
-          printf("Temps CPU (user+sys) écoulé :  %9d usec\n",
+          printf("Temps absolu écoulé :          %9ld usec\n", duree.tv_usec);
+          printf("Temps CPU (user+sys) écoulé :  %9ld usec\n",
                   dureeCPU.ru_utime.tv_usec + dureeCPU.ru_stime.tv_usec);
 
           printf("Received STOP of %7d bytes\n\n", msg->header.len);

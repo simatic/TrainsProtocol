@@ -52,7 +52,7 @@ int main(int argc, char *argv[]){
   message *msg;
   int len, nbWritten;
   int sizeArray[] = { 20, 100, 200, 500, 1000, 2000, 5000, 10000, 15000, 20000 };
-  int i, j, k;
+  int i, j;
   struct timeval debut, fin, duree;
   struct rusage debutCPU, finCPU, dureeCPU;
   struct iovec iov[3];
@@ -146,8 +146,8 @@ int main(int argc, char *argv[]){
     timersub(&(finCPU.ru_stime), &(debutCPU.ru_stime), &(dureeCPU.ru_stime));
     timersub(&fin, &debut, &duree);
 
-    printf("Temps absolu écoulé :          %9d usec\n", duree.tv_usec);
-    printf("Temps CPU (user+sys) écoulé :  %9d usec\n",
+    printf("Temps absolu écoulé :          %9ld usec\n", duree.tv_usec);
+    printf("Temps CPU (user+sys) écoulé :  %9ld usec\n",
         dureeCPU.ru_utime.tv_usec + dureeCPU.ru_stime.tv_usec);
 
     printf("Sent *********** %s *********** message of %d bytes\n",
@@ -271,8 +271,8 @@ int main(int argc, char *argv[]){
     timersub(&(finCPU.ru_stime), &(debutCPU.ru_stime), &(dureeCPU.ru_stime));
     timersub(&fin, &debut, &duree);
 
-    printf("Temps absolu écoulé :          %9d usec\n", duree.tv_usec);
-    printf("Temps CPU (user+sys) écoulé :  %9d usec\n",
+    printf("Temps absolu écoulé :          %9ld usec\n", duree.tv_usec);
+    printf("Temps CPU (user+sys) écoulé :  %9ld usec\n",
             dureeCPU.ru_utime.tv_usec + dureeCPU.ru_stime.tv_usec);
 
     printf("Sent *********** %s *********** message of %d bytes\n",
