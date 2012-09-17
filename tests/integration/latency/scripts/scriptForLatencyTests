@@ -67,7 +67,10 @@ listwagon=(8192 16384 32768 65536)
 # Little reminder for the order of the parameters if you want to start
 # from specific parameters
 if [[ $# -ne 1 && $# -ne 4 ]]; then
-  echo -e "Usage:\n  ./scriptForLatencyTests -d \t # To launch tests from the very begining\n or\n  ./scriptForLatencyTests \$number \$train \$wagon \$size \t # To launch tests with specifics arguments"
+  echo -e "Usage:
+  ./scriptForLatencyTests -d \t # To launch tests from the very begining
+or
+  ./scriptForLatencyTests \$number \$ntr \$wagonMaxLength \$size \t # To launch tests with specifics arguments"
   exit 0
 fi
 
@@ -187,8 +190,13 @@ for index in ${!numbermachines[*]}; do
       fi
 
       ### Loop on the messages sizes
+      ### NB : Final loop
       for size in ${listsize[*]}; do
-	echo -e "********* Number of machines: ${numbermachines[$index]}\n******* Number of trains: $ntr\n***** Length of a wagon: $length\n*** Size of a message: $size\n*** $(date +"%d.%m.%y %H:%M:%S")"
+	echo -e "*** Number of machines: ${numbermachines[$index]}
+*** Number of trains: $ntr
+*** Length of a wagon: $length
+*** Size of a message: $size
+*** $(date +"%d.%m.%y %H:%M:%S")"
 	# The listsize is put back to the initial value for the
 	# further loops
 	if [[ ${numbermachines[$index]} -eq $startnumber && $ntr -eq $starttrain && $length -eq $startwagon ]]; then
@@ -211,17 +219,16 @@ for index in ${!numbermachines[*]}; do
 	### numbermachines-1 participants
 	for((i=0;i<${#cmd[*]}-1;i++)); do
 	  echo "${cmd[$i]}"
-#	  eval "${cmd[$i]} &"
+	  eval "${cmd[$i]} &"
 	  sleep 1
 	done #i
 
 	### We launch the test in foreground for the last participant
 	echo -e "${cmd[${#cmd[*]}-1]}\n"
-#	eval "${cmd[${#cmd[*]}-1]}"
+	eval "${cmd[${#cmd[*]}-1]}"
 
 	# We do the sleep after cooldown
-#	sleep $sleepAfterCooldown;
-	read	
+	sleep $sleepAfterCooldown
       done #size
     done #length
   done #ntr

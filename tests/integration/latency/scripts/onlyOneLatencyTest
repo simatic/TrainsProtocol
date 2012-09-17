@@ -1,0 +1,96 @@
+#!/bin/bash
+# Script to launch series of latency tests
+#  - on numbermachines specified in the array numbermachines
+#  - with the size listed in listsize
+# The machines used are listed in hostnames
+# It is also possible to specify the following parameters
+#  - ntr
+#  - warmup
+#  - measurement
+#  - cooldown
+#  - sleepAfterCooldown
+#  - freq
+#
+# Each test generates 2 or more file (depending on the number of
+# participants to the protocol) named for instance
+#   latency_cooldown_10_wagonMaxLength_32768_measurement_600_number_5_ntr_1_size_7000_warmup_300_concernedHost
+
+##########################################
+# Parameters of the different tests
+##########################################
+
+# Warmup time in seconds
+warmup=300
+
+# Measure time in seconds
+measurement=600
+
+# Times (in seconds) related to cooldown phase
+cooldown=10 # done by latency program
+sleepAfterCooldown=290 # done by script program. Should be 290
+# (because cooldown+sleepAfterCooldown must be 300) for real tests
+
+# Array of hostnames on which to launch the test
+# WARNING : if hostnames does not contain any localhost, then in the following ficname definition, 
+#           take off final '_'$j
+hostnames=('b313-01' 'b313-02' 'b313-04' 'b313-06' 'b313-07' 'b313-08' 'b313-09' 'b313-10' 'b313-11' 'b313-12' 'b313-13')
+
+# Frequency of a PING message
+freq="10000"
+
+##########################################
+# Verify the different arguments
+##########################################
+
+# If you want to start a series of tests with a specific parameters
+# then, you have to call this script with 4 arguments in the order
+# described below:
+#       - number of participants
+#       - number of trains
+#       - maximum length for a wagon
+#       - size of a message
+if [[ $# -ne 4 ]]; then
+  echo -e "Usage: ./scriptForLatencyTests \$number \$train \$wagon \$size"
+  exit 0
+else
+  number=$1
+  train=$2
+  wagon=$3
+  size=$4
+
+fi
+
+#########################
+# Let's go for the test
+#########################
+
+echo -e " *** Number of machines: $number\n *** Number of trains: $train\n *** Length of a wagon: $wagon\n *** Size of a message: $size\n *** $(date +"%d.%m.%y %H:%M:%S")"
+
+# The different arguments for the latency program
+opt="-b $number -c $cooldown -f $freq -l $wagon -m $measurement -n $number -s $size -t $train -w $warmup"
+
+### We build the different ssh commands to be lauched for this
+### iteration and put those in an array
+cmd=()
+for ((i=0;i<$number;i++)); do
+  ficname='latency_cooldown_'$cooldown'_wagonMaxLength_'$wagon'_measurement_'$measurement'_number_'$number'_ntr_'$train'_size_'$size'_warmup_'$warmup'_'${hostnames[$i]}'_'$i
+  dist="\"who > ~/results/$ficname ; ./latency $opt >> ~/results/$ficname\""
+  cmd[${#cmd[*]}]="ssh ${hostnames[$i]} $dist"
+done #i
+
+# We launch the test in background for the first numbermachines-1
+# participants
+for((i=0;i<${#cmd[*]}-1;i++)); do
+  echo "${cmd[$i]}"
+  eval "${cmd[$i]} &"
+  sleep 1
+done #i
+
+# We launch the test in foreground for the last participant
+echo -e "${cmd[${#cmd[*]}-1]}\n"
+eval "${cmd[${#cmd[*]}-1]}"
+
+## we do the sleep after cooldown
+#sleep $sleepAfterCooldown;
+
+exit 0
