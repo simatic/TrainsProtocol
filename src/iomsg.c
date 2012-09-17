@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <assert.h>
 #include <pthread.h>
+#include <string.h>
 
 #include "iomsg.h"
 
@@ -176,8 +177,9 @@ int sendTrain(address addr, bool isPred, ltsStruct lts){
     //returning the number of bytes sent
     result = commWritev(aComm, iov, iovcnt);
     if (result != lts.lng)
-      fprintf(stderr, "result!=lts.lng (bis) with result=%i and length=%i\n",
-          result, lts.lng);
+      fprintf(stderr,
+          "result!=lts.lng (bis) with result=%i and length=%i (errno = %i / %s)\n",
+          result, lts.lng, errno, strerror(errno));
     return (result);
   } else {
     //should return an error if the addr is out of rank

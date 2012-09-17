@@ -116,7 +116,7 @@ int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime,
  */
 void trError_at_line(int status, int errnum, const char *filename, unsigned int linenum, const char *format){
   fflush(stdout);
-  fprintf(stderr, "basic version of tr_error_at_line\n");
+  fprintf(stderr, "basic version of trError_at_line\n");
 }
 
 /**
@@ -125,7 +125,7 @@ void trError_at_line(int status, int errnum, const char *filename, unsigned int 
  * @return void
  */
 void trPerror(int errnum){
-  fprintf(stderr, "basic version of tr_perror");
+  fprintf(stderr, "basic version of trPerror");
 }
 
 int trTerminate(){

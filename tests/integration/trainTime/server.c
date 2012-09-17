@@ -34,15 +34,19 @@
 #include <unistd.h>
 #include <string.h>
 #include <assert.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 
 #include "comm.h"
 #include "trains.h" // To have message typedef
-#define AVERAGE_SIZE 32 //This default value is estimated by considering the average size of received message
+#include "trainTime.h"
+
 void *connectionMgt(void *arg){
   trComm *aComm = (trComm*) arg;
   message *msg;
   int nbRead;
-  int i;
+  struct timeval debut, fin, duree;
+  struct rusage debutCPU, finCPU, dureeCPU;
 
   printf("\tNew connection\n");
   do {
@@ -55,24 +59,51 @@ void *connectionMgt(void *arg){
       nbRead = commReadFully(aComm, &(msg->header.typ),
           msg->header.len - sizeof(len));
       if (nbRead == msg->header.len - sizeof(len)) {
-        if (msg->header.len < 1000) {
-          printf("\t\t...Received message of %d bytes with: \"%s\"\n",
-              msg->header.len, msg->payload);
-        } else {
-          printf("\t\t...Received message of %d bytes ", msg->header.len);
-          // Check contents
-          for (i = 0; i < msg->header.len - sizeof(messageHeader); i++) {
-            if ((unsigned char) (msg->payload[i]) != i % 256) {
-              error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
-                  "Received long message which contents is incorrect (at %d-th position, found %d instead of %d)\n",
-                  i, (unsigned char) (msg->payload[i]), i % 256);
-            }
-          }
-          printf("and contents is OK\n");
+        switch(msg->header.typ){
+        case GO:
+          //Démarrer les timers (gettimeofday et getrusage)
+          printf("Received GO\n");
+          getrusage(RUSAGE_SELF, &debutCPU);
+          gettimeofday(&debut, NULL);
+          break;
+
+        case FAKE_TRAIN:
+          break;
+
+        case STOP:
+          //arrêter les timers, puis print les resultats
+          getrusage(RUSAGE_SELF, &finCPU);
+          gettimeofday(&fin, NULL);
+          timersub(&(finCPU.ru_utime), &(debutCPU.ru_utime), &(dureeCPU.ru_utime));
+          timersub(&(finCPU.ru_stime), &(debutCPU.ru_stime), &(dureeCPU.ru_stime));
+          timersub(&fin, &debut, &duree);
+
+          printf("Temps absolu écoulé :          %9d usec\n", duree.tv_usec);
+          printf("Temps CPU (user+sys) écoulé :  %9d usec\n",
+                  dureeCPU.ru_utime.tv_usec + dureeCPU.ru_stime.tv_usec);
+
+          printf("Received STOP of %7d bytes\n\n", msg->header.len);
+          break;
+
+        case WRITE_PHASE:
+          printf("******************** WRITE_PHASE ********************\n"
+              "*****************************************************\n");
+          break;
+
+        case WRITE_V_PHASE:
+          printf("******************** WRITE_V_PHASE ******************\n"
+              "*****************************************************\n");
+          break;
+
+        default:
+          printf("Received unknown type message : %d\n", msg->header.typ);
+          break;
+
         }
+
       } else {
         printf(
-            "\t\t...Received only %d/%lu bytes (but this could be normal, as the client may have sent on purpose an incomplete message)\n",
+            "\t\t...Received only %d/%lu bytes ",
             nbRead, msg->header.len - sizeof(len));
       }
       free(msg);
@@ -87,9 +118,9 @@ void *connectionMgt(void *arg){
   if (nbRead == 0) {
     printf("\t...Connection has been closed\n");
   } else if (errno == EINTR) {
-    printf("\t...comm_readFully was aborted\n");
+    printf("\t...commReadFully was aborted\n");
   } else
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_readFully");
+    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "commReadFully");
 
   return NULL ;
 }
