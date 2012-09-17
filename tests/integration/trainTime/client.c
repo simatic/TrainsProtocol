@@ -42,10 +42,9 @@
 #include "trainTime.h"
 
 #define CONNECT_TIMEOUT 2000 // milliseconds
-#define HW "Hello world!"
 #define LONG_MESSAGE "This is a long message: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define VERY_LONG_MESSAGE_SIZE 1000000
-#define MESSAGE_LOOP 100
+#define LOOP_MESSAGE_NUMBER 500
 
 
 int main(int argc, char *argv[]){
@@ -97,7 +96,7 @@ int main(int argc, char *argv[]){
     msg = malloc(len);
     assert(msg != NULL);
     msg->header.len = len;
-    msg->header.typ = GO;
+    msg->header.typ = FIRST;
     printf("\nSending *********** %s *********** message of %d bytes\n",
         msgTypeToStr(msg->header.typ), len);
     nbWritten = commWrite(commForConnect, msg, msg->header.len);
@@ -112,7 +111,7 @@ int main(int argc, char *argv[]){
 
     /* *************************** FAKE TRAINS LOOP ****************/
 
-    for (j = 0; j < MESSAGE_LOOP; j++) {
+    for (j = 0; j < LOOP_MESSAGE_NUMBER; j++) {
 
       len = sizeof(messageHeader) + sizeArray[i];
       msg = malloc(len);
@@ -126,13 +125,14 @@ int main(int argc, char *argv[]){
       }
     }
 
-    /* ****************************** MESSAGE STOP  *******************/
+    /* ****************************** MESSAGE LAST  *******************/
 
     len = sizeof(messageHeader) + sizeArray[i];
     msg = malloc(len);
     assert(msg != NULL);
     msg->header.len = len;
-    msg->header.typ = STOP;
+    msg->header.typ = LAST;
+    *((int*) (msg->payload)) = LOOP_MESSAGE_NUMBER;
     nbWritten = commWrite(commForConnect, msg, msg->header.len);
     if (nbWritten != len) {
       error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
@@ -190,7 +190,7 @@ int main(int argc, char *argv[]){
     msg = malloc(len);
     assert(msg != NULL);
     msg->header.len = len;
-    msg->header.typ = GO;
+    msg->header.typ = FIRST;
     printf("\nSending *********** %s *********** message of %d bytes\n",
         msgTypeToStr(msg->header.typ), len);
     nbWritten = commWrite(commForConnect, msg, msg->header.len);
@@ -205,7 +205,7 @@ int main(int argc, char *argv[]){
 
     /* *************************** FAKE TRAINS LOOP ****************/
 
-    for (j = 0; j < MESSAGE_LOOP; j++) {
+    for (j = 0; j < LOOP_MESSAGE_NUMBER; j++) {
 
       len = sizeof(messageHeader) + sizeArray[i];
       msg = malloc(len);
@@ -222,11 +222,6 @@ int main(int argc, char *argv[]){
       iov[2].iov_base = &(msg->payload[4 * sizeArray[i] / 5]);
       iov[2].iov_len = sizeArray[i] / 5;
 
-      /*
-      for (k = 0; k < NB_CHUNKS; k++) {
-        iov[k + 1].iov_base = &(msg->payload[k * sizeArray[i] / NB_CHUNKS]);
-        iov[k + 1].iov_len = sizeArray[i] / NB_CHUNKS;
-      }*/
       nbWritten = commWritev(commForConnect, iov, 3);
 
       if (nbWritten != len) {
@@ -241,7 +236,9 @@ int main(int argc, char *argv[]){
     msg = malloc(len);
     assert(msg != NULL);
     msg->header.len = len;
-    msg->header.typ = STOP;
+    msg->header.typ = LAST;
+
+    *((int*) (msg->payload)) = LOOP_MESSAGE_NUMBER;
 
     iov[0].iov_base = msg;
     iov[0].iov_len = sizeof(messageHeader);
@@ -252,12 +249,6 @@ int main(int argc, char *argv[]){
     iov[2].iov_base = &(msg->payload[4 * sizeArray[i] / 5]);
     iov[2].iov_len = sizeArray[i] / 5;
 
-
-
-    /*for (k = 0; k < NB_CHUNKS; k++) {
-      iov[k + 1].iov_base = &(msg->payload[k * sizeArray[i] / NB_CHUNKS]);
-      iov[k + 1].iov_len = sizeArray[i] / NB_CHUNKS;
-    }*/
     nbWritten = commWritev(commForConnect, iov, 3);
     if (nbWritten != len) {
       error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,

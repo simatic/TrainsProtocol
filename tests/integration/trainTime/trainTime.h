@@ -23,9 +23,9 @@
 
 typedef char MType;
 
-#define GO             0
+#define FIRST          0
 #define FAKE_TRAIN     1
-#define STOP           3
+#define LAST           3
 #define WRITE_PHASE    4
 #define WRITE_V_PHASE  5
 

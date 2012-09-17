@@ -28,12 +28,12 @@
 char *msgTypeToStr(MType mtype){
   static char s[64];
   switch (mtype) {
-  case GO:
-    return "GO";
+  case FIRST:
+    return "FIRST";
   case FAKE_TRAIN:
     return "FAKE_TRAIN";
-  case STOP:
-    return "STOP";
+  case LAST:
+    return "LAST";
   case WRITE_PHASE:
     return "WRITE_PHASE";
   case WRITE_V_PHASE:

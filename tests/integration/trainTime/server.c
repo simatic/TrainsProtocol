@@ -59,30 +59,31 @@ void *connectionMgt(void *arg){
       nbRead = commReadFully(aComm, &(msg->header.typ),
           msg->header.len - sizeof(len));
       if (nbRead == msg->header.len - sizeof(len)) {
-        switch(msg->header.typ){
-        case GO:
-          //Démarrer les timers (gettimeofday et getrusage)
-          printf("Received GO\n");
+        switch (msg->header.typ) {
+        case FIRST:
+          printf("Received FIRST\n");
           getrusage(RUSAGE_SELF, &debutCPU);
-          gettimeofday(&debut, NULL);
+          gettimeofday(&debut, NULL );
           break;
 
         case FAKE_TRAIN:
           break;
 
-        case STOP:
-          //arrêter les timers, puis print les resultats
+        case LAST:
           getrusage(RUSAGE_SELF, &finCPU);
-          gettimeofday(&fin, NULL);
-          timersub(&(finCPU.ru_utime), &(debutCPU.ru_utime), &(dureeCPU.ru_utime));
-          timersub(&(finCPU.ru_stime), &(debutCPU.ru_stime), &(dureeCPU.ru_stime));
+          gettimeofday(&fin, NULL );
+          timersub(&(finCPU.ru_utime), &(debutCPU.ru_utime),
+              &(dureeCPU.ru_utime));
+          timersub(&(finCPU.ru_stime), &(debutCPU.ru_stime),
+              &(dureeCPU.ru_stime));
           timersub(&fin, &debut, &duree);
 
           printf("Temps absolu écoulé :          %9ld usec\n", duree.tv_usec);
           printf("Temps CPU (user+sys) écoulé :  %9ld usec\n",
-                  dureeCPU.ru_utime.tv_usec + dureeCPU.ru_stime.tv_usec);
+              dureeCPU.ru_utime.tv_usec + dureeCPU.ru_stime.tv_usec);
 
-          printf("Received STOP of %7d bytes\n\n", msg->header.len);
+          printf("Received LAST (%d messages of %7d bytes)\n\n",
+              *((int*) (msg->payload)), msg->header.len);
           break;
 
         case WRITE_PHASE:
@@ -102,9 +103,8 @@ void *connectionMgt(void *arg){
         }
 
       } else {
-        printf(
-            "\t\t...Received only %d/%lu bytes ",
-            nbRead, msg->header.len - sizeof(len));
+        printf("\t\t...Received only %d/%lu bytes ", nbRead,
+            msg->header.len - sizeof(len));
       }
       free(msg);
     } else if (nbRead > 0) {
