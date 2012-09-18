@@ -112,7 +112,7 @@ int main(int argc, char *argv[]){
 
   /* We wait delay sec */
   if (delay > 0) {
-    printf("%d sec before insertion", delay);
+    printf("%d sec before insertion\n", delay);
     usleep(delay * 1000000);
   }
 
