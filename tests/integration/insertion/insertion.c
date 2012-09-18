@@ -46,9 +46,7 @@
 #include <strings.h>
 #include "trains.h"
 
-int delay;
-int participationDuration;
-int size;
+int size, interval, position, participantNumber;
 
 static bool terminate = false;
 
@@ -75,6 +73,10 @@ void callbackUtoDeliver(address sender, message *mp){
 }
 
 void *timeKeeper(void *null){
+
+  int participationDuration = 2 * (participantNumber - position) * interval
+      + interval;
+
   usleep(participationDuration * 1000000);
   printf("%d seconds have past\nGame Over\n", participationDuration);
   terminate = true;
@@ -91,13 +93,13 @@ int main(int argc, char *argv[]){
   int rankMessage = 0;
   pthread_t timeKeeperThread;
 
-
-  if (argc != 5) {
-    printf("%s wagonMaxLen size delay participationTime\n", argv[0]);
+  if (argc != 6) {
+    printf("%s wagonMaxLen size interval participantNumber position\n", argv[0]);
     printf("\t- wagonMaxLen is the maximum size of wagons\n");
     printf("\t- size is the size of messages (should be more than %lu)\n", sizeof(int));
-    printf("\t- delay is the delay before the insertion of this participant\n");
-    printf("\t- participationDuration is the duration of its participation\n");
+    printf("\t- interval is the time (in seconds) between each event during the experience\n");
+    printf("\t- participantNumber is the number of participant during the experience\n");
+    printf("\t- position is the position of the participant during the experience (first one has position number 1, NOT 0)\n");
     return EXIT_FAILURE;
   }
 
@@ -107,10 +109,11 @@ int main(int argc, char *argv[]){
   if (size < sizeof(int)){
     printf("size should be more than sizeof(int) = %lu", sizeof(int));
   }
-  delay = atoi(argv[3]);
-  participationDuration = atoi(argv[4]);
+  interval = atoi(argv[3]);
+  position = atoi(argv[4]);
 
-  /* We wait delay sec */
+  /* We wait a number of sec between insertion */
+  int delay = (position - 1) * interval;
   if (delay > 0) {
     printf("%d sec before insertion\n", delay);
     usleep(delay * 1000000);
