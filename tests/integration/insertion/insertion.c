@@ -110,7 +110,8 @@ int main(int argc, char *argv[]){
     printf("size should be more than sizeof(int) = %lu", sizeof(int));
   }
   interval = atoi(argv[3]);
-  position = atoi(argv[4]);
+  participantNumber = atoi(argv[4]);
+  position = atoi(argv[5]);
 
   /* We wait a number of sec between insertion */
   int delay = (position - 1) * interval;
