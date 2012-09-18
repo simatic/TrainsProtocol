@@ -152,7 +152,7 @@ int main(int argc, char *argv[]){
         * (dureeCPU.ru_utime.tv_sec + dureeCPU.ru_stime.tv_sec))
         + dureeCPU.ru_utime.tv_usec + dureeCPU.ru_stime.tv_usec);
 
-    printf("Sent %d FAKE_TRAIN messages (%d bytes each = %d bytes total",
+    printf("Sent %d FAKE_TRAIN messages (%d bytes each = %d bytes total\n",
         LOOP_MESSAGE_NUMBER, len, len * LOOP_MESSAGE_NUMBER);
 
     printf("Sent LAST messages (%d bytes)\n", msgTypeToStr(msg->header.typ),
