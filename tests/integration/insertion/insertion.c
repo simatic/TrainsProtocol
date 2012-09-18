@@ -46,10 +46,7 @@
 #include <strings.h>
 #include "trains.h"
 
-#define PAYLOAD_SIZE sizeof(int)
-
-int delay;
-int participationDuration;
+int size, interval, position, participantNumber;
 
 static bool terminate = false;
 
@@ -67,15 +64,19 @@ void callbackCircuitChange(circuitView *cp){
 
 void callbackUtoDeliver(address sender, message *mp){
 
-  if (payloadSize(mp) != PAYLOAD_SIZE) {
+  if (payloadSize(mp) != size) {
     fprintf(stderr,
         "Error in file %s:%d : Payload size is incorrect: it is %lu when it should be %lu\n",
-        __FILE__, __LINE__, payloadSize(mp), PAYLOAD_SIZE);
+        __FILE__, __LINE__, payloadSize(mp), size);
     exit(EXIT_FAILURE);
   }
 }
 
 void *timeKeeper(void *null){
+
+  int participationDuration = 2 * (participantNumber - position) * interval
+      + interval;
+
   usleep(participationDuration * 1000000);
   printf("%d seconds have past\nGame Over\n", participationDuration);
   terminate = true;
@@ -92,22 +93,31 @@ int main(int argc, char *argv[]){
   int rankMessage = 0;
   pthread_t timeKeeperThread;
 
-  if (argc != 3) {
-    printf("%s delay participationTime\n", argv[0]);
-    printf("\t- delay is the delay before the insertion of this participant\n");
-    printf("\t- participationDuration is the duration of its participation\n");
+  if (argc != 6) {
+    printf("%s wagonMaxLen size interval participantNumber position\n", argv[0]);
+    printf("\t- wagonMaxLen is the maximum size of wagons\n");
+    printf("\t- size is the size of messages (should be more than %lu)\n", sizeof(int));
+    printf("\t- interval is the time (in seconds) between each event during the experience\n");
+    printf("\t- participantNumber is the number of participant during the experience\n");
+    printf("\t- position is the position of the participant during the experience (first one has position number 1, NOT 0)\n");
     return EXIT_FAILURE;
   }
 
   // We initialize the different variables which will be used
-  delay = atoi(argv[1]);
-  participationDuration = atoi(argv[2]);
+  wagonMaxLen = atoi(argv[1]);
+  size = atoi(argv[2]);
+  if (size < sizeof(int)){
+    printf("size should be more than sizeof(int) = %lu", sizeof(int));
+  }
+  interval = atoi(argv[3]);
+  participantNumber = atoi(argv[4]);
+  position = atoi(argv[5]);
 
-  // We wait delay sec
-  while (delay > 0) {
-    printf("%d second(s) before insertion\n", delay);
-    usleep(1000000);
-    delay--;
+  /* We wait a number of sec between insertion */
+  int delay = (position - 1) * interval;
+  if (delay > 0) {
+    printf("%d sec before insertion\n", delay);
+    usleep(delay * 1000000);
   }
 
   // We create the timeKeeper thread
@@ -119,15 +129,15 @@ int main(int argc, char *argv[]){
     error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
 
   // We initialize the trains protocol
-  rc = trInit(0, 0, 0, 0, callbackCircuitChange, callbackUtoDeliver);
+  rc = trInit(0, wagonMaxLen, 0, 0, callbackCircuitChange, callbackUtoDeliver);
   if (rc < 0) {
-    trError_at_line(rc, trErrno, __FILE__, __LINE__, "tr_init()");
+    trError_at_line(rc, trErrno, __FILE__, __LINE__, "trInit()");
     return EXIT_FAILURE;
   }
 
   // Process sends messages
   while (!terminate) {
-    message *mp = newmsg(PAYLOAD_SIZE);
+    message *mp = newmsg(size);
     if (mp == NULL ) {
       trError_at_line(rc, trErrno, __FILE__, __LINE__, "newmsg()");
       return EXIT_FAILURE;
