@@ -97,7 +97,7 @@ int main(int argc, char *argv[]){
     assert(msg != NULL);
     msg->header.len = len;
     msg->header.typ = FIRST;
-    printf("\nSending *********** %s *********** message of %d bytes\n",
+    printf("\nSending %s message (%d bytes)\n",
         msgTypeToStr(msg->header.typ), len);
     nbWritten = commWrite(commForConnect, msg, msg->header.len);
     if (nbWritten != len) {
@@ -152,8 +152,11 @@ int main(int argc, char *argv[]){
         * (dureeCPU.ru_utime.tv_sec + dureeCPU.ru_stime.tv_sec))
         + dureeCPU.ru_utime.tv_usec + dureeCPU.ru_stime.tv_usec);
 
-    printf("Sent *********** %s *********** message of %d bytes\n",
-        msgTypeToStr(msg->header.typ), len);
+    printf("Sent %d FAKE_TRAIN messages (%d bytes each = %d bytes total",
+        LOOP_MESSAGE_NUMBER, len, len * LOOP_MESSAGE_NUMBER);
+
+    printf("Sent LAST messages (%d bytes)\n", msgTypeToStr(msg->header.typ),
+        len);
 
     printf(
         "Temps absolu écoulé :          %9ld usec par message (%ld au total)\n",
@@ -161,6 +164,7 @@ int main(int argc, char *argv[]){
     printf(
         "Temps CPU (user+sys) écoulé :  %9ld usec par message (%ld au total)\n",
         usecCPUTime / LOOP_MESSAGE_NUMBER, usecCPUTime);
+    printf("**************************\n");
 
     free(msg);
 
