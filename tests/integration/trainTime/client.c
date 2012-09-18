@@ -158,10 +158,10 @@ int main(int argc, char *argv[]){
     printf("Sent LAST messages (%d bytes)\n", len);
 
     printf(
-        "Temps absolu écoulé :          %9ld usec par message (%ld au total)\n",
+        "Temps absolu écoulé :          %9ld usec par message (%9ld au total)\n",
         usecElapsedTime / LOOP_MESSAGE_NUMBER, usecElapsedTime);
     printf(
-        "Temps CPU (user+sys) écoulé :  %9ld usec par message (%ld au total)\n",
+        "Temps CPU (user+sys) écoulé :  %9ld usec par message (%9ld au total)\n",
         usecCPUTime / LOOP_MESSAGE_NUMBER, usecCPUTime);
     printf("**************************\n");
 
@@ -285,10 +285,10 @@ int main(int argc, char *argv[]){
     printf("Sent LAST messages (%d bytes)\n", len);
 
     printf(
-        "Temps absolu écoulé :          %9ld usec par message (%ld au total)\n",
+        "Temps absolu écoulé :          %9ld usec par message (%9ld au total)\n",
         usecElapsedTime / LOOP_MESSAGE_NUMBER, usecElapsedTime);
     printf(
-        "Temps CPU (user+sys) écoulé :  %9ld usec par message (%ld au total)\n",
+        "Temps CPU (user+sys) écoulé :  %9ld usec par message (%9ld au total)\n",
         usecCPUTime / LOOP_MESSAGE_NUMBER, usecCPUTime);
     printf("**************************\n");
 
