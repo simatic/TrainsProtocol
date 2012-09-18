@@ -28,6 +28,6 @@ typedef char MType;
 #define LAST           3
 #define WRITE_PHASE    4
 #define WRITE_V_PHASE  5
-
+#define STOP           6
 
 char *msgTypeToStr(MType mtype);

@@ -152,11 +152,10 @@ int main(int argc, char *argv[]){
         * (dureeCPU.ru_utime.tv_sec + dureeCPU.ru_stime.tv_sec))
         + dureeCPU.ru_utime.tv_usec + dureeCPU.ru_stime.tv_usec);
 
-    printf("Sent %d FAKE_TRAIN messages (%d bytes each = %d bytes total\n",
+    printf("Sent %d FAKE_TRAIN messages (%d bytes each = %d bytes total)\n",
         LOOP_MESSAGE_NUMBER, len, len * LOOP_MESSAGE_NUMBER);
 
-    printf("Sent LAST messages (%d bytes)\n", msgTypeToStr(msg->header.typ),
-        len);
+    printf("Sent LAST messages (%d bytes)\n", len);
 
     printf(
         "Temps absolu écoulé :          %9ld usec par message (%ld au total)\n",
@@ -194,7 +193,7 @@ int main(int argc, char *argv[]){
 
   usleep(1000000);
 
-  /* ******************  WRITE LOOP   ********************************/
+  /* ******************  WRITEV LOOP   ********************************/
 
   for (i = 0; i < 24; i++) {
 
@@ -203,8 +202,8 @@ int main(int argc, char *argv[]){
     assert(msg != NULL);
     msg->header.len = len;
     msg->header.typ = FIRST;
-    printf("\nSending *********** %s *********** message of %d bytes\n",
-        msgTypeToStr(msg->header.typ), len);
+    printf("\nSending %s message (%d bytes)\n", msgTypeToStr(msg->header.typ),
+        len);
     nbWritten = commWrite(commForConnect, msg, msg->header.len);
     if (nbWritten != len) {
       error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
@@ -242,7 +241,7 @@ int main(int argc, char *argv[]){
       }
     }
 
-    /* ****************************** MESSAGE STOP  *******************/
+    /* ****************************** MESSAGE LAST  *******************/
 
     len = sizeof(messageHeader) + sizeArray[i];
     msg = malloc(len);
@@ -280,8 +279,10 @@ int main(int argc, char *argv[]){
         * (dureeCPU.ru_utime.tv_sec + dureeCPU.ru_stime.tv_sec))
         + dureeCPU.ru_utime.tv_usec + dureeCPU.ru_stime.tv_usec);
 
-    printf("Sent *********** %s *********** message of %d bytes\n",
-        msgTypeToStr(msg->header.typ), len);
+    printf("Sent %d FAKE_TRAIN messages (%d bytes each = %d bytes total)\n",
+        LOOP_MESSAGE_NUMBER, len, len * LOOP_MESSAGE_NUMBER);
+
+    printf("Sent LAST messages (%d bytes)\n", len);
 
     printf(
         "Temps absolu écoulé :          %9ld usec par message (%ld au total)\n",
@@ -289,16 +290,28 @@ int main(int argc, char *argv[]){
     printf(
         "Temps CPU (user+sys) écoulé :  %9ld usec par message (%ld au total)\n",
         usecCPUTime / LOOP_MESSAGE_NUMBER, usecCPUTime);
+    printf("**************************\n");
 
     free(msg);
-
     usleep(1000000);
 
   }
 
   printf(
       "******************** END OF TRANSMISSION *************************\n");
-
+  len = sizeof(messageHeader) + 1;
+  msg = malloc(len);
+  assert(msg != NULL);
+  msg->header.len = len;
+  msg->header.typ = STOP;
+  printf("\nSending %s message (%d bytes)\n", msgTypeToStr(msg->header.typ),
+      len);
+  nbWritten = commWrite(commForConnect, msg, msg->header.len);
+  if (nbWritten != len) {
+    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+        "sent only %d/%d bytes", nbWritten, len);
+  }
+  free(msg);
   usleep(1000000);
   printf("Close connection...\n");
   freeComm(commForConnect);

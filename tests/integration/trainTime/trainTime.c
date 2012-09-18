@@ -38,6 +38,8 @@ char *msgTypeToStr(MType mtype){
     return "WRITE_PHASE";
   case WRITE_V_PHASE:
     return "WRITE_V_PHASE";
+  case STOP:
+    return "STOP";
 
   default:
     sprintf(s, "Unknown (value = %d)", mtype);

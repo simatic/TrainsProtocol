@@ -41,6 +41,8 @@
 #include "trains.h" // To have message typedef
 #include "trainTime.h"
 
+bool terminate;
+
 void *connectionMgt(void *arg){
   trComm *aComm = (trComm*) arg;
   message *msg;
@@ -89,10 +91,10 @@ void *connectionMgt(void *arg){
               msg->header.len);
 
           printf(
-              "Temps absolu écoulé :          %9ld usec par messages (%9ld au total)\n",
+              "Temps absolu écoulé :          %9ld usec par message (%9ld au total)\n",
               usecElapsedTime / nbMessages, usecElapsedTime);
           printf(
-              "Temps CPU (user+sys) écoulé :  %9ld usec par messages (%9ld au total)\n\n",
+              "Temps CPU (user+sys) écoulé :  %9ld usec par message (%9ld au total)\n\n",
               usecCPUTime / nbMessages, usecCPUTime);
 
           break;
@@ -105,6 +107,12 @@ void *connectionMgt(void *arg){
         case WRITE_V_PHASE:
           printf("******************** WRITE_V_PHASE ******************\n"
               "*****************************************************\n");
+          break;
+
+        case STOP:
+          printf("**************** RECEIVED STOP ****************\n");
+          printf("************** END OF EXPERIENCE **************\n");
+          terminate = true;
           break;
 
         default:
@@ -145,6 +153,8 @@ int main(int argc, char *argv[]){
     exit(EXIT_FAILURE);
   }
 
+  terminate = false;
+
   printf("Accepting connections on port %s...\n", argv[1]);
   commForAccept = commNewForAccept(argv[1]);
   if (commForAccept == NULL )
@@ -162,13 +172,16 @@ int main(int argc, char *argv[]){
       if (rc < 0)
         error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
     }
-  } while (aComm != NULL );
+  } while (aComm != NULL && !terminate);
 
   if (errno == EINTR) {
     printf("\t...comm_accept was aborted\n");
     freeComm(commForAccept);
-  } else
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_accept");
+  } else {
+    if (terminate){
+      return EXIT_SUCCESS;
+    }
+    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_accept");}
 
   return EXIT_SUCCESS;
 }
