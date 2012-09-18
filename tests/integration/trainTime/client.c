@@ -42,20 +42,20 @@
 #include "trainTime.h"
 
 #define CONNECT_TIMEOUT 2000 // milliseconds
-#define LONG_MESSAGE "This is a long message: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-#define VERY_LONG_MESSAGE_SIZE 1000000
-#define LOOP_MESSAGE_NUMBER 500
-
+#define LOOP_MESSAGE_NUMBER 1000
 
 int main(int argc, char *argv[]){
   trComm *commForConnect;
   message *msg;
   int len, nbWritten;
-  int sizeArray[] = { 20, 100, 200, 500, 1000, 2000, 5000, 10000, 15000, 20000 };
+  int sizeArray[] = { 20, 100, 200, 500, 1000, 2000, 5000, 10000, 15000, 20000,
+      30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 110000, 120000,
+      130000, 140000, 150000, 160000 };
   int i, j;
   struct timeval debut, fin, duree;
   struct rusage debutCPU, finCPU, dureeCPU;
   struct iovec iov[3];
+  long usecElapsedTime, usecCPUTime;
 
   if (argc != 3) {
     fprintf(stderr, "USAGE = %s hostname port\n", argv[0]);
@@ -90,7 +90,7 @@ int main(int argc, char *argv[]){
 
   /* ******************  WRITE LOOP   ********************************/
 
-  for (i = 0; i < 10; i++) {
+  for (i = 0; i < 24; i++) {
 
     len = sizeof(messageHeader) + 1;
     msg = malloc(len);
@@ -147,12 +147,20 @@ int main(int argc, char *argv[]){
     timersub(&(finCPU.ru_stime), &(debutCPU.ru_stime), &(dureeCPU.ru_stime));
     timersub(&fin, &debut, &duree);
 
-    printf("Temps absolu écoulé :          %9ld usec\n", duree.tv_usec);
-    printf("Temps CPU (user+sys) écoulé :  %9ld usec\n",
-        dureeCPU.ru_utime.tv_usec + dureeCPU.ru_stime.tv_usec);
+    usecElapsedTime = (1000000 * duree.tv_sec + duree.tv_usec);
+    usecCPUTime = ((1000000
+        * (dureeCPU.ru_utime.tv_sec + dureeCPU.ru_stime.tv_sec))
+        + dureeCPU.ru_utime.tv_usec + dureeCPU.ru_stime.tv_usec);
 
     printf("Sent *********** %s *********** message of %d bytes\n",
         msgTypeToStr(msg->header.typ), len);
+
+    printf(
+        "Temps absolu écoulé :          %9ld usec par message (%ld au total)\n",
+        usecElapsedTime / LOOP_MESSAGE_NUMBER, usecElapsedTime);
+    printf(
+        "Temps CPU (user+sys) écoulé :  %9ld usec par message (%ld au total)\n",
+        usecCPUTime / LOOP_MESSAGE_NUMBER, usecCPUTime);
 
     free(msg);
 
@@ -184,7 +192,7 @@ int main(int argc, char *argv[]){
 
   /* ******************  WRITE LOOP   ********************************/
 
-  for (i = 0; i < 10; i++) {
+  for (i = 0; i < 24; i++) {
 
     len = sizeof(messageHeader) + 1;
     msg = malloc(len);
@@ -263,12 +271,20 @@ int main(int argc, char *argv[]){
     timersub(&(finCPU.ru_stime), &(debutCPU.ru_stime), &(dureeCPU.ru_stime));
     timersub(&fin, &debut, &duree);
 
-    printf("Temps absolu écoulé :          %9ld usec\n", duree.tv_usec);
-    printf("Temps CPU (user+sys) écoulé :  %9ld usec\n",
-            dureeCPU.ru_utime.tv_usec + dureeCPU.ru_stime.tv_usec);
+    usecElapsedTime = (1000000 * duree.tv_sec + duree.tv_usec);
+    usecCPUTime = ((1000000
+        * (dureeCPU.ru_utime.tv_sec + dureeCPU.ru_stime.tv_sec))
+        + dureeCPU.ru_utime.tv_usec + dureeCPU.ru_stime.tv_usec);
 
     printf("Sent *********** %s *********** message of %d bytes\n",
         msgTypeToStr(msg->header.typ), len);
+
+    printf(
+        "Temps absolu écoulé :          %9ld usec par message (%ld au total)\n",
+        usecElapsedTime / LOOP_MESSAGE_NUMBER, usecElapsedTime);
+    printf(
+        "Temps CPU (user+sys) écoulé :  %9ld usec par message (%ld au total)\n",
+        usecCPUTime / LOOP_MESSAGE_NUMBER, usecCPUTime);
 
     free(msg);
 
@@ -276,8 +292,8 @@ int main(int argc, char *argv[]){
 
   }
 
-
-  printf("******************** END OF TRANSMISSION *************************\n");
+  printf(
+      "******************** END OF TRANSMISSION *************************\n");
 
   usleep(1000000);
   printf("Close connection...\n");

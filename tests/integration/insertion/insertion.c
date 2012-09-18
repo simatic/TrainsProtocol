@@ -46,10 +46,9 @@
 #include <strings.h>
 #include "trains.h"
 
-#define PAYLOAD_SIZE sizeof(int)
-
 int delay;
 int participationDuration;
+int size;
 
 static bool terminate = false;
 
@@ -67,10 +66,10 @@ void callbackCircuitChange(circuitView *cp){
 
 void callbackUtoDeliver(address sender, message *mp){
 
-  if (payloadSize(mp) != PAYLOAD_SIZE) {
+  if (payloadSize(mp) != size) {
     fprintf(stderr,
         "Error in file %s:%d : Payload size is incorrect: it is %lu when it should be %lu\n",
-        __FILE__, __LINE__, payloadSize(mp), PAYLOAD_SIZE);
+        __FILE__, __LINE__, payloadSize(mp), size);
     exit(EXIT_FAILURE);
   }
 }
@@ -92,22 +91,29 @@ int main(int argc, char *argv[]){
   int rankMessage = 0;
   pthread_t timeKeeperThread;
 
-  if (argc != 3) {
-    printf("%s delay participationTime\n", argv[0]);
+
+  if (argc != 5) {
+    printf("%s wagonMaxLen size delay participationTime\n", argv[0]);
+    printf("\t- wagonMaxLen is the maximum size of wagons\n");
+    printf("\t- size is the size of messages (should be more than %lu)\n", sizeof(int));
     printf("\t- delay is the delay before the insertion of this participant\n");
     printf("\t- participationDuration is the duration of its participation\n");
     return EXIT_FAILURE;
   }
 
   // We initialize the different variables which will be used
-  delay = atoi(argv[1]);
-  participationDuration = atoi(argv[2]);
+  wagonMaxLen = atoi(argv[1]);
+  size = atoi(argv[2]);
+  if (size < sizeof(int)){
+    printf("size should be more than sizeof(int) = %lu", sizeof(int));
+  }
+  delay = atoi(argv[3]);
+  participationDuration = atoi(argv[4]);
 
-  // We wait delay sec
-  while (delay > 0) {
-    printf("%d second(s) before insertion\n", delay);
-    usleep(1000000);
-    delay--;
+  /* We wait delay sec */
+  if (delay > 0) {
+    printf("%d sec before insertion", delay);
+    usleep(delay * 1000000);
   }
 
   // We create the timeKeeper thread
@@ -127,7 +133,7 @@ int main(int argc, char *argv[]){
 
   // Process sends messages
   while (!terminate) {
-    message *mp = newmsg(PAYLOAD_SIZE);
+    message *mp = newmsg(size);
     if (mp == NULL ) {
       trError_at_line(rc, trErrno, __FILE__, __LINE__, "newmsg()");
       return EXIT_FAILURE;

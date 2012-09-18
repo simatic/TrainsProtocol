@@ -44,9 +44,10 @@
 void *connectionMgt(void *arg){
   trComm *aComm = (trComm*) arg;
   message *msg;
-  int nbRead;
+  int nbRead, nbMessages;
   struct timeval debut, fin, duree;
   struct rusage debutCPU, finCPU, dureeCPU;
+  long usecElapsedTime, usecCPUTime;
 
   printf("\tNew connection\n");
   do {
@@ -78,12 +79,22 @@ void *connectionMgt(void *arg){
               &(dureeCPU.ru_stime));
           timersub(&fin, &debut, &duree);
 
-          printf("Temps absolu écoulé :          %9ld usec\n", duree.tv_usec);
-          printf("Temps CPU (user+sys) écoulé :  %9ld usec\n",
-              dureeCPU.ru_utime.tv_usec + dureeCPU.ru_stime.tv_usec);
+          nbMessages = *((int*) (msg->payload));
+          usecElapsedTime = (1000000 * duree.tv_sec + duree.tv_usec);
+          usecCPUTime = (1000000
+              * (dureeCPU.ru_utime.tv_sec + dureeCPU.ru_stime.tv_sec)
+              + (dureeCPU.ru_utime.tv_usec + dureeCPU.ru_stime.tv_usec));
 
-          printf("Received LAST (%d messages of %7d bytes)\n\n",
-              *((int*) (msg->payload)), msg->header.len);
+          printf("Received LAST (of %d messages of %7d bytes)\n", nbMessages,
+              msg->header.len);
+
+          printf(
+              "Temps absolu écoulé :          %9ld usec par messages (%9ld au total)\n",
+              usecElapsedTime / nbMessages, usecElapsedTime);
+          printf(
+              "Temps CPU (user+sys) écoulé :  %9ld usec par messages (%9ld au total)\n\n",
+              usecCPUTime / nbMessages, usecCPUTime);
+
           break;
 
         case WRITE_PHASE:
