@@ -46,7 +46,7 @@
 #include <strings.h>
 #include "trains.h"
 
-int size, interval, position, participantNumber;
+int size, interval, position, participantNumber, trainsNumber;
 
 static bool terminate = false;
 
@@ -93,12 +93,13 @@ int main(int argc, char *argv[]){
   int rankMessage = 0;
   pthread_t timeKeeperThread;
 
-  if (argc != 6) {
-    printf("%s wagonMaxLen size interval participantNumber position\n", argv[0]);
+  if (argc != 7) {
+    printf("%s wagonMaxLen size interval participantNumber trainsNumber position\n", argv[0]);
     printf("\t- wagonMaxLen is the maximum size of wagons\n");
     printf("\t- size is the size of messages (should be more than %lu)\n", sizeof(int));
     printf("\t- interval is the time (in seconds) between each event during the experience\n");
     printf("\t- participantNumber is the number of participant during the experience\n");
+    printf("\t- trainsNumber is the number of trains during the experience\n");
     printf("\t- position is the position of the participant during the experience (first one has position number 1, NOT 0)\n");
     return EXIT_FAILURE;
   }
@@ -111,7 +112,8 @@ int main(int argc, char *argv[]){
   }
   interval = atoi(argv[3]);
   participantNumber = atoi(argv[4]);
-  position = atoi(argv[5]);
+  trainsNumber = atoi(argv[5]);
+  position = atoi(argv[6]);
 
   /* We wait a number of sec between insertion */
   int delay = (position - 1) * interval;
@@ -129,7 +131,7 @@ int main(int argc, char *argv[]){
     error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
 
   // We initialize the trains protocol
-  rc = trInit(0, wagonMaxLen, 0, 0, callbackCircuitChange, callbackUtoDeliver);
+  rc = trInit(trainsNumber, wagonMaxLen, 0, 0, callbackCircuitChange, callbackUtoDeliver);
   if (rc < 0) {
     trError_at_line(rc, trErrno, __FILE__, __LINE__, "trInit()");
     return EXIT_FAILURE;
