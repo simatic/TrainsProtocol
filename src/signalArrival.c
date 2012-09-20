@@ -47,7 +47,7 @@ static void signalArrivalDepartures(char typ, address ad, addressSet circuit){
   // We must send a msg even if the wagon is full. Thus, if there is not enough
   // space in the wagon, we realloc it.
   if ((wagonMaxLen - wagonToSend->p_wagon->header.len)
-      < sizeof(payloadArrivalDeparture)) {
+      < (int) sizeof(payloadArrivalDeparture)) {
     int newWomimLen = sizeof(prefix) + wagonToSend->p_wagon->header.len
         + sizeof(messageHeader) + sizeof(payloadArrivalDeparture);
     wagonToSend->p_womim = realloc(wagonToSend->p_womim, newWomimLen);
