@@ -442,6 +442,7 @@ void stateMachine(womim* p_womim){
         floatInsertionDuration = ((double) insertionDuration.tv_sec) * 1000
             + ((double) insertionDuration.tv_usec) / 1000;
         printf("My insertion duration : %.3lfms\n", floatInsertionDuration);
+        printf("number of times automaton has been in state WAIT ; %llu\n", counters.wait_states);
 #endif /* INSERTION_TEST */
         lis = p_womim->msg.body.train.stamp.id;
         signalArrival(myAddress, lts[lis].circuit);
