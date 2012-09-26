@@ -24,7 +24,7 @@
 /*
  Program for doing  insert duration tests
  Syntax:
- insert delay participationTime
+ insert wagonMaxLen size interval participantNumber trainsNumber position
  Where :
  - delay is the delay before the insertion of this participant
  - participationDuration is the duration of its participation
