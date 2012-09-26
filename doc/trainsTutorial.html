@@ -1,0 +1,261 @@
+<html>
+  <head>
+    <title>Trains Protocol middleware interface tutorial</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <link rel="stylesheet" type="text/css" href="trainsTutorial.css"/>
+  </head>
+
+  <body id="top">
+    
+    <h1>Trains Protocol middleware interface tutorial</h1>
+    <h2>Table of contents</h2>
+
+    <ol>
+      <li><a href="#addr_file">Managing the addr_file</a></li>
+      <li><a href="#initialization">Initialization</a></li>
+      <li><a href="#sendMessage">Sending messages</a></li>
+      <li><a href="#utoDeliver">Receiving messages</a></li>
+      <li><a href="#circuitChange">Using the CallbackCircuitChange</a></li>
+    </ol>
+    <hr/>
+    
+    <h2 id="introduction">Introduction</h2>
+    <p>This tutorial explains how an application can use the interface of the trains (protocol) middleware. Using the interface, the application will take advantage of the uniform and totally-ordered broadcast capabilities of the middleware.</p>
+
+    <h2 id="addr_file">Managing the addr_file</h2>
+    <p> A file named <b>addr_file</b> must be located in the same directory than your binary. This file is used by the protocol to record the potential participants.</p>
+    <p>To add one participant, you should respect the <b>rank:hostname:port</b> syntax on each line of <b>addr_file</b>. The rank is a number between 0 and 15. Each rank must be unique, and each hostname:port pair should be unique too. Thus, the protocol cannot handle more than 16 participants.</p>
+
+    <p>You can add comments beginning the line with '#'. Empty lines are allowed too.</p>
+    <p>Before launching the application, be sure that the <b>TRAINS_PORT</b> environment variable has been set to the value you want to use as your port in the addr_file (e. g. with <tt>export TRAINS_PORT=1234</tt>, as in the examples below).</p>
+
+    <p>Here are some examples of addr_file :</p>
+
+    <pre class="codeblock">
+      <span class="title_ex">Example 1: comments on separate lines</span>
+
+# Me
+0:myHostname:1234
+
+# MyFriend
+1:hisHostname:4321
+
+# Another Friend
+2:herHostname.company.eu:3421
+    </pre>
+
+    <pre class="codeblock">
+      <span class="title_ex">Example 2: comments at the end of lines</span>
+
+0:myHostname:1234              #Me
+1:hisHostname:4321             #MyFriend
+2:herHostname.company.eu:3421  #My Other Friend
+    </pre>
+
+    Note that you can just write "localhost" for the participant on your machine. It will be replaced by your complete hostname at execution.
+
+    <pre class="codeblock">
+      <span class="title_ex">Example 3: using localhost</span>
+
+0:localhost:1234  #Me
+1:aHostname:9876  #The other guy
+    </pre>
+
+
+    <h2 id="initialization">Initialization</h2>
+    <p>You should include <tt>"trains.h"</tt> when using the Trains Protocol.</p>
+    <p>Before using the Trains Protocol, you must call the <b>trInit</b> function with a number of arguments to initialize the library.</p>
+    
+    <pre class="codeblock">
+      <span class="title_ex">trInit prototype :</span>
+
+<span class="type">int</span> <span class="function">trInit</span><span class="operator">(</span>
+  <span class="type">int</span> trainsNumber<span class="operator">,</span>                            <span class="comment">/* The number of trains on the circuit (default 1)  */</span>
+  <span class="type">int</span> wagonLength<span class="operator">,</span>                             <span class="comment">/* The wagons length during the execution (default 32KB) */</span>
+  <span class="type">int</span> waitNb<span class="operator">,</span>                                  <span class="comment">/* The max number of waits (default 10)  */</span>
+  <span class="type">int</span> waitTime<span class="operator">,</span>                                <span class="comment">/* The default time to wait, in microsec (default 2)  */</span>
+  <span class="typedef">CallbackCircuitChange</span> callbackCircuitChange<span class="operator">,</span> <span class="comment">/* The function to call when the circuit change  */</span>
+  <span class="typedef">CallbackUtoDeliver</span> callbackUtoDeliver        <span class="comment">/* The function to call upon receiving a message */</span>
+<span class="operator">);</span>
+      </pre>
+    </p>
+    <p>You can call <b>trInit</b> with some arguments to 0 if you want to let the corresponding arguments to default values.</p>
+    
+    <pre class="codeblock">
+      <span class="title_ex">Example : initialization with 6 trains and 16KB wagons, with default waitNb and waitTime.</span>
+
+<span class="preprocessor">#include</span> <span class="header">"trains.h"</span>
+
+<span class="type">void</span> <span class="function">myCallbackCircuitChange</span><span class="operator">(</span><span class="typedef">circuitView</span><span class="operator"> *</span>cp<span class="operator">){</span>
+
+<span class="comment">/* Your function to call when the circuit changes */</span><span class="operator">
+
+}</span>
+
+<span class="type">void</span> <span class="function">myCallbackUtoDeliver</span><span class="operator">(</span><span class="typedef">address</span> sender<span class="operator">,</span> <span class="typedef">message</span><span class="operator"> *</span>mp<span class="operator">){</span>
+
+<span class="comment">/* Your function to call upon receiving a message */</span>
+
+<span class="operator">}</span>
+
+<span class="type">int</span><span class="function"> main</span><span class="operator"> (</span><span class="type">int</span> argc<span class="operator">,</span><span class="type"> char</span><span class="operator"> **</span> argv<span class="operator">){</span>
+
+  <span class="type">int</span> rc<span class="operator">;</span>
+
+  rc = trInit<span class="operator">(</span>6                         <span class="comment">/* 6 trains */</span><span class="operator">,</span>
+              16384                     <span class="comment">/* Size of wagons : 16KB */</span><span class="operator">,</span>
+              0                         <span class="comment">/* Let waitNb at its default value (10) */</span><span class="operator">,</span>
+              0                         <span class="comment">/* Let waitTime at its default value (2 microsec) */</span><span class="operator">,</span>
+              myCallbackCircuitChange   <span class="comment">/* Each time the circuit changes, myCallbackCircuitChange will be called */</span><span class="operator">,</span>
+              myCallbackUtoDeliver      <span class="comment">/* Upon delivering a message, myCallbackUtoDeliver will be called */</span><span class="operator">);</span>
+
+  <span class="flow">if</span><span class="operator"> (</span>rc<span class="operator"> &lt;</span> 0<span class="operator">) {</span>
+    trError_at_line<span class="operator">(</span>rc<span class="operator">,</span> trErrno<span class="operator">,</span> __FILE__<span class="operator">,</span> __LINE__<span class="operator">,</span><span class="string"> "An error occurred in trInit\n"</span><span class="operator">);</span>
+    <span class="external">exit</span><span class="operator">(</span>EXIT_FAILURE<span class="operator">);
+  }</span>
+
+  ...
+  ...
+  ...
+
+}</span>
+</pre>
+
+<h2 id="sendMessage">Sending messages</h2>
+    
+<p>Sending a message in the Trains Protocol requires 3 steps :
+  <ol>
+    <li>Messages in the Trains Protocol are created with <b>newmsg()</b>, where the size of the message must be specified.</li>
+    <li>Then, fill the message with whatever payload you need, respecting the maximum size of the message given in newmsg() (see details below).</li>
+    <li>The message can now be sent using the <b>utoBroadcast()</b> function.</li>
+  </ol>
+</p>
+
+<pre class="codeblock">
+  <span class="title_ex">Message structure detail</span>
+
+<span class="keyword">typedef struct</span> message<span class="operator">{</span>
+  <span class="typedef">messageHeader</span> <span class="field">header</span><span class="operator">;</span><span class="comment">              /* <b>RESERVED FOR INTERNAL USE</b> */</span>
+  <span class="type">char</span>          <span class="field">payload</span><span class="operator">[];</span><span class="comment">           /* Payload (i.e. contents) of the message */</span><span class="operator">
+}</span> <span class="keyword">__attribute__</span><span class="operator">((</span>packed<span class="operator">))</span> <span class="typedef">message</span><span class="operator">;</span>
+</pre>
+
+<p>The message payload is an array of char. Just cast it into whatever type or structure you need.</p>
+
+<pre class="codeblock">    
+  <span class="title_ex">Sending a message with a simple payload (an int, here 7)</span>
+
+<span class="type">int</span> rc<span class="operator">;</span>
+<span class="type">int</span> myPayload <span class="operator">=</span><span class="int"> 7</span><span class="operator">;</span>
+<span class="typedef">message</span><span class="operator"> *</span>mp<span class="operator"> =</span> NULL<span class="operator">;</span>
+
+<span class="comment">/* Creating the message */</span>
+mp<span class="operator"> =</span> newmsg<span class="operator">(</span><span class="keyword">sizeof</span><span class="operator">(</span>myPayload<span class="operator">)</span><span class="operator">);</span>
+<span class="flow">if</span><span class="operator"> (</span>mp<span class="operator"> ==</span> NULL<span class="operator"> ) {</span>
+  trError_at_line<span class="operator">(</span>rc<span class="operator">,</span> trErrno<span class="operator">,</span> __FILE__<span class="operator">,</span> __LINE__<span class="operator">,</span><span class="string"> "An error occurred in newmsg()"</span><span class="operator">);</span>
+  <span class="external">exit</span><span class="operator">(</span>EXIT_FAILURE<span class="operator">);
+}</span>
+
+<span class="comment">/* Filling the message */</span>
+<span class="operator">*((</span><span class="type">int</span><span class="operator">*) (</span>mp-><span class="field">payload</span><span class="operator">))</span> <span class="operator">=</span> myPayload<span class="operator">;</span>
+
+<span class="comment">/* Sending the message */</span>
+<span class="flow">if</span><span class="operator"> ( (</span>rc<span class="operator"> =</span> utoBroadcast<span class="operator">(</span>mp<span class="operator">)) &lt;</span> <span class="int">0</span><span class="operator">) {</span>
+  trError_at_line<span class="operator">(</span>rc<span class="operator">,</span> trErrno<span class="operator">,</span> __FILE__<span class="operator">,</span> __LINE__<span class="operator">,</span><span class="string"> "An error occurred in utoBroadcast()"</span><span class="operator">);</span>
+  <span class="external">exit</span><span class="operator">(</span>EXIT_FAILURE<span class="operator">);
+}</span>
+
+...
+...
+...
+</pre>
+
+NB : To fill your messages properly (i. e. to cast the data the right way), you can either do it whenever manually you have to, make your own function (e. g. a function that would create the message and do the cast for you). Or you can use other technics like <a href="http://www.json.org/">JSON</a>.
+
+<h2 id="utoDeliver">Receiving messages</h2>
+
+<p>Upon receiving a message, the trains middleware automatically calls the function previously specified as callbackUtoDeliver parameter in <b>trInit()</b>.</p>
+<p>To access a message content, use the <tt>payload</tt> field of the message. Following the <a href="#sendMessage">Sending messages section</a> example, if the payload is an int, you can access it by casting the payload into an <tt>int</tt>.</p> 
+
+<pre class="codeblock">
+  <span class="title_ex">Example : printing the message sender and the content upon receiving a message</span>
+ 
+<span class="type">void</span> <span class="function">myCallbackUtoDeliver</span><span class="operator">(</span><span class="typedef">address</span> sender<span class="operator">,</span> <span class="typedef">message</span><span class="operator"> *</span>mp<span class="operator">){</span>
+
+  <span class="type">int</span> theContent <span class="operator">=</span> <span class="operator">*((</span><span class="type">int</span><span class="operator">*) (</span>mp-><span class="field">payload</span><span class="operator">));</span>
+
+  <span class="external">printf</span><span class="operator">(</span><span class="string">"I received a message from %s\n"</span><span class="operator">,</span> addrToHostname<span class="operator">(</span>sender<span class="operator">));</span>
+  <span class="external">printf</span><span class="operator">(</span><span class="string">"The content size is : %d\n"</span><span class="operator">,</span> payloadSize(mp)<span class="operator">);</span>
+  <span class="external">printf</span><span class="operator">(</span><span class="string">"The content is : %d\n"</span><span class="operator">,</span> theContent<span class="operator">);</span>
+
+  <span class="comment">/* Any other treatment */</span>
+
+<span class="operator">}</span> 
+</pre>
+
+<p><b>NB : Be sure to initialize trInit with this function !</b></p>
+
+<h2 id="circuitChange">Using the CallbackCircuitChange</h2>
+
+Whenever the trains middleware detects a participant arrival or departure in the trains protocol, the function set in trInit as the callbackCircuitChange is called with a circuitView* argument. A circuitView is a structure providing the circuit state.
+
+<pre class="codeblock">
+  <span class="title_ex">circuitView structure detail</span>
+
+<span class="keyword">typedef struct</span> <span class="operator">{</span>
+  <span class="type">short</span>       <span class="field">cv_nmemb</span><span class="operator">;</span>              <span class="comment">/* Number of members */</span>
+  <span class="typedef">address</span>     <span class="field">cv_members</span><span class="operator">[</span>MAX_MEMB<span class="operator">]</span></span><span class="operator">;</span>  <span class="comment">/* List of members */</span>
+  <span class="typedef">address</span>     <span class="field">cv_joined</span><span class="operator">;</span>             <span class="comment">/* New member, if any */</span>
+  <span class="typedef">address</span>     <span class="field">cv_departed</span><span class="operator">;</span>           <span class="comment">/* Departed member, if any */</span>
+<span class="operator">}</span> <span class="typedef">circuitView</span><span class="operator">;</span>
+</pre>
+
+<ul>
+  <li><tt>cv_nmemb</tt> is the number of participants when the function is called.</li>
+  <li><tt>cv_members</tt> is an array whose cells contains the addresses of the participants.</li>
+  <li><tt>cv_joined</tt> is the address of the participant that just joined the protocol. If callbackCircuitChange was called because of a departure, it contains a null address.</li>
+  <li><tt>cv_departed</tt> is the address of the participant that just left the protocol. If callbackCircuitChange was called because of an arrival, it contains a null address.</li>
+</ul>
+<b><u>Example</u> :</b><br/>The addr_file contains 16 participants (rank 0 to 15), the rank 5  participant is connected and rank 8 joins. The trains middleware detects this arrival and calls the callbackCircuitChange.<br/>
+<ul>
+  <li><tt>cv_nmemb</tt> = 2.</li>
+  <li><tt>cv_members[0]</tt> contains the address of the rank 5 participant.</li>
+  <li><tt>cv_members[1]</tt> contains the address of the rank 8 participant.</li>
+  <li>The other cells are empty.</li>
+  <li><tt>cv_joined</tt> contains the address of the rank 8 participant.</li>
+  <li><tt>cv_departed</tt> contains a null address.</li>
+</ul>
+
+
+<p>The following example shows how to print the circuit modifications whenever a participant either join or leave the circuit.</p>
+
+<pre class="codeblock">
+  <span class="title_ex">Example : printing the circuit modifications</span>
+ 
+<span class="type">void</span> <span class="function">myCallbackCircuitChange</span><span class="operator">(</span><span class="typedef">circuitView</span> <span class="operator">*</span>cv<span class="operator">){</span>
+
+  <span class="comment">/* Printing the new/departed participant */</span>
+  <span class="flow">if</span> <span class="operator">(!</span>addrIsNull<span class="operator">(</span>cp<span class="operator">-&gt;</span>cv_joined<span class="operator">)) {</span>
+    <span class="external">printf</span><span class="operator">(</span><span class="string">"%s has arrived\n"</span><span class="operator">,</span> addrToHostname<span class="operator">(</span>cp<span class="operator">-&gt;</span><span class="field">cv_joined</span><span class="operator">));
+  }</span> <span class="flow">else</span> <span class="operator">{</span>
+    <span class="external">printf</span><span class="operator">(</span><span class="string">"%s is gone\n"</span><span class="operator">,</span> addrToHostname<span class="operator">(</span>cp<span class="operator">-&gt;</span><span class="field">cv_departed</span><span class="operator">));
+  }</span>
+
+  <span class="comment">/* Printing the current number of members */</span>
+  <span class="external">printf</span><span class="operator">(</span><span class="string">"Currently %hd members in the circuit\n"</span><span class="operator">,</span> cp<span class="operator">-&gt;</span><span class="field">cv_nmemb</span><span class="operator">));
+
+  <span class="comment">/* Printing your rank among the participants */</span>
+  <span class="type">int</span> myRank<span class="operator">;</span>
+  <span class="flow">for</span><span class="operator"> (</span>rank<span class="operator"> =</span><span class="int"> 0</span><span class="operator">; !</span>addrIsMine<span class="operator">(</span>cv<span class="operator">-&gt;</span><span class="field">cv_members</span><span class="operator">[</span>rank<span class="operator">]);</span> rank<span class="operator">++);</span>
+  <span class="external">printf</span><span class="operator">(</span><span class="string">"My rank is %d\n"</span><span class="operator">,</span> myRank<span class="operator">);</span>
+
+  <span class="comment">/* Any other treatment */</span>
+
+<span class="operator">}</span> 
+</pre>
+
+<p><b>NB :</b> Your rank among the participants may change whenever callbackCircuitChange is called.</p>
+
+<a href="#top">Return to top</a>
+  </body>
+</html>

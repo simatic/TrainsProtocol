@@ -1,0 +1,36 @@
+
+h1 { color: #006417 }
+li { margin-bottom: 0.5em }
+.comment { color: #3F7F5F; font-style: italic; }
+.preprocessor { color: #7F0055; font-weight: bold; }
+.header { color: #2A00FF; }
+.external { color: #642880; font-weight:bold; }
+.field { color: #0000C0; }
+.string { color: #2A00FF; }
+.char { color: #009900; }
+.float { color: #996600; }
+.int { color: #000000; }
+.bool { color: #000000; font-weight: bold; }
+.type { color: #7F0055; font-weight: bold;}
+.typedef { color: #005032; }
+.function { color:#000000; font-weight: bold; }
+.flow { color: #7F0055; font-weight: bold; }
+.keyword { color: #7F0055; font-weight: bold; }
+.operator { color: #000000; }
+
+.codeblock {
+    text-align: justify;
+    padding: 12px;
+    font-size: 10pt;
+    border: 1px solid rgb(170, 170, 170);
+    background: #F6F8FC;
+    border-radius: 5px;
+    overflow:auto;
+    /*white-space:nowrap; */
+}
+
+.title_ex {
+    width:100%;
+    font-weight: bold;
+    border-bottom:1px solid rgb(170, 170, 170);
+}
