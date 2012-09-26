@@ -3,6 +3,14 @@ SUBDIRS = $(dir $(wildcard */makefile) $(wildcard */*/makefile) $(wildcard */*/*
 
 .PHONY: all clean ${SUBDIRS}
 
+usage:
+	@echo POSSIBLE TARGETS :
+	@echo all 
+	@echo tests
+	@echo doxygen
+	@echo clean
+	@echo cleandoxygen
+
 all: WHATTODO=all
 all: ${SUBDIRS}
 
@@ -14,11 +22,11 @@ clean: ${SUBDIRS}
 	for i in '*'~ '*'.bak '*'.tmp; do find . -iname $$i -exec rm -f '{}' \+; done
 	rm -f *~ *.bak *.tmp
 
-doc:
+doxygen:
 	doxygen doxy.conf
 
-cleandoc:
-	rm -rf html latex
+cleandoxygen:
+	rm -rf documentation/doxygen
 
 ${SUBDIRS}:
 	${MAKE} -C $@ ${WHATTODO}

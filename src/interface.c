@@ -35,11 +35,17 @@
 sem_t sem_init_done;
 
 int trErrno;
+
 /**
- * @brief Function called to initialize the protocol
- * @param[in] callbackCircuitChange function to call upon circuitChange
- * @param[in] callbackUtoDeliver function to call upon application message receive
- * @return 0 on success, error_at_line otherwise
+ * @brief Initialization of trains protocol middleware
+
+ * @param[in] trainsNumber The number of trains on the circuit
+ * @param[in] wagonLength The length of the wagons in the trains
+ * @param[in] waitNb The number of time to wait
+ * @param[in] waitTime The time to wait (in microsecond)
+ * @param[in] callbackCircuitChange Function to be called when there is a circuit changed (Arrival or departure of a process)
+ * @param[in] callbackUtoDeliver    Function to be called when a message can be uto-delivered by trains protocol
+ * @return 0 upon successful completion, or -1 if an error occurred (in which case, @a trErrno is set appropriately)
  */
 int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime,
     CallbackCircuitChange callbackCircuitChange,

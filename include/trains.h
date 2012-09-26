@@ -96,8 +96,10 @@ void trError_at_line(int status, int errnum, const char *filename, unsigned int 
 
 /**
  * @brief Initialization of trains protocol middleware
+
  * @param[in] trainsNumber The number of trains on the circuit
  * @param[in] wagonLength The length of the wagons in the trains
+ * @param[in] waitNb The number of time to wait
  * @param[in] waitTime The time to wait (in microsecond)
  * @param[in] callbackCircuitChange Function to be called when there is a circuit changed (Arrival or departure of a process)
  * @param[in] callbackUtoDeliver    Function to be called when a message can be uto-delivered by trains protocol
