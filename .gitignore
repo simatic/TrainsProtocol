@@ -4,6 +4,7 @@
 *.o
 depend
 html
+doc
 # All that is generated
 libtrains.so
 testAddress

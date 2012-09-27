@@ -78,7 +78,7 @@
   <span class="typedef">CallbackUtoDeliver</span> callbackUtoDeliver        <span class="comment">/* The function to call upon receiving a message */</span>
 <span class="operator">);</span>
       </pre>
-    </p>
+
     <p>You can call <b>trInit</b> with some arguments to 0 if you want to let the corresponding arguments to default values.</p>
     
     <pre class="codeblock">
@@ -118,7 +118,7 @@
   ...
   ...
 
-}</span>
+<span class="operator">}</span>
 </pre>
 
 <h2 id="sendMessage">Sending messages</h2>
@@ -129,7 +129,7 @@
     <li>Then, fill the message with whatever payload you need, respecting the maximum size of the message given in newmsg() (see details below).</li>
     <li>The message can now be sent using the <b>utoBroadcast()</b> function.</li>
   </ol>
-</p>
+
 
 <pre class="codeblock">
   <span class="title_ex">Message structure detail</span>
@@ -157,7 +157,7 @@ mp<span class="operator"> =</span> newmsg<span class="operator">(</span><span cl
 }</span>
 
 <span class="comment">/* Filling the message */</span>
-<span class="operator">*((</span><span class="type">int</span><span class="operator">*) (</span>mp-><span class="field">payload</span><span class="operator">))</span> <span class="operator">=</span> myPayload<span class="operator">;</span>
+<span class="operator">*((</span><span class="type">int</span><span class="operator">*) (</span>mp-&gt<span class="field">payload</span><span class="operator">))</span> <span class="operator">=</span> myPayload<span class="operator">;</span>
 
 <span class="comment">/* Sending the message */</span>
 <span class="flow">if</span><span class="operator"> ( (</span>rc<span class="operator"> =</span> utoBroadcast<span class="operator">(</span>mp<span class="operator">)) &lt;</span> <span class="int">0</span><span class="operator">) {</span>
@@ -204,7 +204,7 @@ Whenever the trains middleware detects a participant arrival or departure in the
 
 <span class="keyword">typedef struct</span> <span class="operator">{</span>
   <span class="type">short</span>       <span class="field">cv_nmemb</span><span class="operator">;</span>              <span class="comment">/* Number of members */</span>
-  <span class="typedef">address</span>     <span class="field">cv_members</span><span class="operator">[</span>MAX_MEMB<span class="operator">]</span></span><span class="operator">;</span>  <span class="comment">/* List of members */</span>
+  <span class="typedef">address</span>     <span class="field">cv_members</span><span class="operator">[</span>MAX_MEMB<span class="operator">]</span><span class="operator">;</span>  <span class="comment">/* List of members */</span>
   <span class="typedef">address</span>     <span class="field">cv_joined</span><span class="operator">;</span>             <span class="comment">/* New member, if any */</span>
   <span class="typedef">address</span>     <span class="field">cv_departed</span><span class="operator">;</span>           <span class="comment">/* Departed member, if any */</span>
 <span class="operator">}</span> <span class="typedef">circuitView</span><span class="operator">;</span>
@@ -242,7 +242,7 @@ Whenever the trains middleware detects a participant arrival or departure in the
   }</span>
 
   <span class="comment">/* Printing the current number of members */</span>
-  <span class="external">printf</span><span class="operator">(</span><span class="string">"Currently %hd members in the circuit\n"</span><span class="operator">,</span> cp<span class="operator">-&gt;</span><span class="field">cv_nmemb</span><span class="operator">));
+  <span class="external">printf</span><span class="operator">(</span><span class="string">"Currently %hd members in the circuit\n"</span><span class="operator">,</span> cp<span class="operator">-&gt;</span><span class="field">cv_nmemb</span><span class="operator">));</span>
 
   <span class="comment">/* Printing your rank among the participants */</span>
   <span class="type">int</span> myRank<span class="operator">;</span>

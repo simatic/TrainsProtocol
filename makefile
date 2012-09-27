@@ -4,12 +4,12 @@ SUBDIRS = $(dir $(wildcard */makefile) $(wildcard */*/makefile) $(wildcard */*/*
 .PHONY: all clean ${SUBDIRS}
 
 usage:
-	@echo POSSIBLE TARGETS :
-	@echo all 
-	@echo tests
-	@echo doxygen
-	@echo clean
-	@echo cleandoxygen
+	@echo Possible make targets :
+	@echo "\t - all           : compile the library"
+	@echo "\t - tests         : compile the library with the tools required for tests"
+	@echo "\t - clean         : remove all temporary files"
+	@echo "\t - doxygen       : generate the doxygen doc in doc/doxygen"
+	@echo "\t - cleandoxygen  : remove the doc/doxygen directory"
 
 all: WHATTODO=all
 all: ${SUBDIRS}
@@ -26,7 +26,7 @@ doxygen:
 	doxygen doxy.conf
 
 cleandoxygen:
-	rm -rf documentation/doxygen
+	rm -rf doc/doxygen
 
 ${SUBDIRS}:
 	${MAKE} -C $@ ${WHATTODO}
