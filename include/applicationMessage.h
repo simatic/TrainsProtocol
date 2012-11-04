@@ -140,7 +140,7 @@ extern CallbackUtoDeliver theCallbackUtoDeliver;
 
 extern char[128] theJNICallbackCircuitChange;
 extern char[128] theJNICallbackUtoDeliver;
-extern JNIenv *JNIenv;
+extern JNIEnv *JNIenv;
 
 /**
  * @brief Request for a pointer on a new message with a payload of size @a payloadSize
