@@ -1,25 +1,25 @@
 /**
- Trains Protocol: Middleware for Uniform and Totally Ordered Broadcasts
- Copyright: Copyright (C) 2010-2012
- Contact: michel.simatic@telecom-sudparis.eu
+  Trains Protocol: Middleware for Uniform and Totally Ordered Broadcasts
+Copyright: Copyright (C) 2010-2012
+Contact: michel.simatic@telecom-sudparis.eu
 
- This library is free software; you can redistribute it and/or
- modify it under the terms of the GNU Lesser General Public
- License as published by the Free Software Foundation; either
- version 3 of the License, or any later version.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 3 of the License, or any later version.
 
- This library is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- Lesser General Public License for more details.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+Lesser General Public License for more details.
 
- You should have received a copy of the GNU Lesser General Public
- License along with this library; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
- USA
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+USA
 
- Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Nathan Reboud
- */
+Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Nathan Reboud
+*/
 
 #include <string.h>
 #include <stdio.h>
@@ -31,8 +31,11 @@
 #include "counter.h"
 #include "stateMachine.h"
 
+#include <jni.h>
+
 CallbackCircuitChange theCallbackCircuitChange;
 CallbackUtoDeliver theCallbackUtoDeliver;
+JNIenv *JNIenv;
 
 message *newmsg(int payloadSize){
   message *mp;
@@ -41,7 +44,7 @@ message *newmsg(int payloadSize){
 
   // We check that we have enough space for the message the caller wants to allocate
   while ((wagonToSend->p_wagon->header.len + sizeof(messageHeader) + payloadSize
-      > wagonMaxLen)
+        > wagonMaxLen)
       && (wagonToSend->p_wagon->header.len != sizeof(wagonHeader))) {
     counters.flowControl++;
     int rc = pthread_cond_wait(&condWagonToSend, &mutexWagonToSend);
@@ -101,47 +104,93 @@ void *utoDeliveries(void *null){
   circuitView cv;
   bool terminate = false;
 
-  do {
-    wi = bqueueDequeue(wagonsToDeliver);
-    w = wi->p_wagon;
+  /* Create the JVM */
+  JavaVMOption options[1];
+  JavaVm *jvm;
+  JavaVMInitArgs vm_args;
+  long status;
+  jclass cls;
+  jmethodID mid;
 
-    counters.wagons_delivered++;
+  options[0].optionString = "-Djava.class.path=."; //XXX: set the path
+  memset(&vm_args, 0, sizeof(vm_args));
+  vm_args.version = JNI_VERSION_1_2;
+  vm_args.nOptions = 1;
+  vm_args.options = options;
+  status = JNI_CreateJavaVM(&jvm, (void**)&JNIenv, &vm_args);
 
-    // We analyze all messages in this wagon
-    for (mp = firstMsg(w); mp != NULL ; mp = nextMsg(w, mp)) {
+  if (status != JNI_ERR){
 
-      counters.messages_delivered++;
-      counters.messages_bytes_delivered += payloadSize(mp);
+    do {
+      wi = bqueueDequeue(wagonsToDeliver);
+      w = wi->p_wagon;
 
-      switch (mp->header.typ) {
+      counters.wagons_delivered++;
+
+      // We analyze all messages in this wagon
+      for (mp = firstMsg(w); mp != NULL ; mp = nextMsg(w, mp)) {
+
+        counters.messages_delivered++;
+        counters.messages_bytes_delivered += payloadSize(mp);
+
+        switch (mp->header.typ) {
 #ifdef LATENCY_TEST
-      case AM_PING:
-      case AM_PONG:
+          case AM_PING:
+          case AM_PONG:
 #endif /* LATENCY_TEST */
-      case AM_BROADCAST:
-        (*theCallbackUtoDeliver)(w->header.sender, mp);
-        break;
-      case AM_ARRIVAL:
-        fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
-        cv.cv_joined = ((payloadArrivalDeparture*) (mp->payload))->ad;
-        (*theCallbackCircuitChange)(&cv);
-        break;
-      case AM_DEPARTURE:
-        fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
-        cv.cv_departed = ((payloadArrivalDeparture*) (mp->payload))->ad;
-        (*theCallbackCircuitChange)(&cv);
-        break;
-      case AM_TERMINATE:
-        terminate = true;
-        break;
-      default:
-        fprintf(stderr, "Received a message with unknown typ \"%d\"\n",
-            mp->header.typ);
-        break;
+          case AM_BROADCAST:
+            //(*theCallbackUtoDeliver)(w->header.sender, mp);
+            cls = (*JNIenv)->FindClass(JNIenv, theCallbackUtoDeliver); //XXX: check it is a correct string
+            if (cls != 0){
+              mid = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(I)I");
+              if (mid != 0){
+                //XXX: Transform C variables in Java objects to give in arguments of the java callback
+                //mp: type message
+                //w->header.sender: type address (which is unsigned short)
+                (*JNIenv)->CallVoidMethod(env, cls, mid);
+              }
+            }
+            break;
+          case AM_ARRIVAL:
+            fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
+            cv.cv_joined = ((payloadArrivalDeparture*) (mp->payload))->ad;
+            //(*theCallbackCircuitChange)(&cv);
+            cls = (*JNIenv)->FindClass(JNIenv, theCallbackCircuitChange); //XXX: check it is a correct string
+            if (cls != 0){
+              mid = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(I)I");
+              if (mid != 0){
+                //XXX: Transform C variables in Java objects to give in arguments of the java callback
+                //cv wich is a circuitView object (to be defined in Java)
+                (*JNIenv)->CallVoidMethod(env, cls, mid);
+              }
+            }
+            break;
+          case AM_DEPARTURE:
+            fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
+            cv.cv_departed = ((payloadArrivalDeparture*) (mp->payload))->ad;
+            //(*theCallbackCircuitChange)(&cv);
+            cls = (*JNIenv)->FindClass(JNIenv, theCallbackCircuitChange); //XXX: check it is a correct string
+            if (cls != 0){
+              mid = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(I)I");
+              if (mid != 0){
+                //XXX: Transform C variables in Java objects to give in arguments of the java callback
+                //mp->payload wich is char[]
+                (*JNIenv)->CallVoidMethod(env, cls, mid);
+              }
+            }
+            break;
+          case AM_TERMINATE:
+            terminate = true;
+            break;
+          default:
+            fprintf(stderr, "Received a message with unknown typ \"%d\"\n",
+                mp->header.typ);
+            break;
+        }
       }
-    }
-    freeWiw(wi);
-  } while (!terminate);
+      freeWiw(wi);
+    } while (!terminate);
 
+  }
   return NULL ;
 }
