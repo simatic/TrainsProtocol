@@ -33,8 +33,10 @@ Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Natha
 
 #include <jni.h>
 
-CallbackCircuitChange theCallbackCircuitChange;
-CallbackUtoDeliver theCallbackUtoDeliver;
+//CallbackCircuitChange theCallbackCircuitChange;
+//CallbackUtoDeliver theCallbackUtoDeliver;
+char *theJNICallbackCircuitChange;
+char *theJNICallbackUtoDeliver;
 JNIenv *JNIenv;
 
 message *newmsg(int payloadSize){

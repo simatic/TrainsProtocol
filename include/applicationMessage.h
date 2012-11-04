@@ -138,8 +138,8 @@ extern CallbackUtoDeliver theCallbackUtoDeliver;
 
 /* JNI */
 
-extern char[128] theJNICallbackCircuitChange;
-extern char[128] theJNICallbackUtoDeliver;
+extern char *theJNICallbackCircuitChange;
+extern char *theJNICallbackUtoDeliver;
 extern JNIEnv *JNIenv;
 
 /**
