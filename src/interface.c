@@ -32,6 +32,8 @@
 #include "iomsg.h"
 #include "stateMachine.h"
 
+#include "trains_Interface.h"
+
 sem_t sem_init_done;
 
 int trErrno;
@@ -47,15 +49,34 @@ int trErrno;
  * @param[in] callbackUtoDeliver    Function to be called when a message can be uto-delivered by trains protocol
  * @return 0 upon successful completion, or -1 if an error occurred (in which case, @a trErrno is set appropriately)
  */
-int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime,
-    CallbackCircuitChange callbackCircuitChange,
-    CallbackUtoDeliver callbackUtoDeliver){
+JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env, 
+    jobject obj, jint trainsNumber, jint wagonLength, jint waitNB, 
+    jint waitTime, 
+    jstring callbackCircuitChange,
+    jstring callbackUtoDeliver){
+    //jobject callbackCircuitChange, 
+    //jobject callbackUtoDeliver){
+  
   int rc;
   pthread_t thread;
   char trainsHost[1024];
   char *trainsPort;
   int rank;
+ 
+  /* Converts Java strings to C strings*/
+  char myCallbackCircuitChange[128];
+  char myCallbackUtoDeliver[128];
+
+  const char *str = (*env)->GetStringUTFChars(env, callbackCircuitChange, 0);
+  //XXX - length should be enough
+  strcpy(myCallbackCircuitChange, str);
+  (*env)->ReleaseStringUTFChars(env, callbackCircuitChange, str);
   
+  *str = (*env)->GetStringUTFChars(env, callbackUtoDeliver, 0);
+  //XXX - length should be enough
+  strcpy(myCallbackUtoDeliver, str);
+  (*env)->ReleaseStringUTFChars(env, callbackUtoDeliver, str);
+
   if (trainsNumber > 0)
   ntr = trainsNumber;
 
@@ -76,8 +97,12 @@ int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime,
   rc= pthread_cond_init(&condWagonToSend, NULL);
   assert(rc == 0);
 
-  theCallbackCircuitChange = callbackCircuitChange;
-  theCallbackUtoDeliver = callbackUtoDeliver;
+  //theCallbackCircuitChange = callbackCircuitChange;
+  //theCallbackUtoDeliver = callbackUtoDeliver;
+  
+  theJNICallbackCircuitChange = callbackCircuitChange;
+  theJNICallbackUtoDeliver = callbackUtoDeliver;
+  JNIenv = env;
 
   globalAddrArray = addrGenerator(LOCALISATION, NP);
 
@@ -120,7 +145,8 @@ int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime,
  * @param[in] format
  * @return void
  */
-void trError_at_line(int status, int errnum, const char *filename, unsigned int linenum, const char *format){
+JNIEXPORT void JNICALL Java_trains_Interface_trError_1at_1line
+  (JNIEnv *env, jobject obj, jint status, jint errnu){
   fflush(stdout);
   fprintf(stderr, "basic version of trError_at_line\n");
 }
@@ -130,10 +156,12 @@ void trError_at_line(int status, int errnum, const char *filename, unsigned int 
  * @param[in] errnum
  * @return void
  */
-void trPerror(int errnum){
+JNIEXPORT void JNICALL Java_trains_Interface_trPerror
+  (JNIEnv *env, jobject obj, jint errnum){
   fprintf(stderr, "basic version of trPerror");
 }
 
-int trTerminate(){
+JNIEXPORT jint JNICALL Java_trains_Interface_trTerminate
+  (JNIEnv *env, jobject obj){
   return 0;
 }
