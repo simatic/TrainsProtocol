@@ -33,6 +33,9 @@
 
 #include "address.h"
 
+/* JNI */
+#include <jni.h>
+
 /** 
  * @brief Header of messages carried by trains protocol for the application using the middleware
  */
@@ -132,6 +135,12 @@ extern CallbackCircuitChange theCallbackCircuitChange;
  * to the application layer
  */
 extern CallbackUtoDeliver theCallbackUtoDeliver;
+
+/* JNI */
+
+extern char[128] theJNICallbackCircuitChange;
+extern char[128] theJNICallbackUtoDeliver;
+extern JNIenv *JNIenv;
 
 /**
  * @brief Request for a pointer on a new message with a payload of size @a payloadSize
