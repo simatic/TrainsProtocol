@@ -71,4 +71,18 @@ typedef enum {false, true} bool;
   }
 
 
+/* Some pthread constants are not defined for Apple or Cygwin */
+
+#ifdef __APPLE__
+/* Provide the Linux initializers for MacOS X */
+#define PTHREAD_MUTEX_RECURSIVE_NP      PTHREAD_MUTEX_RECURSIVE
+#define PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP     { 0x4d555458, \
+                               { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, \
+                                                             0x20 } }
+#endif
+
+#ifdef __CYGWIN__
+#define PTHREAD_MUTEX_RECURSIVE_NP          PTHREAD_MUTEX_RECURSIVE
+#endif
+
 #endif /* _COMMON_H_ */
