@@ -56,7 +56,7 @@ void *signalMgtThread(void *null) {
 
   int rc = pthread_detach(pthread_self());
   if (rc < 0)
-    error(EXIT_FAILURE, rc, "pthread_detach");
+    ERROR(EXIT_FAILURE, rc, "pthread_detach");
 
   // We iniatialize signalMgtThreadTid
   // Glibc does not provide a wrapper for this system call; call it using syscall(2).
@@ -114,7 +114,7 @@ void signalMgtInitialize() {
     // Now we can create the thread which will take care of all signals.
     rc = pthread_create(&thread, NULL, signalMgtThread, NULL);
     if (rc < 0)
-      error(EXIT_FAILURE, rc, "pthread_create");
+      ERROR(EXIT_FAILURE, rc, "pthread_create");
 
     done = true;
   }

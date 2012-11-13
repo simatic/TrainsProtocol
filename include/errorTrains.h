@@ -14,4 +14,11 @@
        abort();                             \
     }
 
+#define ERROR(status,errnum,format) { \
+      fprintf(stderr,"%s ", format);  \
+      fprintf(stderr,"%s\n",    \
+          strerror(errnum));\
+      abort();             \
+}
+
 #endif /* _ERROR_TRAINS_H */
