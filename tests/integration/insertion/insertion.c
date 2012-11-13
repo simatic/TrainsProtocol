@@ -40,11 +40,11 @@
 #ifdef INSERTION_TEST
 
 #include <unistd.h>
-#include <error.h>
 #include <errno.h>
 #include <semaphore.h>
 #include <strings.h>
 #include "trains.h"
+#include "errorTrains.h"
 
 int size, interval, position, participantNumber, trainsNumber;
 
@@ -125,15 +125,15 @@ int main(int argc, char *argv[]){
   // We create the timeKeeper thread
   rc = pthread_create(&timeKeeperThread, NULL, timeKeeper, NULL );
   if (rc < 0)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
   rc = pthread_detach(timeKeeperThread);
   if (rc < 0)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
 
   // We initialize the trains protocol
   rc = trInit(trainsNumber, wagonMaxLen, 0, 0, callbackCircuitChange, callbackUtoDeliver);
   if (rc < 0) {
-    trError_at_line(rc, trErrno, __FILE__, __LINE__, "trInit()");
+    trERROR_AT_LINE(rc, trErrno, __FILE__, __LINE__, "trInit()");
     return EXIT_FAILURE;
   }
 
@@ -141,20 +141,20 @@ int main(int argc, char *argv[]){
   while (!terminate) {
     message *mp = newmsg(size);
     if (mp == NULL ) {
-      trError_at_line(rc, trErrno, __FILE__, __LINE__, "newmsg()");
+      trERROR_AT_LINE(rc, trErrno, __FILE__, __LINE__, "newmsg()");
       return EXIT_FAILURE;
     }
     rankMessage++;
     *((int*) (mp->payload)) = rankMessage;
     if (utoBroadcast(mp) < 0) {
-      trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
+      trERROR_AT_LINE(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
       return EXIT_FAILURE;
     }
   }
 
   rc = trTerminate();
   if (rc < 0) {
-    trError_at_line(rc, trErrno, __FILE__, __LINE__, "trInit()");
+    trERROR_AT_LINE(rc, trErrno, __FILE__, __LINE__, "trInit()");
     return EXIT_FAILURE;
   }
 

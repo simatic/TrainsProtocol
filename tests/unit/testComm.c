@@ -26,7 +26,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <error.h>
 #include <errno.h>
 #include <unistd.h>
 #include <string.h>
@@ -35,6 +34,7 @@
 #include "comm.h"
 #include "common.h" // To have the boolean type :p
 #include "trains.h" // To have message typedef
+#include "errorTrains.h"
 
 #define CONNECT_TIMEOUT 2000 // milliseconds
 #define LOCAL_HOST "localhost"
@@ -86,7 +86,7 @@ void *connectionMgt(void *arg) {
     // In this test, commRead was aborted because aComm was freed. So
     // there is no need to call: freeComm(aComm);
   } else
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_read");
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_read");
 
   return NULL;
 }
@@ -103,17 +103,17 @@ void *acceptMgt(void *arg) {
       pthread_t thread;
       int rc = pthread_create(&thread, NULL, connectionMgt, (void *)aComm);
       if (rc < 0)
-	error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+	ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
       rc = pthread_detach(thread);
       if (rc < 0)
-	error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
+	ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
     }
   } while (aComm != NULL);
 
   if (errno == EINTR){
     printf("\t...comm_accept was aborted\n");
   }else
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_accept");
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_accept");
 
   return NULL;
 }
@@ -131,9 +131,9 @@ void *acceptMgt2(void *arg) {
     // We fork a thread responsible for handling this connection
     rc = pthread_create(&thread, NULL, connectionMgt, (void *)aComm);
     if (rc < 0)
-      error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+      ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
   }else
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_accept");
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_accept");
     
   // We sleep a little to let the connectionMgt thread start
   // NB : this sleep is specific to this unit test! It is not necessary 
@@ -144,7 +144,7 @@ void *acceptMgt2(void *arg) {
   freeComm(aComm);
   rc = pthread_join(thread, NULL);
   if(rc)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_join");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_join");
 
   printf("\t......End comm_free with a thread blocked in comm_read().\n");
 
@@ -170,11 +170,11 @@ int main() {
 
   commForAccept = commNewForAccept(PORT);
   if (commForAccept == NULL)
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newForAccept");
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newForAccept");
 
   rc = pthread_create(&thread, NULL, acceptMgt, (void *)commForAccept);
   if (rc < 0)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
 
   // We sleep a little to let the acceptMgt thread start
   // NB : this sleep is specific to this unit test! It is not necessary 
@@ -184,7 +184,7 @@ int main() {
   // We open a connection to send messages
   commForConnect = commNewAndConnect(LOCAL_HOST, PORT, CONNECT_TIMEOUT);
   if (commForConnect == NULL)
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newAndConnect");
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newAndConnect");
 
   len = sizeof(messageHeader)+strlen(HW)+1; //+1 for '\0'
   msg = malloc(len);
@@ -222,7 +222,7 @@ int main() {
     if (errno == EINTR) 
       printf("\t...OK\n");
     else
-      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newAndConnect");
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newAndConnect");
   }
 
   // We abort the accept to see if this work
@@ -232,7 +232,7 @@ int main() {
 
   rc = pthread_join(thread, NULL);
   if(rc)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_join");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_join");
 
   //
   // Now we create a new socket to check that freeComm() works correctly
@@ -240,21 +240,21 @@ int main() {
   //
   commForAccept = commNewForAccept(PORT);
   if (commForAccept == NULL)
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newForAccept");
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newForAccept");
 
   rc = pthread_create(&thread, NULL, acceptMgt2, (void *)commForAccept);
   if (rc < 0)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
 
   // We open a connection so that the acceptMgt2 thread creates a thread
   // to handle the connection
   commForConnect = commNewAndConnect(LOCAL_HOST, PORT, CONNECT_TIMEOUT);
   if (commForConnect == NULL)
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newAndConnect");
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newAndConnect");
 
   rc = pthread_join(thread, NULL);
   if(rc)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_join");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_join");
 
   freeComm(commForConnect);
 

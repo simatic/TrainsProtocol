@@ -37,7 +37,7 @@ int openConnection(address addr, bool isPred){
 
   rank = addrToRank(addr);
   if (rank == -1) {
-    error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__,
         "Wrong address %d sent to openConnection", addr);
     return (-1);
   } else {
@@ -53,10 +53,10 @@ int openConnection(address addr, bool isPred){
       addTComm(tcomm, rank, globalAddrArray, isPred);
       rc = pthread_create(&thread, NULL, &connectionMgt, (void *) tcomm);
       if (rc < 0)
-        error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+        ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
       rc = pthread_detach(thread);
       if (rc < 0)
-        error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
+        ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
       return (1);
     }
   }
@@ -68,7 +68,7 @@ void closeConnection(address addr, bool isPred){
 
   rank = addrToRank(addr);
   if (rank == -1)
-    error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__,
         "Wrong address %d sent to closeConnection", addr);
   else {
     tcomm = getTComm(rank, isPred, globalAddrArray);
@@ -87,7 +87,7 @@ address searchSucc(address add){
 
   rank = addrToRank(add);
   if (rank == -1)
-    error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__,
         "Wrong address %d given to searchSucc", add);
   else {
     i = (rank + 1) % NP;
@@ -121,10 +121,10 @@ void *connectionMgt(void *arg){
   rc = pthread_create(&treatmentThread, NULL, &msgTreatment,
       (void *) commAndQueue);
   if (rc < 0)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
   rc = pthread_detach(treatmentThread);
   if (rc < 0)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
 
   do {
     msgExt = receive(aComm);

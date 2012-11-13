@@ -21,12 +21,12 @@
  Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Nathan Reboud
  */
 
-#include <error.h>
 #include <assert.h>
 #include <stdlib.h>
 
 #include "list.h"
 #include "common.h"
+#include "errorTrains.h"
 
 #define NULLINK ((LINK*)NULL)
 
@@ -122,7 +122,7 @@ void freeList(trList *aList){
   // We free the mutex
   int rc = pthread_mutex_destroy(&(aList->listMutex));
   if (rc < 0)
-    error_at_line(EXIT_FAILURE,rc,__FILE__,__LINE__,"pthread_mutex_destroy");
+    ERROR_AT_LINE(EXIT_FAILURE,rc,__FILE__,__LINE__,"pthread_mutex_destroy");
 
   free(aList);
 }

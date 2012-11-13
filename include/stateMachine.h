@@ -33,7 +33,6 @@
 
 #include <stdlib.h>
 #include <errno.h>
-#include <error.h>
 #include <unistd.h> //for the sleep function
 #include "trains.h"
 #include "address.h"
@@ -43,6 +42,7 @@
 #include "msg.h"
 #include "connect.h"
 #include "signalArrival.h"
+#include "errorTrains.h"
 
 
 /**

@@ -161,10 +161,10 @@ int main(){
   // Test some more newmsg (which calls mallocwiw)
   rc = pthread_create(&thread, NULL, &functionThread1, NULL);
   if (rc < 0)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
   rc = pthread_detach(thread);
   if (rc < 0)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
   mp = newmsg(wagonMaxLen); // This message is too big to fit into the current wagon. We must wait till the wagon is made empty.
   MUTEX_UNLOCK(mutexWagonToSend);
   compare("newmsg (which calls mallocmsg_outdated) test3",
@@ -172,10 +172,10 @@ int main(){
 
   rc = pthread_create(&thread, NULL, &functionThread1, NULL);
   if (rc < 0)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
   rc = pthread_detach(thread);
   if (rc < 0)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
   mp = newmsg(SIZE1); // This message is too big to fit into the current wagon. We must wait till the wagon is made empty.
   MUTEX_UNLOCK(mutexWagonToSend);
   compare("newmsg (which calls mallocmsg_outdated) test4",

@@ -33,7 +33,7 @@
 
 #include <stdlib.h>
 #include <pthread.h>
-#include <error.h>
+#include "errorTrains.h"
 
 /**
  * @brief Enumeration used to define booleans.
@@ -47,7 +47,7 @@ typedef enum {false, true} bool;
   {						      \
     int rc=pthread_mutex_lock(&(m));		      \
     if (rc < 0)								\
-      error_at_line(EXIT_FAILURE,rc,__FILE__,__LINE__,"pthread_mutex_lock"); \
+      ERROR_AT_LINE(EXIT_FAILURE,rc,__FILE__,__LINE__,"pthread_mutex_lock"); \
   }
 
 /**
@@ -57,7 +57,7 @@ typedef enum {false, true} bool;
   {						      \
     int rc=pthread_mutex_unlock(&(m));					\
     if (rc < 0)								\
-      error_at_line(EXIT_FAILURE,rc,__FILE__,__LINE__,"pthread_mutex_lock"); \
+      ERROR_AT_LINE(EXIT_FAILURE,rc,__FILE__,__LINE__,"pthread_mutex_lock"); \
   }
 
 /**
@@ -67,7 +67,7 @@ typedef enum {false, true} bool;
   {						      \
     int rc=pthread_mutex_destroy(&(m));					\
     if (rc < 0)								\
-      error_at_line(EXIT_FAILURE,rc,__FILE__,__LINE__,"pthread_mutex_destroy"); \
+      ERROR_AT_LINE(EXIT_FAILURE,rc,__FILE__,__LINE__,"pthread_mutex_destroy"); \
   }
 
 

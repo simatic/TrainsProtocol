@@ -40,7 +40,6 @@
 #include <sys/resource.h>
 #include <unistd.h>
 #include <getopt.h>
-#include <error.h>
 #include <errno.h>
 #include <semaphore.h>
 #include <strings.h>
@@ -49,6 +48,7 @@
 #include "trains.h"
 #include "counter.h"
 #include "latencyData.h"
+#include "errorTrains.h"
 
 /* Semaphore used to block main thread until there are enough participants */
 static sem_t semWaitEnoughMembers;
@@ -199,7 +199,7 @@ void callbackCircuitChange(circuitView *cp){
     // The experience starts
     int rc = sem_post(&semWaitEnoughMembers);
     if (rc)
-      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_post()");
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_post()");
   }
 }
 
@@ -224,7 +224,7 @@ void callbackUtoDeliver(address sender, message *mp){
 
       int rc;
       if ((rc = utoBroadcast(pongMsg)) < 0) {
-        trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
+        trERROR_AT_LINE(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
         exit(EXIT_FAILURE);
       }
     }
@@ -265,18 +265,18 @@ void *timeKeeper(void *null){
 
   // Measurement phase
   if (gettimeofday(&timeBegin, NULL ) < 0)
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "gettimeofday");
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "gettimeofday");
   if (getrusage(RUSAGE_SELF, &rusageBegin) < 0)
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "getrusage");
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "getrusage");
   countersBegin = counters;
 
   measurementPhase = true;
   usleep(measurement * 1000000);
 
   if (gettimeofday(&timeEnd, NULL ) < 0)
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "gettimeofday");
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "gettimeofday");
   if (getrusage(RUSAGE_SELF, &rusageEnd) < 0)
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "getrusage");
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "getrusage");
   countersEnd = counters;
 
   measurementPhase = false;
@@ -362,7 +362,7 @@ void *timeKeeper(void *null){
   freePingRecord(&record);
   rc = trTerminate();
   if (rc < 0) {
-    trError_at_line(rc, trErrno, __FILE__, __LINE__, "tr_init()");
+    trERROR_AT_LINE(rc, trErrno, __FILE__, __LINE__, "tr_init()");
     exit(EXIT_FAILURE);
   }
   exit(EXIT_SUCCESS);
@@ -379,33 +379,33 @@ void startTest(){
 
   rc = sem_init(&semWaitEnoughMembers, 0, 0);
   if (rc)
-    error_at_line(rc, errno, __FILE__, __LINE__, "sem_init()");
+    ERROR_AT_LINE(rc, errno, __FILE__, __LINE__, "sem_init()");
 
   // We initialize the trains protocol
   if (gettimeofday(&timeTrInitBegin, NULL ) < 0)
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "gettimeofday");
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "gettimeofday");
   rc = trInit(trainsNumber, wagonMaxLen, 0, 0, callbackCircuitChange, callbackUtoDeliver);
   if (rc < 0) {
-    trError_at_line(rc, trErrno, __FILE__, __LINE__, "tr_init()");
+    trERROR_AT_LINE(rc, trErrno, __FILE__, __LINE__, "tr_init()");
     exit(EXIT_FAILURE);
   }
   if (gettimeofday(&timeTrInitEnd, NULL ) < 0)
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "gettimeofday");
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "gettimeofday");
 
   // We wait until there are enough members
   do {
     rc = sem_wait(&semWaitEnoughMembers);
   } while ((rc < 0) && (errno == EINTR));
   if (rc)
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_wait()");
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_wait()");
 
   // We start the warm-up phase
   rc = pthread_create(&thread, NULL, timeKeeper, NULL );
   if (rc < 0)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
   rc = pthread_detach(thread);
   if (rc < 0)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
 
   // We check if process should be a broadcasting process
   if (rank < broadcasters) {
@@ -415,7 +415,7 @@ void startTest(){
       if (pingMessagesCounter == 0) {
         mp = newmsg(size);
         if (mp == NULL ) {
-          trError_at_line(rc, trErrno, __FILE__, __LINE__, "newPingMsg()");
+          trERROR_AT_LINE(rc, trErrno, __FILE__, __LINE__, "newPingMsg()");
           exit(EXIT_FAILURE);
         }
         rankMessage++;
@@ -427,7 +427,7 @@ void startTest(){
       } else {
         mp = newmsg(size);
         if (mp == NULL ) {
-          trError_at_line(rc, trErrno, __FILE__, __LINE__, "newmsg()");
+          trERROR_AT_LINE(rc, trErrno, __FILE__, __LINE__, "newmsg()");
           exit(EXIT_FAILURE);
         }
         rankMessage++;
@@ -436,7 +436,7 @@ void startTest(){
 
       pingMessagesCounter = (pingMessagesCounter + 1) % frequencyOfPing;
       if ((rc = utoBroadcast(mp)) < 0) {
-        trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
+        trERROR_AT_LINE(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
         exit(EXIT_FAILURE);
       }
 

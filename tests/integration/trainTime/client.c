@@ -29,7 +29,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <error.h>
 #include <errno.h>
 #include <unistd.h>
 #include <string.h>
@@ -40,6 +39,7 @@
 #include "comm.h"
 #include "trains.h" // To have message typedef
 #include "trainTime.h"
+#include "errorTrains.h"
 
 #define CONNECT_TIMEOUT 2000 // milliseconds
 #define LOOP_MESSAGE_NUMBER 1000
@@ -66,7 +66,7 @@ int main(int argc, char *argv[]){
   printf("Connecting %s on port %s...\n", argv[1], argv[2]);
   commForConnect = commNewAndConnect(argv[1], argv[2], CONNECT_TIMEOUT);
   if (commForConnect == NULL )
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
         "comm_newAndConnect");
   printf("...OK\n");
 
@@ -81,7 +81,7 @@ int main(int argc, char *argv[]){
       msgTypeToStr(msg->header.typ), len);
   nbWritten = commWrite(commForConnect, msg, msg->header.len);
   if (nbWritten != len) {
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
         "sent only %d/%d bytes", nbWritten, len);
   }
   free(msg);
@@ -101,7 +101,7 @@ int main(int argc, char *argv[]){
         msgTypeToStr(msg->header.typ), len);
     nbWritten = commWrite(commForConnect, msg, msg->header.len);
     if (nbWritten != len) {
-      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
           "sent only %d/%d bytes", nbWritten, len);
     }
     free(msg);
@@ -120,7 +120,7 @@ int main(int argc, char *argv[]){
       msg->header.typ = FAKE_TRAIN;
       nbWritten = commWrite(commForConnect, msg, msg->header.len);
       if (nbWritten != len) {
-        error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+        ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
             "sent only %d/%d bytes", nbWritten, len);
       }
     }
@@ -135,7 +135,7 @@ int main(int argc, char *argv[]){
     *((int*) (msg->payload)) = LOOP_MESSAGE_NUMBER;
     nbWritten = commWrite(commForConnect, msg, msg->header.len);
     if (nbWritten != len) {
-      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
           "sent only %d/%d bytes", nbWritten, len);
     }
 
@@ -180,7 +180,7 @@ int main(int argc, char *argv[]){
       len);
   nbWritten = commWrite(commForConnect, msg, msg->header.len);
   if (nbWritten != len) {
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
         "sent only %d/%d bytes", nbWritten, len);
   }
   free(msg);
@@ -206,7 +206,7 @@ int main(int argc, char *argv[]){
         len);
     nbWritten = commWrite(commForConnect, msg, msg->header.len);
     if (nbWritten != len) {
-      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
           "sent only %d/%d bytes", nbWritten, len);
     }
     free(msg);
@@ -236,7 +236,7 @@ int main(int argc, char *argv[]){
       nbWritten = commWritev(commForConnect, iov, 3);
 
       if (nbWritten != len) {
-        error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+        ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
             "sent only %d/%d bytes", nbWritten, len);
       }
     }
@@ -262,7 +262,7 @@ int main(int argc, char *argv[]){
 
     nbWritten = commWritev(commForConnect, iov, 3);
     if (nbWritten != len) {
-      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
           "sent only %d/%d bytes", nbWritten, len);
     }
 
@@ -308,7 +308,7 @@ int main(int argc, char *argv[]){
       len);
   nbWritten = commWrite(commForConnect, msg, msg->header.len);
   if (nbWritten != len) {
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
         "sent only %d/%d bytes", nbWritten, len);
   }
   free(msg);

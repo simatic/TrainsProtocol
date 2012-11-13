@@ -21,12 +21,12 @@
  Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Nathan Reboud
  */
 
-#include <error.h>
 #include <errno.h>
 #include <assert.h>
 #include <stdlib.h>
 
 #include "bqueue.h"
+#include "errorTrains.h"
 
 trBqueue *newBqueue(){
   trBqueue *aBQueue;
@@ -37,7 +37,7 @@ trBqueue *newBqueue(){
   aBQueue->list = newList();
 
   if (sem_init(&(aBQueue->readSem),0,0))
-    error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_init");
+    ERROR_AT_LINE(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_init");
 
   return aBQueue;
 }
@@ -49,7 +49,7 @@ void *bqueueDequeue(trBqueue *aBQueue){
     rc = sem_wait(&(aBQueue->readSem));
   } while ((rc < 0) && (errno == EINTR));
   if (rc)
-    error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_wait");
+    ERROR_AT_LINE(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_wait");
 
   return listRemoveFirst(aBQueue->list);
 }
@@ -58,7 +58,7 @@ void bqueueEnqueue(trBqueue *aBQueue, void *anElt){
   listAppend(aBQueue->list, anElt);
 
   if (sem_post(&(aBQueue->readSem)))
-    error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_post");
+    ERROR_AT_LINE(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_post");
 }
 
 void bqueueExtend(trBqueue *aBQueue, trList *list){
@@ -76,7 +76,7 @@ void freeBqueue(trBqueue *aBQueue){
   freeList(aBQueue->list);
 
   if (sem_destroy(&(aBQueue->readSem)))
-    error_at_line(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_destroy");
+    ERROR_AT_LINE(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_destroy");
 
   free(aBQueue);
 }

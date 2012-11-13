@@ -25,12 +25,12 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <errno.h>
-#include <error.h>
 
 #include "interface.h"
 #include "management_addr.h"
 #include "iomsg.h"
 #include "stateMachine.h"
+#include "errorTrains.h"
 
 sem_t sem_init_done;
 
@@ -71,7 +71,7 @@ int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime,
 
   rc = sem_init(&sem_init_done,0,0);
   if(rc)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "sem_init");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "sem_init");
 
   rc= pthread_cond_init(&condWagonToSend, NULL);
   assert(rc == 0);
@@ -83,15 +83,15 @@ int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime,
 
   rc = gethostname(trainsHost,1024);
   if(rc != 0){
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
         "Error getting hostname");
   }
   trainsPort = getenv("TRAINS_PORT");
   if (trainsPort == NULL)
-    error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"TRAINS_PORT environment variable is not defined");
+    ERROR_AT_LINE(EXIT_FAILURE,0,__FILE__,__LINE__,"TRAINS_PORT environment variable is not defined");
   rank = addrID(trainsHost,trainsPort,globalAddrArray);
   if (rank < 0)
-    error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"Could not find a line in %s file corresponding to TRAINS_HOST environment variable value (%s) and TRAINS_PORT environment variable value (%s)", LOCALISATION, trainsHost, trainsPort);
+    ERROR_AT_LINE(EXIT_FAILURE,0,__FILE__,__LINE__,"Could not find a line in %s file corresponding to TRAINS_HOST environment variable value (%s) and TRAINS_PORT environment variable value (%s)", LOCALISATION, trainsHost, trainsPort);
   myAddress=rankToAddr(rank);
 
   automatonInit();
@@ -99,20 +99,20 @@ int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime,
     rc = sem_wait(&sem_init_done);
   } while ((rc < 0) && (errno == EINTR));
   if (rc)
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_wait()");
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_wait()");
 
   rc = pthread_create(&thread, NULL, utoDeliveries, NULL);
   if (rc)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
   rc = pthread_detach(thread);
   if (rc)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
 
   return 0;
 }
 
 /**
- * @brief TrainsProtocol version of error_at_line
+ * @brief TrainsProtocol version of ERROR_AT_LINE
  * @param[in] status
  * @param[in] errnum
  * @param[in] filename
@@ -120,9 +120,9 @@ int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime,
  * @param[in] format
  * @return void
  */
-void trError_at_line(int status, int errnum, const char *filename, unsigned int linenum, const char *format){
+void trERROR_AT_LINE(int status, int errnum, const char *filename, unsigned int linenum, const char *format){
   fflush(stdout);
-  fprintf(stderr, "basic version of trError_at_line\n");
+  fprintf(stderr, "basic version of trERROR_AT_LINE\n");
 }
 
 /**

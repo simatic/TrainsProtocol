@@ -24,8 +24,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <error.h>
 
+#include "errorTrains.h"
 #include "bqueue.h"
 #include "list.h"
 
@@ -69,7 +69,7 @@ int main() {
 
   rc = pthread_create(&thread, NULL, &functionThread1, NULL);
   if (rc < 0)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
 
   compare(bqueueDequeue(q), a);
   compare(bqueueDequeue(q), b);
@@ -97,7 +97,7 @@ int main() {
   // free memory 
   rc = pthread_join(thread, NULL);
   if(rc)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_join");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_join");
 
   freeBqueue(q);
 
