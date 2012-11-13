@@ -10,10 +10,10 @@ extern "C" {
 /*
  * Class:     trains_Interface
  * Method:    trInit
- * Signature: (IIIILtrains/CallbackCircuitChange;Ltrains/CallbackUtoDeliver;)I
+ * Signature: (IIIILjava/lang/String;Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_trains_Interface_trInit
-  (JNIEnv *, jobject, jint, jint, jint, jint, jobject, jobject);
+  (JNIEnv *, jobject, jint, jint, jint, jint, jstring, jstring);
 
 /*
  * Class:     trains_Interface
