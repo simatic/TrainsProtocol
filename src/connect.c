@@ -67,10 +67,10 @@ void closeConnection(address addr, bool isPred){
   trComm * tcomm;
 
   rank = addrToRank(addr);
-  if (rank == -1)
-    error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
+  if (rank == -1){
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__,
         "Wrong address %d sent to closeConnection", addr);
-  else {
+  } else {
     tcomm = getTComm(rank, isPred, globalAddrArray);
     if (tcomm != NULL ) {
       removeTComm(tcomm, rank, globalAddrArray);
@@ -86,10 +86,10 @@ address searchSucc(address add){
   address result = myAddress;
 
   rank = addrToRank(add);
-  if (rank == -1)
-    error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
+  if (rank == -1){
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__,
         "Wrong address %d given to searchSucc", add);
-  else {
+  } else {
     i = (rank + 1) % NP;
     while (i != rank && watch) {
       if (openConnection(rankToAddr(i), false) == 1) {

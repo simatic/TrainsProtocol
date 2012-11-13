@@ -76,10 +76,10 @@ ADDR* addrGenerator(char* locate, int length){
   }
 
   addrFile = fopen(locate, "r");
-  if (addrFile == NULL )
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+  if (addrFile == NULL){
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
         "Error opening file");
-  else {
+  } else {
     currentLine = 0;
     //Delete the spaces at the beginning of the first line
     char blank;
