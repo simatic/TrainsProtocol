@@ -42,7 +42,8 @@
 #include <signal.h>
 
 // Signal used to manage I/O
-#define SIGNAL_FOR_ABORT (SIGRTMIN + 1)
+//#define SIGNAL_FOR_ABORT (SIGRTMIN + 1)
+#define SIGNAL_FOR_ABORT (SIGUSR2)
 
 /**
  * @brief Initializes signalMgt module
