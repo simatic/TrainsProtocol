@@ -114,7 +114,7 @@ void *utoDeliveries(void *null){
   jclass cls;
   jmethodID mid;
 
-  options[0].optionString = "-Djava.class.path=."; //XXX: set the path
+  options[0].optionString = "-Djava.class.path=/Users/stephanie/dev/PFE/TrainsJNI/src/bin/trains"; //XXX: set the path
   memset(&vm_args, 0, sizeof(vm_args));
   vm_args.version = JNI_VERSION_1_2;
   vm_args.nOptions = 1;
@@ -142,7 +142,7 @@ void *utoDeliveries(void *null){
 #endif /* LATENCY_TEST */
           case AM_BROADCAST:
             //(*theCallbackUtoDeliver)(w->header.sender, mp);
-            cls = (*JNIenv)->FindClass(JNIenv, theCallbackUtoDeliver); //XXX: check it is a correct string
+            cls = (*JNIenv)->FindClass(JNIenv, theJNICallbackUtoDeliver); //XXX: check it is a correct string
             if (cls != 0){
               mid = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(I)I");
               if (mid != 0){
@@ -157,7 +157,7 @@ void *utoDeliveries(void *null){
             fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
             cv.cv_joined = ((payloadArrivalDeparture*) (mp->payload))->ad;
             //(*theCallbackCircuitChange)(&cv);
-            cls = (*JNIenv)->FindClass(JNIenv, theCallbackCircuitChange); //XXX: check it is a correct string
+            cls = (*JNIenv)->FindClass(JNIenv, theJNICallbackCircuitChange); //XXX: check it is a correct string
             if (cls != 0){
               mid = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(I)I");
               if (mid != 0){
@@ -171,7 +171,7 @@ void *utoDeliveries(void *null){
             fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
             cv.cv_departed = ((payloadArrivalDeparture*) (mp->payload))->ad;
             //(*theCallbackCircuitChange)(&cv);
-            cls = (*JNIenv)->FindClass(JNIenv, theCallbackCircuitChange); //XXX: check it is a correct string
+            cls = (*JNIenv)->FindClass(JNIenv, theJNICallbackCircuitChange); //XXX: check it is a correct string
             if (cls != 0){
               mid = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(I)I");
               if (mid != 0){
