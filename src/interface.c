@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <errno.h>
-#include <error.h>
+//#include <error.h>
 
 #include "interface.h"
 #include "management_addr.h"
@@ -92,7 +92,9 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
 
   rc = sem_init(&sem_init_done,0,0);
   if(rc)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "sem_init");
+    printf("error in file %s at line %d: sem_init", __FILE__, __LINE__ );
+    return EXIT_FAILURE;
+    //error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "sem_init");
 
   rc= pthread_cond_init(&condWagonToSend, NULL);
   assert(rc == 0);
@@ -111,31 +113,45 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
 
   rc = gethostname(trainsHost,1024);
   if(rc != 0){
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
-        "Error getting hostname");
+    printf("error in file %s at line %d: Error getting hostname", __FILE__, __LINE__ );
+    return EXIT_FAILURE;
+    //error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+    //    "Error getting hostname");
   }
   trainsPort = getenv("TRAINS_PORT");
   if (trainsPort == NULL)
-    error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"TRAINS_PORT environment variable is not defined");
+    printf("error in file %s at line %d: TRAINS_PORT environment variable is not defined", __FILE__, __LINE__ );
+    return EXIT_FAILURE;
+    //error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"TRAINS_PORT environment variable is not defined");
   rank = addrID(trainsHost,trainsPort,globalAddrArray);
   if (rank < 0)
-    error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"Could not find a line in %s file corresponding to TRAINS_HOST environment variable value (%s) and TRAINS_PORT environment variable value (%s)", LOCALISATION, trainsHost, trainsPort);
+    printf("error in file %s at line %d: Could not find a line in %s file corresponding to 
+        TRAINS_HOST environment variable value (%s) and TRAINS_PORT environment variable value (%s)", __FILE__, __LINE__, LOCALISATION, trainsHost, trainsPort);
+    return EXIT_FAILURE;
+    //error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"Could not find a line in %s file corresponding to TRAINS_HOST environment variable value (%s) and TRAINS_PORT environment variable value (%s)", LOCALISATION, trainsHost, trainsPort);
   myAddress=rankToAddr(rank);
 
   automatonInit();
   do {
     rc = sem_wait(&sem_init_done);
   } while ((rc < 0) && (errno == EINTR));
-  if (rc)
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_wait()");
-
+  if (rc){
+    printf("error in file %s at line %d: sem_wait()", __FILE__, __LINE__ );
+    return EXIT_FAILURE;
+    //error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_wait()");
+  }
   rc = pthread_create(&thread, NULL, utoDeliveries, NULL);
-  if (rc)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+  if (rc){
+    printf("error in file %s at line %d: pthread_create()", __FILE__, __LINE__ );
+    return EXIT_FAILURE;
+    //error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+  }
   rc = pthread_detach(thread);
-  if (rc)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
-
+  if (rc){
+    printf("error in file %s at line %d: pthread_detach()", __FILE__, __LINE__ );
+    return EXIT_FAILURE;
+    //error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
+  }
   return 0;
 }
 
