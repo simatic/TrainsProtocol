@@ -1,5 +1,5 @@
-# Subdirectories containing a makefile
-SUBDIRS = $(dir $(wildcard */makefile) $(wildcard */*/makefile) $(wildcard */*/*/makefile))
+# Subdirectories containing a Makefile
+SUBDIRS = $(dir $(wildcard */Makefile) $(wildcard */*/Makefile) $(wildcard */*/*/Makefile))
 
 .PHONY: all clean ${SUBDIRS}
 

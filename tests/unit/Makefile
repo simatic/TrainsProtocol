@@ -46,7 +46,7 @@ clean:
 
 depend: $(SOURCES)
 	touch depend
-	makedepend -fdepend -- $(CFLAGS) -- $(SOURCES) 2>/dev/null
+	makedepend -fdepend -- $(CFLAGS) -- $(SOURCES)
 
 # Run all the tests
 run: $(BIN)

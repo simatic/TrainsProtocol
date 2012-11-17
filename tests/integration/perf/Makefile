@@ -1,7 +1,7 @@
 ### Configuration.  ####################################################
 
 # Binaries to build
-BIN		= wagonFiller
+BIN		= perf
 # C source files for the binaries
 SOURCES		= $(wildcard *.c)
 # Object files corresponding to source files
@@ -11,7 +11,7 @@ INCLUDEDIRS = -I../../../include
 # Compilation flags
 CFLAGS = -Wall -g $(INCLUDEDIRS) $(GLOBALFLAGS)
 # Link flags
-LDFLAGS = -g -L../../../src -ltrains -lm -pthread
+LDFLAGS = -g -L../../../src -ltrains -pthread
 # Valgrind options
 VALGRINDFLAGS =--leak-check=yes --leak-resolution=high --num-callers=40 --tool=memcheck --show-reachable=yes
 
@@ -33,7 +33,7 @@ clean:
 
 depend: $(SOURCES)
 	touch depend
-	makedepend -fdepend -- $(CFLAGS) -- $(SOURCES) 2>/dev/null
+	makedepend -fdepend -- $(CFLAGS) -- $(SOURCES)
 
 # Run all the tests
 run: $(BIN)
