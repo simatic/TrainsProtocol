@@ -133,7 +133,7 @@ int main(int argc, char *argv[]){
   // We initialize the trains protocol
   rc = trInit(trainsNumber, wagonMaxLen, 0, 0, callbackCircuitChange, callbackUtoDeliver);
   if (rc < 0) {
-    trERROR_AT_LINE(rc, trErrno, __FILE__, __LINE__, "trInit()");
+    trError_at_line(rc, trErrno, __FILE__, __LINE__, "trInit()");
     return EXIT_FAILURE;
   }
 
@@ -141,20 +141,20 @@ int main(int argc, char *argv[]){
   while (!terminate) {
     message *mp = newmsg(size);
     if (mp == NULL ) {
-      trERROR_AT_LINE(rc, trErrno, __FILE__, __LINE__, "newmsg()");
+      trError_at_line(rc, trErrno, __FILE__, __LINE__, "newmsg()");
       return EXIT_FAILURE;
     }
     rankMessage++;
     *((int*) (mp->payload)) = rankMessage;
     if (utoBroadcast(mp) < 0) {
-      trERROR_AT_LINE(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
+      trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
       return EXIT_FAILURE;
     }
   }
 
   rc = trTerminate();
   if (rc < 0) {
-    trERROR_AT_LINE(rc, trErrno, __FILE__, __LINE__, "trInit()");
+    trError_at_line(rc, trErrno, __FILE__, __LINE__, "trInit()");
     return EXIT_FAILURE;
   }
 

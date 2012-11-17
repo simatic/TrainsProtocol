@@ -92,7 +92,7 @@ extern int trErrno;
  * @param[in] linenum same role as in @a ERROR_AT_LINE
  * @param[in] format same role as in @a ERROR_AT_LINE
  */
-void trERROR_AT_LINE(int status, int errnum, const char *filename, unsigned int linenum, const char *format);
+void trError_at_line(int status, int errnum, const char *filename, unsigned int linenum, const char *format);
 
 /**
  * @brief Initialization of trains protocol middleware

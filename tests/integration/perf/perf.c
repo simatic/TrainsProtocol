@@ -298,7 +298,7 @@ void *timeKeeper(void *null){
   // Termination phase
   rc = trTerminate();
   if (rc < 0) {
-    trERROR_AT_LINE(rc, trErrno, __FILE__, __LINE__, "tr_init()");
+    trError_at_line(rc, trErrno, __FILE__, __LINE__, "tr_init()");
     exit(EXIT_FAILURE);
   }
   exit(EXIT_SUCCESS);
@@ -320,7 +320,7 @@ void startTest(){
     ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "gettimeofday");
   rc = trInit(trainsNumber, wagonMaxLen, 0, 0, callbackCircuitChange, callbackUtoDeliver);
   if (rc < 0) {
-    trERROR_AT_LINE(rc, trErrno, __FILE__, __LINE__, "tr_init()");
+    trError_at_line(rc, trErrno, __FILE__, __LINE__, "tr_init()");
     exit(EXIT_FAILURE);
   }
   if (gettimeofday(&timeTrInitEnd, NULL ) < 0)
@@ -347,13 +347,13 @@ void startTest(){
     do {
       message *mp = newmsg(size);
       if (mp == NULL ) {
-        trERROR_AT_LINE(rc, trErrno, __FILE__, __LINE__, "newmsg()");
+        trError_at_line(rc, trErrno, __FILE__, __LINE__, "newmsg()");
         exit(EXIT_FAILURE);
       }
       rankMessage++;
       *((int*) (mp->payload)) = rankMessage;
       if (utoBroadcast(mp) < 0) {
-        trERROR_AT_LINE(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
+        trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
         exit(EXIT_FAILURE);
       }
     } while (1);

@@ -120,9 +120,9 @@ int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime,
  * @param[in] format
  * @return void
  */
-void trERROR_AT_LINE(int status, int errnum, const char *filename, unsigned int linenum, const char *format){
+void trError_at_line(int status, int errnum, const char *filename, unsigned int linenum, const char *format){
   fflush(stdout);
-  fprintf(stderr, "basic version of trERROR_AT_LINE\n");
+  fprintf(stderr, "basic version of trError_at_line\n");
 }
 
 /**
