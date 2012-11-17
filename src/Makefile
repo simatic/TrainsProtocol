@@ -31,6 +31,6 @@ clean:
 
 depend: $(SOURCES)
 	touch depend
-	makedepend -fdepend -- $(CFLAGS) -- $(SOURCES)
+	gccmakedep -fdepend -- $(CFLAGS) -- $(SOURCES)
 
 -include depend
