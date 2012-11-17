@@ -78,10 +78,12 @@ int main(int argc, char *argv[]){
           + sizeof(messageHeader) < wagonMaxLen) {
         message *mp = newmsg(payloadSizes[j]);
         if (mp == NULL ) {
+	  rc = -1; //fill rc by hand
           trError_at_line(rc, trErrno, __FILE__, __LINE__, "newmsg()");
           exit(EXIT_FAILURE);
         }
-        if (utoBroadcast(mp) < 0) {
+	rc = utoBroadcast(mp);
+        if (rc < 0) {
           trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
           exit(EXIT_FAILURE);
         }
