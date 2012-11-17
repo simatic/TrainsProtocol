@@ -33,7 +33,7 @@ clean:
 
 depend: $(SOURCES)
 	touch depend
-	makedepend -fdepend -- $(CFLAGS) -- $(SOURCES)
+	gccmakedep -fdepend -- $(CFLAGS) -- $(SOURCES)
 
 # Run all the tests
 run: $(BIN)
