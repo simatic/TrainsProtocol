@@ -1,7 +1,7 @@
 ### Configuration.  ####################################################
 
 # Binaries to build
-BIN		= basicTest
+BIN		= client server
 # C source files for the binaries
 SOURCES		= $(wildcard *.c)
 # Object files corresponding to source files
@@ -17,14 +17,17 @@ VALGRINDFLAGS =--leak-check=yes --leak-resolution=high --num-callers=40 --tool=m
 
 ### Rules.  ############################################################
 
-.PHONY:         all clean run valgrind
+.PHONY:         all clean
 
 all: depend $(BIN)
 
 tests: GLOBALFLAGS = -DLATENCY_TEST -DINSERTION_TEST
 tests: depend $(BIN)
 
-$(BIN): $(OBJECTS)
+client: client.o trainTime.o
+	$(CC) $^ -o $@ $(LDFLAGS)
+
+server: server.o trainTime.o
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 clean:
@@ -33,14 +36,14 @@ clean:
 
 depend: $(SOURCES)
 	touch depend
-	makedepend -fdepend -- $(CFLAGS) -- $(SOURCES) 2>/dev/null
+	makedepend -fdepend -- $(CFLAGS) -- $(SOURCES)
 
 # Run all the tests
 run: $(BIN)
-	(export LD_LIBRARY_PATH=LD_LIBRARY_PATH:../../../src; ./$(BIN) y 1 100000 1)
+	(export LD_LIBRARY_PATH=LD_LIBRARY_PATH:../../../src; ./basicTest y 1 100000 1)
 
 # Test memory problems with valgrind
 valgrind: $(BIN)
-	(export LD_LIBRARY_PATH=LD_LIBRARY_PATH:../../../src; valgrind $(VALGRINDFLAGS) ./$(BIN) y 1 100000 1 2>&1)
+	(export LD_LIBRARY_PATH=LD_LIBRARY_PATH:../../../src; valgrind $(VALGRINDFLAGS) ./basicTest y 1 100000 1 2>&1)
 
 -include depend
