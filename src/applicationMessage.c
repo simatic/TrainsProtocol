@@ -114,6 +114,16 @@ void *utoDeliveries(void *null){
   jclass cls;
   jmethodID mid;
 
+  /*Java objects */
+  jobject jmsg_hdr;
+  jobject jmsg;
+  jobject jcircuit_view;
+
+  /* Java methods IDs*/
+  jmethodID circuitChangeId;
+  jmethodID utoDeliverId;
+
+  /* Start the JVM */
   options[0].optionString = "-Djava.class.path=/Users/stephanie/dev/PFE/TrainsJNI/src/bin/trains"; //XXX: set the path
   memset(&vm_args, 0, sizeof(vm_args));
   vm_args.version = JNI_VERSION_1_2;
@@ -121,6 +131,62 @@ void *utoDeliveries(void *null){
   vm_args.options = options;
   status = JNI_CreateJavaVM(&jvm, (void**)&JNIenv, &vm_args);
 
+  /* Instantiate Java objects: MessageHeader, Message and CircuitView */
+  cls = (*JNIenv)->FindClass(JNIenv, "trains/MessageHeader")
+  if (cls != 0){
+    mid = (*JNIenv)->GetMethodID(JNIenv, cls, "MessageHeader", IS(V));
+    if(mid != 0){      
+      jmsg_hdr = (*JNIenv))>NewObject(JNIenv, cls, mid, 0, "my_string");
+    }
+  }
+  
+  if(jmsg_hdr == NULL){
+    ERROR_AT_LINE();
+  }
+
+  cls = (*JNIenv)->FindClass(JNIenv, "trains/Message")
+  if (cls != 0){
+    mid = (*JNIenv)->GetMethodID(JNIenv, cls, "Message", OS(V));
+    if(mid != 0){      
+      jmsg_hdr = (*JNIenv))>NewObject(JNIenv, cls, mid, "my_string", jmsg_hdr);
+    }
+  }
+  
+  if(jmsg == NULL){
+    ERROR_AT_LINE();
+  }
+  
+  cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView")
+  if (cls != 0){
+    mid = (*JNIenv)->GetMethodID(JNIenv, cls, "MessageHeader", IIII(V));
+    if(mid != 0){      
+      jmsg_hdr = (*JNIenv)->NewObject(JNIenv, cls, mid, 0, 0, 0, 0);
+    }
+  }
+  
+  if(jcircuit_view == NULL){
+    ERROR_AT_LINE();
+  }
+
+  /* Get java methods IDs */
+  cls = (*JNIenv)->FindClass(JNIenv, theJNICallbackUtoDeliver); //XXX: check it is a correct string
+  if (cls != 0){
+    utoDeliverId = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(V)V");
+  }
+ 
+  if(utoDeliverId == NULL){
+    ERROR_AT_LINE();
+  }
+
+  cls = (*JNIenv)->FindClass(JNIenv, theJNICallbackCircuitChange); //XXX: check it is a correct string
+  if (cls != 0){
+    circuitChangeId = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(V)V");
+  }
+
+  if(circuitChangeId == NULL){
+    ERROR_AT_LINE();
+  }
+  
   if (status != JNI_ERR){
 
     do {
@@ -142,44 +208,26 @@ void *utoDeliveries(void *null){
 #endif /* LATENCY_TEST */
           case AM_BROADCAST:
             //(*theCallbackUtoDeliver)(w->header.sender, mp);
-            cls = (*JNIenv)->FindClass(JNIenv, theJNICallbackUtoDeliver); //XXX: check it is a correct string
-            if (cls != 0){
-              mid = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(I)I");
-              if (mid != 0){
-                //XXX: Transform C variables in Java objects to give in arguments of the java callback
-                //mp: type message
-                //w->header.sender: type address (which is unsigned short)
-                (*JNIenv)->CallVoidMethod(env, cls, mid);
-              }
-            }
+            //XXX: Transform C variables in Java objects to give in arguments of the java callback
+            //mp: type message
+            //w->header.sender: type address (which is unsigned short)
+            (*JNIenv)->CallVoidMethod(env, cls, utoDeliverId);
             break;
           case AM_ARRIVAL:
             fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
             cv.cv_joined = ((payloadArrivalDeparture*) (mp->payload))->ad;
             //(*theCallbackCircuitChange)(&cv);
-            cls = (*JNIenv)->FindClass(JNIenv, theJNICallbackCircuitChange); //XXX: check it is a correct string
-            if (cls != 0){
-              mid = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(I)I");
-              if (mid != 0){
-                //XXX: Transform C variables in Java objects to give in arguments of the java callback
-                //cv wich is a circuitView object (to be defined in Java)
-                (*JNIenv)->CallVoidMethod(env, cls, mid);
-              }
-            }
+            //XXX: Transform C variables in Java objects to give in arguments of the java callback
+            //cv wich is a circuitView object (to be defined in Java)
+            (*JNIenv)->CallVoidMethod(env, cls, mid);
             break;
           case AM_DEPARTURE:
             fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
             cv.cv_departed = ((payloadArrivalDeparture*) (mp->payload))->ad;
             //(*theCallbackCircuitChange)(&cv);
-            cls = (*JNIenv)->FindClass(JNIenv, theJNICallbackCircuitChange); //XXX: check it is a correct string
-            if (cls != 0){
-              mid = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(I)I");
-              if (mid != 0){
-                //XXX: Transform C variables in Java objects to give in arguments of the java callback
-                //mp->payload wich is char[]
-                (*JNIenv)->CallVoidMethod(env, cls, mid);
-              }
-            }
+            //XXX: Transform C variables in Java objects to give in arguments of the java callback
+            //mp->payload wich is char[]
+            (*JNIenv)->CallVoidMethod(env, cls, circuitChangeId);
             break;
           case AM_TERMINATE:
             terminate = true;
