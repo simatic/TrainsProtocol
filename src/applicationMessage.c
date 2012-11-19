@@ -120,8 +120,20 @@ void *utoDeliveries(void *null){
   jobject jcircuit_view;
 
   /* Java methods IDs*/
+  /* Callbacks */
   jmethodID circuitChangeId;
   jmethodID utoDeliverId;
+ 
+  /* Setters */
+  jmethodID jmsg_setMessageHeaderId;
+  jmethodID jmsg_setPayloadId;
+  jmethodID jmsghdr_setLenId;
+  jmethodID jmsghdr_setTypeId;
+  jmethodID jcv_setMembId;
+  jmethodID jcv_setMembersAddressId;
+  jmethodID jcv_setJoignedId;
+  jmethodID jcv_DepartedId;
+
 
   /* Start the JVM */
   options[0].optionString = "-Djava.class.path=/Users/stephanie/dev/PFE/TrainsJNI/src/bin/trains"; //XXX: set the path
@@ -140,7 +152,7 @@ void *utoDeliveries(void *null){
     }
   }
   
-  if(jmsg_hdr == NULL){
+  if(jmsg_hdr == 0){
     ERROR_AT_LINE();
   }
 
@@ -152,7 +164,7 @@ void *utoDeliveries(void *null){
     }
   }
   
-  if(jmsg == NULL){
+  if(jmsg == 0){
     ERROR_AT_LINE();
   }
   
@@ -164,17 +176,19 @@ void *utoDeliveries(void *null){
     }
   }
   
-  if(jcircuit_view == NULL){
+  if(jcircuit_view == 0){
     ERROR_AT_LINE();
   }
 
   /* Get java methods IDs */
+
+  /* Callbacks */
   cls = (*JNIenv)->FindClass(JNIenv, theJNICallbackUtoDeliver); //XXX: check it is a correct string
   if (cls != 0){
     utoDeliverId = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(V)V");
   }
  
-  if(utoDeliverId == NULL){
+  if(utoDeliverId == 0){
     ERROR_AT_LINE();
   }
 
@@ -183,10 +197,75 @@ void *utoDeliveries(void *null){
     circuitChangeId = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(V)V");
   }
 
-  if(circuitChangeId == NULL){
+  if(circuitChangeId == 0){
     ERROR_AT_LINE();
   }
   
+  /* Setters */
+  cls = (*JNIenv)->FindClass(JNIenv, "trains/Message");
+  if (cls != 0){
+    jmsg_setMessageHeaderId = (*JNIenv)->GetMethodID(JNIenv, cls, "setMessageHeader"), O(V);
+  } 
+  if (jmsg_setMessageHeaderId == 0){
+    ERROR_AT_LINE();
+  }
+  
+  cls = (*JNIenv)->FindClass(JNIenv, "trains/Message");
+  if (cls != 0){
+    jmsg_setPayloadId = (*JNIenv)->GetMethodID(JNIenv, cls, "setPayload"), I(V);
+  } 
+  if (jmsg_setPayloadId == 0){
+    ERROR_AT_LINE();
+  }
+  
+  cls = (*JNIenv)->FindClass(JNIenv, "trains/MessageHeader");
+  if (cls != 0){
+    jmsg_setLenId = (*JNIenv)->GetMethodID(JNIenv, cls, "setLen"), I(V);
+  } 
+  if (jmsg_setLenId == 0){
+    ERROR_AT_LINE();
+  }
+
+  cls = (*JNIenv)->FindClass(JNIenv, "trains/MessageHeader");
+  if (cls != 0){
+    jmsg_setTypeId = (*JNIenv)->GetMethodID(JNIenv, cls, "setType"), S(V);
+  } 
+  if (jmsg_setTypeId == 0){
+    ERROR_AT_LINE();
+  }
+
+  cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
+  if (cls != 0){
+    jmsg_setMembId = (*JNIenv)->GetMethodID(JNIenv, cls, "setMemb"), I(V);
+  } 
+  if (jmsg_setMembId == 0){
+    ERROR_AT_LINE();
+  }
+
+  cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
+  if (cls != 0){
+    jmsg_setMembersAddressId = (*JNIenv)->GetMethodID(JNIenv, cls, "setMembersAddress"), I(V);
+  } 
+  if (jmsg_setMembersAddressId == 0){
+    ERROR_AT_LINE();
+  }
+
+  cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
+  if (cls != 0){
+    jmsg_setJoignedId = (*JNIenv)->GetMethodID(JNIenv, cls, "setJoigned"), I(V);
+  } 
+  if (jmsg_setJoignedId == 0){
+    ERROR_AT_LINE();
+  }
+  
+  cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
+  if (cls != 0){
+    jmsg_setDepartedId = (*JNIenv)->GetMethodID(JNIenv, cls, "setDeparted"), I(V);
+  } 
+  if (jmsg_setDepartedId == 0){
+    ERROR_AT_LINE();
+  }
+
   if (status != JNI_ERR){
 
     do {
