@@ -107,10 +107,10 @@ void *utoDeliveries(void *null){
   bool terminate = false;
 
   /* Create the JVM */
-  JavaVMOption options[1];
+  /*JavaVMOption options[1];
   JavaVm *jvm;
   JavaVMInitArgs vm_args;
-  long status;
+  long status;*/
   jclass cls;
   jmethodID mid;
 
@@ -118,11 +118,13 @@ void *utoDeliveries(void *null){
   jobject jmsg_hdr;
   jobject jmsg;
   jobject jcircuit_view;
+  jobject jcallbackCircuitChange;
+  jobject jcallbackUtoDeliver;
 
   /* Java methods IDs*/
   /* Callbacks */
-  jmethodID circuitChangeId;
-  jmethodID utoDeliverId;
+  jmethodID jcircuitChangeId;
+  jmethodID jutoDeliverId;
  
   /* Setters */
   jmethodID jmsg_setMessageHeaderId;
@@ -136,12 +138,13 @@ void *utoDeliveries(void *null){
 
 
   /* Start the JVM */
-  options[0].optionString = "-Djava.class.path=/Users/stephanie/dev/PFE/TrainsJNI/src/bin/trains"; //XXX: set the path
+  /* No need to start the jvm, we got it from JNIenv */
+  /* options[0].optionString = "-Djava.class.path=/Users/stephanie/dev/PFE/TrainsJNI/src/bin/trains"; //XXX: set the path
   memset(&vm_args, 0, sizeof(vm_args));
   vm_args.version = JNI_VERSION_1_2;
   vm_args.nOptions = 1;
   vm_args.options = options;
-  status = JNI_CreateJavaVM(&jvm, (void**)&JNIenv, &vm_args);
+  status = JNI_CreateJavaVM(&jvm, (void**)&JNIenv, &vm_args); */
 
   /* Instantiate Java objects: MessageHeader, Message and CircuitView */
   cls = (*JNIenv)->FindClass(JNIenv, "trains/MessageHeader")
@@ -158,7 +161,7 @@ void *utoDeliveries(void *null){
 
   cls = (*JNIenv)->FindClass(JNIenv, "trains/Message")
   if (cls != 0){
-    mid = (*JNIenv)->GetMethodID(JNIenv, cls, "Message", OS(V));
+    mid = (*JNIenv)->GetMethodID(JNIenv, cls, "Message", (LMessageHeader)SV);
     if(mid != 0){      
       jmsg_hdr = (*JNIenv))>NewObject(JNIenv, cls, mid, "my_string", jmsg_hdr);
     }
@@ -182,29 +185,42 @@ void *utoDeliveries(void *null){
 
   /* Get java methods IDs */
 
-  /* Callbacks */
+  /* Callbacks : get methods IDs and instantiate objects  */
   cls = (*JNIenv)->FindClass(JNIenv, theJNICallbackUtoDeliver); //XXX: check it is a correct string
   if (cls != 0){
-    utoDeliverId = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(V)V");
+    jutoDeliverId = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(V)V");
+    mid = (*JNIenv)->GetMethodID(JNIenv, cls, cls, V(V)); //XXX: be careful with the prototype, to be changed
   }
  
   if(utoDeliverId == 0){
     ERROR_AT_LINE();
   }
+  if(mid == 0){
+    ERROR_AT_LINE();
+  } else {
+    jcallbackUtoDeliver = (*JNIenv)->NewObject(JNIenv, cls, mid);
+  }
+
 
   cls = (*JNIenv)->FindClass(JNIenv, theJNICallbackCircuitChange); //XXX: check it is a correct string
   if (cls != 0){
-    circuitChangeId = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(V)V");
+    jcircuitChangeId = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(V)V");
+    mid = (*JNIenv)->GetMethodID(JNIenv, cls, cls, V(V)); //XXX: be careful with the prototype, to be changed
   }
 
   if(circuitChangeId == 0){
     ERROR_AT_LINE();
   }
+  if(mid == 0){
+    ERROR_AT_LINE();
+  } else {
+    jcallbackCircuitChange = (*JNIenv)->NewObject(JNIenv, cls, mid);
+  }
   
   /* Setters */
   cls = (*JNIenv)->FindClass(JNIenv, "trains/Message");
   if (cls != 0){
-    jmsg_setMessageHeaderId = (*JNIenv)->GetMethodID(JNIenv, cls, "setMessageHeader"), O(V);
+    jmsg_setMessageHeaderId = (*JNIenv)->GetMethodID(JNIenv, cls, "setMessageHeader"), (LMessageHeader;)V;
   } 
   if (jmsg_setMessageHeaderId == 0){
     ERROR_AT_LINE();
@@ -252,7 +268,7 @@ void *utoDeliveries(void *null){
 
   cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
   if (cls != 0){
-    jmsg_setJoignedId = (*JNIenv)->GetMethodID(JNIenv, cls, "setJoigned"), I(V);
+    jmsg_setJoignedId = (*JNIenv)->GetMethodID(JNIenv, cls, "setJoined", I(V);
   } 
   if (jmsg_setJoignedId == 0){
     ERROR_AT_LINE();
@@ -266,7 +282,7 @@ void *utoDeliveries(void *null){
     ERROR_AT_LINE();
   }
 
-  if (status != JNI_ERR){
+  //if (status != JNI_ERR){
 
     do {
       wi = bqueueDequeue(wagonsToDeliver);
@@ -287,10 +303,16 @@ void *utoDeliveries(void *null){
 #endif /* LATENCY_TEST */
           case AM_BROADCAST:
             //(*theCallbackUtoDeliver)(w->header.sender, mp);
-            //XXX: Transform C variables in Java objects to give in arguments of the java callback
             //mp: type message
             //w->header.sender: type address (which is unsigned short)
-            (*JNIenv)->CallVoidMethod(env, cls, utoDeliverId);
+           
+            //set jmsg
+            setMessageHeader(JNIenv, jmsg_hdr, jmsghdr_setLenId, jmsghdr_setTypeId, mp); 
+            setMessage(JNIenv, jmsg, jmsg_setMessageHeaderId, jmsg_setPayloadId, mp); 
+            //give int w->header.sender directly ?
+             
+	    (*JNIenv)->CallVoidMethod(JNIenv, jcallbackUtoDeliver, jutoDeliverId, jsender, jmsg);
+            
             break;
           case AM_ARRIVAL:
             fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
@@ -320,6 +342,6 @@ void *utoDeliveries(void *null){
       freeWiw(wi);
     } while (!terminate);
 
-  }
+  //}
   return NULL ;
 }

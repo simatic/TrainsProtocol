@@ -107,7 +107,7 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
 
   theJNICallbackCircuitChange = callbackCircuitChange;
   theJNICallbackUtoDeliver = callbackUtoDeliver;
-  JNIEnv = env;
+  JNIenv = env;
 
   globalAddrArray = addrGenerator(LOCALISATION, NP);
 
