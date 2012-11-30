@@ -268,7 +268,7 @@ void *utoDeliveries(void *null){
 
   cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
   if (cls != 0){
-    jmsg_setJoignedId = (*JNIenv)->GetMethodID(JNIenv, cls, "setJoined", I(V);
+    jmsg_setJoignedId = (*JNIenv)->GetMethodID(JNIenv, cls, "setJoined", I(V));
   } 
   if (jmsg_setJoignedId == 0){
     ERROR_AT_LINE();
@@ -284,63 +284,63 @@ void *utoDeliveries(void *null){
 
   //if (status != JNI_ERR){
 
-    do {
-      wi = bqueueDequeue(wagonsToDeliver);
-      w = wi->p_wagon;
+  do {
+    wi = bqueueDequeue(wagonsToDeliver);
+    w = wi->p_wagon;
 
-      counters.wagons_delivered++;
+    counters.wagons_delivered++;
 
-      // We analyze all messages in this wagon
-      for (mp = firstMsg(w); mp != NULL ; mp = nextMsg(w, mp)) {
+    // We analyze all messages in this wagon
+    for (mp = firstMsg(w); mp != NULL ; mp = nextMsg(w, mp)) {
 
-        counters.messages_delivered++;
-        counters.messages_bytes_delivered += payloadSize(mp);
+      counters.messages_delivered++;
+      counters.messages_bytes_delivered += payloadSize(mp);
 
-        switch (mp->header.typ) {
+      switch (mp->header.typ) {
 #ifdef LATENCY_TEST
-          case AM_PING:
-          case AM_PONG:
+        case AM_PING:
+        case AM_PONG:
 #endif /* LATENCY_TEST */
-          case AM_BROADCAST:
+        case AM_BROADCAST:
             //(*theCallbackUtoDeliver)(w->header.sender, mp);
             //mp: type message
             //w->header.sender: type address (which is unsigned short)
            
             //set jmsg
-            setMessageHeader(JNIenv, jmsg_hdr, jmsghdr_setLenId, jmsghdr_setTypeId, mp); 
-            setMessage(JNIenv, jmsg, jmsg_setMessageHeaderId, jmsg_setPayloadId, mp); 
+          setMessageHeader(JNIenv, jmsg_hdr, jmsghdr_setLenId, jmsghdr_setTypeId, mp); 
+          setMessage(JNIenv, jmsg, jmsg_setMessageHeaderId, jmsg_setPayloadId, mp); 
             //give int w->header.sender directly ?
              
-	    (*JNIenv)->CallVoidMethod(JNIenv, jcallbackUtoDeliver, jutoDeliverId, jsender, jmsg);
+	  (*JNIenv)->CallVoidMethod(JNIenv, jcallbackUtoDeliver, jutoDeliverId, jsender, jmsg);
             
-            break;
-          case AM_ARRIVAL:
-            fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
-            cv.cv_joined = ((payloadArrivalDeparture*) (mp->payload))->ad;
+          break;
+        case AM_ARRIVAL:
+          fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
+          cv.cv_joined = ((payloadArrivalDeparture*) (mp->payload))->ad;
             //(*theCallbackCircuitChange)(&cv);
             //XXX: Transform C variables in Java objects to give in arguments of the java callback
             //cv wich is a circuitView object (to be defined in Java)
-            (*JNIenv)->CallVoidMethod(env, cls, mid);
-            break;
-          case AM_DEPARTURE:
-            fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
-            cv.cv_departed = ((payloadArrivalDeparture*) (mp->payload))->ad;
+          (*JNIenv)->CallVoidMethod(env, cls, mid);
+          break;
+        case AM_DEPARTURE:
+          fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
+          cv.cv_departed = ((payloadArrivalDeparture*) (mp->payload))->ad;
             //(*theCallbackCircuitChange)(&cv);
             //XXX: Transform C variables in Java objects to give in arguments of the java callback
             //mp->payload wich is char[]
-            (*JNIenv)->CallVoidMethod(env, cls, circuitChangeId);
-            break;
-          case AM_TERMINATE:
-            terminate = true;
-            break;
-          default:
-            fprintf(stderr, "Received a message with unknown typ \"%d\"\n",
-                mp->header.typ);
-            break;
-        }
+          (*JNIenv)->CallVoidMethod(env, cls, circuitChangeId);
+          break;
+        case AM_TERMINATE:
+          terminate = true;
+          break;
+        default:
+          fprintf(stderr, "Received a message with unknown typ \"%d\"\n",
+              mp->header.typ);
+          break;
       }
-      freeWiw(wi);
-    } while (!terminate);
+    }
+    freeWiw(wi);
+  } while (!terminate);
 
   //}
   return NULL ;
