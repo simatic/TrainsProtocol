@@ -133,8 +133,8 @@ void *utoDeliveries(void *null){
   jmethodID jmsghdr_setTypeId;
   jmethodID jcv_setMembId;
   jmethodID jcv_setMembersAddressId;
-  jmethodID jcv_setJoignedId;
-  jmethodID jcv_DepartedId;
+  jmethodID jcv_setJoinedId;
+  jmethodID jcv_setDepartedId;
 
 
   /* Start the JVM */
@@ -268,9 +268,9 @@ void *utoDeliveries(void *null){
 
   cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
   if (cls != 0){
-    jmsg_setJoignedId = (*JNIenv)->GetMethodID(JNIenv, cls, "setJoined", I(V));
+    jmsg_setJoinedId = (*JNIenv)->GetMethodID(JNIenv, cls, "setJoined", I(V));
   } 
-  if (jmsg_setJoignedId == 0){
+  if (jmsg_setJoinedId == 0){
     ERROR_AT_LINE();
   }
   
@@ -308,27 +308,44 @@ void *utoDeliveries(void *null){
            
             //set jmsg
           setMessageHeader(JNIenv, jmsg_hdr, jmsghdr_setLenId, jmsghdr_setTypeId, mp); 
-          setMessage(JNIenv, jmsg, jmsg_setMessageHeaderId, jmsg_setPayloadId, mp); 
-            //give int w->header.sender directly ?
+	  /* Set message header */
+          (*JNIenv)->CallVoidMethod(JNIenv, jmsg_hdr, jmsghdr_setLenId, mp->header->len); 
+          (*JNIenv)->CallVoidMethod(JNIenv, jmsg_hdr, jmsghdr_setTypeId, mp->header->type); 
+	  /* Set message */
+          (*JNIenv)->CallVoidMethod(JNIenv, jmsg, jmsg_setMessageHeaderId, jmsg_hdr); 
+          //XXX: mp->payload is char[]
+          (*JNIenv)->CallVoidMethod(JNIenv, jmsg, jmsg_setPayloadId, mp->payload); 
+          
+          /* Call callback */
+          //give int w->header.sender directly ?
+	  (*JNIenv)->CallVoidMethod(JNIenv, jcallbackUtoDeliver, jutoDeliverId, w->header.sender, jmsg);
              
-	  (*JNIenv)->CallVoidMethod(JNIenv, jcallbackUtoDeliver, jutoDeliverId, jsender, jmsg);
-            
           break;
         case AM_ARRIVAL:
           fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
           cv.cv_joined = ((payloadArrivalDeparture*) (mp->payload))->ad;
             //(*theCallbackCircuitChange)(&cv);
-            //XXX: Transform C variables in Java objects to give in arguments of the java callback
             //cv wich is a circuitView object (to be defined in Java)
-          (*JNIenv)->CallVoidMethod(env, cls, mid);
+          /* Set CircuitView */
+          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setMembId, cv->cv_nmemb); 
+          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setMembersAddressId, cv->cv_members[MAX_MEMB]); 
+          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setJoinedId, cv->cv_joined); 
+          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setDepartedId, cv->cv_departed); 
+          
+          (*JNIenv)->CallVoidMethod(JNIenv, jcallbackCircuitChange, jcircuitChangeId, jcircuit_view);
           break;
         case AM_DEPARTURE:
           fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
           cv.cv_departed = ((payloadArrivalDeparture*) (mp->payload))->ad;
             //(*theCallbackCircuitChange)(&cv);
-            //XXX: Transform C variables in Java objects to give in arguments of the java callback
             //mp->payload wich is char[]
-          (*JNIenv)->CallVoidMethod(env, cls, circuitChangeId);
+          /* Set CircuitView */
+          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setMembId, cv->cv_nmemb); 
+          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setMembersAddressId, cv->cv_members[MAX_MEMB]); 
+          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setJoinedId, cv->cv_joined); 
+          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setDepartedId, cv->cv_departed); 
+          
+          (*JNIenv)->CallVoidMethod(JNIenv, jcallbackCircuitChange, jcircuitChangeId, jcircuit_view);
           break;
         case AM_TERMINATE:
           terminate = true;
