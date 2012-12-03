@@ -30,7 +30,7 @@ Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Natha
 #include "advanced_struct.h"
 #include "counter.h"
 #include "stateMachine.h"
-
+#include "errorTrains.h"
 #include <jni.h>
 #include "trains_Interface.h"
 
@@ -157,7 +157,7 @@ void *utoDeliveries(void *null){
   }
   
   if(jmsg_hdr == 0){
-    ERROR_AT_LINE();
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jmsg_hdr");
   }
 
   cls = (*JNIenv)->FindClass(JNIenv, "trains/Message");
@@ -169,7 +169,7 @@ void *utoDeliveries(void *null){
   }
   
   if(jmsg == 0){
-    ERROR_AT_LINE();
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jmsg");
   }
   
   cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
@@ -181,7 +181,7 @@ void *utoDeliveries(void *null){
   }
   
   if(jcircuit_view == 0){
-    ERROR_AT_LINE();
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jcircuit_view");
   }
 
   /* Get java methods IDs */
@@ -198,9 +198,12 @@ void *utoDeliveries(void *null){
   }
   if(mid == 0){*/
   
-    ERROR_AT_LINE();
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "get jutoDeliverId");
   } else {
     jcallbackUtoDeliver = (*JNIenv)->NewObject(JNIenv, cls, jutoDeliverId);
+    if(jcallbackUtoDeliver == 0){
+      ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jcallbackUtoDeliver");
+    }
   }
 
 
@@ -214,9 +217,12 @@ void *utoDeliveries(void *null){
   /*  ERROR_AT_LINE();
   }
   if(mid == 0){*/
-    ERROR_AT_LINE();
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jcircuitChangeId");
   } else {
     jcallbackCircuitChange = (*JNIenv)->NewObject(JNIenv, cls, jcircuitChangeId);
+    if(jcallbackCircuitChange == 0){
+      ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jcallbackCircuitChange");
+    }
   }
   
   /* Setters */
@@ -225,7 +231,7 @@ void *utoDeliveries(void *null){
     jmsg_setMessageHeaderId = (*JNIenv)->GetMethodID(JNIenv, cls, "setMessageHeader", "(V)LMessageHeader");
   } 
   if (jmsg_setMessageHeaderId == 0){
-    ERROR_AT_LINE();
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jmsg_setMessageHeaderId");
   }
   
   cls = (*JNIenv)->FindClass(JNIenv, "trains/Message");
@@ -233,7 +239,7 @@ void *utoDeliveries(void *null){
     jmsg_setPayloadId = (*JNIenv)->GetMethodID(JNIenv, cls, "setPayload", "(V)I");
   } 
   if (jmsg_setPayloadId == 0){
-    ERROR_AT_LINE();
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jmsg_setPayloadId");
   }
   
   cls = (*JNIenv)->FindClass(JNIenv, "trains/MessageHeader");
@@ -241,7 +247,7 @@ void *utoDeliveries(void *null){
     jmsghdr_setLenId = (*JNIenv)->GetMethodID(JNIenv, cls, "setLen", "(V)I");
   } 
   if (jmsghdr_setLenId == 0){
-    ERROR_AT_LINE();
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jmsghdr_setLenId");
   }
 
   cls = (*JNIenv)->FindClass(JNIenv, "trains/MessageHeader");
@@ -249,7 +255,7 @@ void *utoDeliveries(void *null){
     jmsghdr_setTypeId = (*JNIenv)->GetMethodID(JNIenv, cls, "setType", "(V)S");
   } 
   if (jmsghdr_setTypeId == 0){
-    ERROR_AT_LINE();
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jmsghdr_setTypeId");
   }
 
   cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
@@ -257,7 +263,7 @@ void *utoDeliveries(void *null){
     jcv_setMembId = (*JNIenv)->GetMethodID(JNIenv, cls, "setMemb", "(V)I");
   } 
   if (jcv_setMembId == 0){
-    ERROR_AT_LINE();
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jcv_setMembId");
   }
 
   cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
@@ -265,7 +271,7 @@ void *utoDeliveries(void *null){
     jcv_setMembersAddressId = (*JNIenv)->GetMethodID(JNIenv, cls, "setMembersAddress", "(V)I");
   } 
   if (jcv_setMembersAddressId == 0){
-    ERROR_AT_LINE();
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jcv_setMemberAddressId");
   }
 
   cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
@@ -273,7 +279,7 @@ void *utoDeliveries(void *null){
     jcv_setJoinedId = (*JNIenv)->GetMethodID(JNIenv, cls, "setJoined", "(V)I");
   } 
   if (jcv_setJoinedId == 0){
-    ERROR_AT_LINE();
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jcv_setJoinedId");
   }
   
   cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
@@ -281,7 +287,7 @@ void *utoDeliveries(void *null){
     jcv_setDepartedId = (*JNIenv)->GetMethodID(JNIenv, cls, "setDeparted", "(V)I");
   } 
   if (jcv_setDepartedId == 0){
-    ERROR_AT_LINE();
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jcv_setDepartedId");
   }
 
   //if (status != JNI_ERR){
