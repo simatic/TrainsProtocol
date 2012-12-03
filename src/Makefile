@@ -1,5 +1,7 @@
 ### Configuration.  ####################################################
 
+GCCMAKEDEP ?= gccmakedep
+
 # Binary to build
 BIN		= libtrains.so
 # C source files for the library
@@ -31,6 +33,6 @@ clean:
 
 depend: $(SOURCES)
 	touch depend
-	gccmakedep -fdepend -- $(CFLAGS) -- $(SOURCES)
+	$(GCCMAKEDEP) -fdepend -- $(CFLAGS) -- $(SOURCES)
 
 -include depend
