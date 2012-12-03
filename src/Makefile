@@ -7,7 +7,7 @@ SOURCES		= $(wildcard *.c)
 # Object files corresponding to source files
 OBJECTS		= $(SOURCES:.c=.o)
 # Include directory
-INCLUDEDIRS = -I../include
+INCLUDEDIRS = -I../include -I$(JAVA_HOME)/include
 # Compilation flags (the -fPIC flag is because the files are compiled for a dynamic library)
 CFLAGS = -g -Wall $(INCLUDEDIRS) $(GLOBALFLAGS) -fPIC -lpthread 
 # Link flags
