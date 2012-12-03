@@ -31,7 +31,9 @@
 #include "management_addr.h"
 #include "iomsg.h"
 #include "stateMachine.h"
+#include <string.h>
 
+#include "applicationMessage.h"
 #include "trains_Interface.h"
 
 sem_t sem_init_done;
@@ -64,17 +66,20 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
   int rank;
  
   /* Converts Java strings to C strings*/
-  char myCallbackCircuitChange[128];
-  char myCallbackUtoDeliver[128];
+  char *myCallbackCircuitChange;
+  char *myCallbackUtoDeliver;
 
+  myCallbackCircuitChange = malloc(128*sizeof(char));
+  myCallbackUtoDeliver = malloc(128*sizeof(char));
+  
   const char *str = (*env)->GetStringUTFChars(env, callbackCircuitChange, 0);
   //XXX - length should be enough
-  strcpy(myCallbackCircuitChange, str);
+  strncpy(myCallbackCircuitChange, str, 128);
   (*env)->ReleaseStringUTFChars(env, callbackCircuitChange, str);
   
-  *str = (*env)->GetStringUTFChars(env, callbackUtoDeliver, 0);
+  str = (*env)->GetStringUTFChars(env, callbackUtoDeliver, 0);
   //XXX - length should be enough
-  strcpy(myCallbackUtoDeliver, str);
+  strncpy(myCallbackUtoDeliver, str, 128);
   (*env)->ReleaseStringUTFChars(env, callbackUtoDeliver, str);
 
   if (trainsNumber > 0)
@@ -99,14 +104,11 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
   rc= pthread_cond_init(&condWagonToSend, NULL);
   assert(rc == 0);
 
-  //theCallbackCircuitChange = callbackCircuitChange;
-  //theCallbackUtoDeliver = callbackUtoDeliver;
-  
   theJNICallbackCircuitChange = malloc(128*sizeof(char));
   theJNICallbackUtoDeliver = malloc(128*sizeof(char));
 
-  theJNICallbackCircuitChange = callbackCircuitChange;
-  theJNICallbackUtoDeliver = callbackUtoDeliver;
+  theJNICallbackCircuitChange = myCallbackCircuitChange;
+  theJNICallbackUtoDeliver = myCallbackUtoDeliver;
   JNIenv = env;
 
   globalAddrArray = addrGenerator(LOCALISATION, NP);
@@ -125,8 +127,7 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
     //error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"TRAINS_PORT environment variable is not defined");
   rank = addrID(trainsHost,trainsPort,globalAddrArray);
   if (rank < 0)
-    printf("error in file %s at line %d: Could not find a line in %s file corresponding to 
-        TRAINS_HOST environment variable value (%s) and TRAINS_PORT environment variable value (%s)", __FILE__, __LINE__, LOCALISATION, trainsHost, trainsPort);
+    printf("error in file %s at line %d: Could not find a line in %s file corresponding to TRAINS_HOST environment variable value (%s) and TRAINS_PORT environment variable value (%s)", __FILE__, __LINE__, LOCALISATION, trainsHost, trainsPort);
     return EXIT_FAILURE;
     //error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"Could not find a line in %s file corresponding to TRAINS_HOST environment variable value (%s) and TRAINS_PORT environment variable value (%s)", LOCALISATION, trainsHost, trainsPort);
   myAddress=rankToAddr(rank);

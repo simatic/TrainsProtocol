@@ -38,7 +38,7 @@ Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Natha
 //CallbackUtoDeliver theCallbackUtoDeliver;
 char *theJNICallbackCircuitChange;
 char *theJNICallbackUtoDeliver;
-JNIenv *JNIenv;
+JNIEnv *JNIenv;
 
 message *newmsg(int payloadSize){
   message *mp;
@@ -148,11 +148,11 @@ void *utoDeliveries(void *null){
   status = JNI_CreateJavaVM(&jvm, (void**)&JNIenv, &vm_args); */
 
   /* Instantiate Java objects: MessageHeader, Message and CircuitView */
-  cls = (*JNIenv)->FindClass(JNIenv, "trains/MessageHeader")
+  cls = (*JNIenv)->FindClass(JNIenv, "trains/MessageHeader");
   if (cls != 0){
-    mid = (*JNIenv)->GetMethodID(JNIenv, cls, "MessageHeader", IS(V));
+    mid = (*JNIenv)->GetMethodID(JNIenv, cls, "MessageHeader", "(LMessageHeader)IS");
     if(mid != 0){      
-      jmsg_hdr = (*JNIenv))>NewObject(JNIenv, cls, mid, 0, "my_string");
+      jmsg_hdr = (*JNIenv)->NewObject(JNIenv, cls, mid, 0, "my_string");
     }
   }
   
@@ -160,11 +160,11 @@ void *utoDeliveries(void *null){
     ERROR_AT_LINE();
   }
 
-  cls = (*JNIenv)->FindClass(JNIenv, "trains/Message")
+  cls = (*JNIenv)->FindClass(JNIenv, "trains/Message");
   if (cls != 0){
-    mid = (*JNIenv)->GetMethodID(JNIenv, cls, "Message", (LMessageHeader)SV);
+    mid = (*JNIenv)->GetMethodID(JNIenv, cls, "Message", "(LMessage)SV");
     if(mid != 0){      
-      jmsg_hdr = (*JNIenv))>NewObject(JNIenv, cls, mid, "my_string", jmsg_hdr);
+      jmsg = (*JNIenv)->NewObject(JNIenv, cls, mid, "my_string", jmsg);
     }
   }
   
@@ -172,11 +172,11 @@ void *utoDeliveries(void *null){
     ERROR_AT_LINE();
   }
   
-  cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView")
+  cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
   if (cls != 0){
-    mid = (*JNIenv)->GetMethodID(JNIenv, cls, "MessageHeader", IIII(V));
+    mid = (*JNIenv)->GetMethodID(JNIenv, cls, "CircuitView", "(LCircuitView)IIII");
     if(mid != 0){      
-      jmsg_hdr = (*JNIenv)->NewObject(JNIenv, cls, mid, 0, 0, 0, 0);
+      jcircuit_view = (*JNIenv)->NewObject(JNIenv, cls, mid, 0, 0, 0, 0);
     }
   }
   
@@ -189,39 +189,40 @@ void *utoDeliveries(void *null){
   /* Callbacks : get methods IDs and instantiate objects  */
   cls = (*JNIenv)->FindClass(JNIenv, theJNICallbackUtoDeliver); //XXX: check it is a correct string
   if (cls != 0){
-    jutoDeliverId = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(V)V");
-    mid = (*JNIenv)->GetMethodID(JNIenv, cls, cls, V(V)); //XXX: be careful with the prototype, to be changed
+    jutoDeliverId = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(V)ILMessage");
+    //mid = (*JNIenv)->GetMethodID(JNIenv, cls, "", "(V)ILMessage"); //XXX: be careful with the prototype, to be changed
   }
  
-  if(utoDeliverId == 0){
-    ERROR_AT_LINE();
+  if(jutoDeliverId == 0){
+  /*  ERROR_AT_LINE();
   }
-  if(mid == 0){
+  if(mid == 0){*/
+  
     ERROR_AT_LINE();
   } else {
-    jcallbackUtoDeliver = (*JNIenv)->NewObject(JNIenv, cls, mid);
+    jcallbackUtoDeliver = (*JNIenv)->NewObject(JNIenv, cls, jutoDeliverId);
   }
 
 
   cls = (*JNIenv)->FindClass(JNIenv, theJNICallbackCircuitChange); //XXX: check it is a correct string
   if (cls != 0){
-    jcircuitChangeId = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(V)V");
-    mid = (*JNIenv)->GetMethodID(JNIenv, cls, cls, V(V)); //XXX: be careful with the prototype, to be changed
+    jcircuitChangeId = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(V)LCircuitView");
+    //mid = (*JNIenv)->GetMethodID(JNIenv, cls, cls, "(V)LCircuitView"); //XXX: be careful with the prototype, to be changed
   }
 
-  if(circuitChangeId == 0){
-    ERROR_AT_LINE();
+  if(jcircuitChangeId == 0){
+  /*  ERROR_AT_LINE();
   }
-  if(mid == 0){
+  if(mid == 0){*/
     ERROR_AT_LINE();
   } else {
-    jcallbackCircuitChange = (*JNIenv)->NewObject(JNIenv, cls, mid);
+    jcallbackCircuitChange = (*JNIenv)->NewObject(JNIenv, cls, jcircuitChangeId);
   }
   
   /* Setters */
   cls = (*JNIenv)->FindClass(JNIenv, "trains/Message");
   if (cls != 0){
-    jmsg_setMessageHeaderId = (*JNIenv)->GetMethodID(JNIenv, cls, "setMessageHeader"), (LMessageHeader;)V;
+    jmsg_setMessageHeaderId = (*JNIenv)->GetMethodID(JNIenv, cls, "setMessageHeader", "(V)LMessageHeader");
   } 
   if (jmsg_setMessageHeaderId == 0){
     ERROR_AT_LINE();
@@ -229,7 +230,7 @@ void *utoDeliveries(void *null){
   
   cls = (*JNIenv)->FindClass(JNIenv, "trains/Message");
   if (cls != 0){
-    jmsg_setPayloadId = (*JNIenv)->GetMethodID(JNIenv, cls, "setPayload"), I(V);
+    jmsg_setPayloadId = (*JNIenv)->GetMethodID(JNIenv, cls, "setPayload", "(V)I");
   } 
   if (jmsg_setPayloadId == 0){
     ERROR_AT_LINE();
@@ -237,49 +238,49 @@ void *utoDeliveries(void *null){
   
   cls = (*JNIenv)->FindClass(JNIenv, "trains/MessageHeader");
   if (cls != 0){
-    jmsg_setLenId = (*JNIenv)->GetMethodID(JNIenv, cls, "setLen"), I(V);
+    jmsghdr_setLenId = (*JNIenv)->GetMethodID(JNIenv, cls, "setLen", "(V)I");
   } 
-  if (jmsg_setLenId == 0){
+  if (jmsghdr_setLenId == 0){
     ERROR_AT_LINE();
   }
 
   cls = (*JNIenv)->FindClass(JNIenv, "trains/MessageHeader");
   if (cls != 0){
-    jmsg_setTypeId = (*JNIenv)->GetMethodID(JNIenv, cls, "setType"), S(V);
+    jmsghdr_setTypeId = (*JNIenv)->GetMethodID(JNIenv, cls, "setType", "(V)S");
   } 
-  if (jmsg_setTypeId == 0){
+  if (jmsghdr_setTypeId == 0){
     ERROR_AT_LINE();
   }
 
   cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
   if (cls != 0){
-    jmsg_setMembId = (*JNIenv)->GetMethodID(JNIenv, cls, "setMemb"), I(V);
+    jcv_setMembId = (*JNIenv)->GetMethodID(JNIenv, cls, "setMemb", "(V)I");
   } 
-  if (jmsg_setMembId == 0){
+  if (jcv_setMembId == 0){
     ERROR_AT_LINE();
   }
 
   cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
   if (cls != 0){
-    jmsg_setMembersAddressId = (*JNIenv)->GetMethodID(JNIenv, cls, "setMembersAddress"), I(V);
+    jcv_setMembersAddressId = (*JNIenv)->GetMethodID(JNIenv, cls, "setMembersAddress", "(V)I");
   } 
-  if (jmsg_setMembersAddressId == 0){
+  if (jcv_setMembersAddressId == 0){
     ERROR_AT_LINE();
   }
 
   cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
   if (cls != 0){
-    jmsg_setJoinedId = (*JNIenv)->GetMethodID(JNIenv, cls, "setJoined", I(V));
+    jcv_setJoinedId = (*JNIenv)->GetMethodID(JNIenv, cls, "setJoined", "(V)I");
   } 
-  if (jmsg_setJoinedId == 0){
+  if (jcv_setJoinedId == 0){
     ERROR_AT_LINE();
   }
   
   cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
   if (cls != 0){
-    jmsg_setDepartedId = (*JNIenv)->GetMethodID(JNIenv, cls, "setDeparted"), I(V);
+    jcv_setDepartedId = (*JNIenv)->GetMethodID(JNIenv, cls, "setDeparted", "(V)I");
   } 
-  if (jmsg_setDepartedId == 0){
+  if (jcv_setDepartedId == 0){
     ERROR_AT_LINE();
   }
 
@@ -307,11 +308,9 @@ void *utoDeliveries(void *null){
             //mp: type message
             //w->header.sender: type address (which is unsigned short)
            
-            //set jmsg
-          setMessageHeader(JNIenv, jmsg_hdr, jmsghdr_setLenId, jmsghdr_setTypeId, mp); 
 	  /* Set message header */
-          (*JNIenv)->CallVoidMethod(JNIenv, jmsg_hdr, jmsghdr_setLenId, mp->header->len); 
-          (*JNIenv)->CallVoidMethod(JNIenv, jmsg_hdr, jmsghdr_setTypeId, mp->header->type); 
+          (*JNIenv)->CallVoidMethod(JNIenv, jmsg_hdr, jmsghdr_setLenId, mp->header.len); 
+          (*JNIenv)->CallVoidMethod(JNIenv, jmsg_hdr, jmsghdr_setTypeId, mp->header.typ); 
 	  /* Set message */
           (*JNIenv)->CallVoidMethod(JNIenv, jmsg, jmsg_setMessageHeaderId, jmsg_hdr); 
           //XXX: mp->payload is char[]
@@ -328,10 +327,10 @@ void *utoDeliveries(void *null){
             //(*theCallbackCircuitChange)(&cv);
             //cv wich is a circuitView object (to be defined in Java)
           /* Set CircuitView */
-          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setMembId, cv->cv_nmemb); 
-          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setMembersAddressId, cv->cv_members[MAX_MEMB]); 
-          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setJoinedId, cv->cv_joined); 
-          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setDepartedId, cv->cv_departed); 
+          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setMembId, cv.cv_nmemb); 
+          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setMembersAddressId, cv.cv_members[MAX_MEMB]); 
+          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setJoinedId, cv.cv_joined); 
+          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setDepartedId, cv.cv_departed); 
           
           (*JNIenv)->CallVoidMethod(JNIenv, jcallbackCircuitChange, jcircuitChangeId, jcircuit_view);
           break;
@@ -341,10 +340,10 @@ void *utoDeliveries(void *null){
             //(*theCallbackCircuitChange)(&cv);
             //mp->payload wich is char[]
           /* Set CircuitView */
-          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setMembId, cv->cv_nmemb); 
-          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setMembersAddressId, cv->cv_members[MAX_MEMB]); 
-          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setJoinedId, cv->cv_joined); 
-          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setDepartedId, cv->cv_departed); 
+          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setMembId, cv.cv_nmemb); 
+          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setMembersAddressId, cv.cv_members[MAX_MEMB]); 
+          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setJoinedId, cv.cv_joined); 
+          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setDepartedId, cv.cv_departed); 
           
           (*JNIenv)->CallVoidMethod(JNIenv, jcallbackCircuitChange, jcircuitChangeId, jcircuit_view);
           break;
