@@ -52,7 +52,7 @@ void signalMgtFunction(int num) {
  * @brief Thread to take care of signals
  */
 void *signalMgtThread(void *null) {
-  siginfo_t info;
+  int sig;
 
   int rc = pthread_detach(pthread_self());
   if (rc < 0)
@@ -69,18 +69,18 @@ void *signalMgtThread(void *null) {
 
   do{
     do {
-      rc = sigwaitinfo(&mask,&info);
+      rc = sigwait(&mask,&sig);
     } while (rc < 0 && errno == EINTR);
     if (rc < 0)
      ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "sigwaitinfo");
     // The following "if" sequence cannot be replaced by a "switch"
     // because SIGNAL_FOR_ABORT is not a constant
-    if (info.si_signo == SIGALRM){
+    if (sig == SIGALRM){
       // SIGALRM can only be delivered because we called setitimer in
       // comm.c and we came to expiration
       commAbortWhenIT();
     } else {
-      fprintf(stderr,"Signal %d received", info.si_signo);
+      fprintf(stderr,"Signal %d received", sig);
       // As this should never happen here, we exit
       exit(EXIT_FAILURE);
     }
@@ -107,7 +107,9 @@ void signalMgtInitialize() {
     // For SIGNAL_FOR_ABORT signal, we put in place a signal handler
     action.sa_handler = signalMgtFunction;
     sigemptyset(&(action.sa_mask));
+#ifdef SA_INTERRUPT // This #ifdef seems required by systems like MacOS
     action.sa_flags = SA_INTERRUPT;
+#endif
     if (sigaction(SIGNAL_FOR_ABORT, &action, NULL) != 0) 
       ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "sigaction");
 
