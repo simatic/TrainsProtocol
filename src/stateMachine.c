@@ -21,10 +21,6 @@
  Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Nathan Reboud
  */
 
-//#define to access to definition of PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
-// (Linux specific?)
-#define _GNU_SOURCE
-
 #include <stdio.h>
 #include <time.h>
 #include "stateMachine.h"
@@ -49,7 +45,7 @@ double floatRecoveryRecentTrainDuration, floatRecoveryNewCircuitDuration;
 #endif /* INSERTION_TEST */
 
 State automatonState = OFFLINE_CONNECTION_ATTEMPT;
-pthread_mutex_t stateMachineMutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+pthread_mutex_t stateMachineMutex;
 address myAddress;
 address prec;
 address succ;
@@ -159,6 +155,8 @@ void automatonInit(){
   int id;
   int round;
   srand(getpid() + time(NULL ));
+  pthread_mutex_init(&stateMachineMutex, NULL );
+
   lis = ntr - 1;
   for (id = 0; id < ntr; id++) {
     //(lts[id]).lng is not initialized because lng is only set in sendTrain()

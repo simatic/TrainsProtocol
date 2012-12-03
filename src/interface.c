@@ -73,6 +73,8 @@ int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime,
   if(rc)
     ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "sem_init");
 
+  pthread_mutex_init(&mutexWagonToSend, NULL );
+
   rc= pthread_cond_init(&condWagonToSend, NULL);
   assert(rc == 0);
 

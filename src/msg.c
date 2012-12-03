@@ -21,10 +21,6 @@
  Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Nathan Reboud
  */
 
-//#define to access to definition of PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
-// (Linux specific?)
-#define _GNU_SOURCE 
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
