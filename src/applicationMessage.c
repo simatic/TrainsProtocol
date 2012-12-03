@@ -32,6 +32,7 @@ Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Natha
 #include "stateMachine.h"
 
 #include <jni.h>
+#include "trains_Interface.h"
 
 //CallbackCircuitChange theCallbackCircuitChange;
 //CallbackUtoDeliver theCallbackUtoDeliver;
