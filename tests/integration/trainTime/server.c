@@ -29,7 +29,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <error.h>
 #include <errno.h>
 #include <unistd.h>
 #include <string.h>
@@ -40,6 +39,7 @@
 #include "comm.h"
 #include "trains.h" // To have message typedef
 #include "trainTime.h"
+#include "errorTrains.h"
 
 bool terminate;
 
@@ -127,7 +127,7 @@ void *connectionMgt(void *arg){
       }
       free(msg);
     } else if (nbRead > 0) {
-      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
           "Read only %d/%lu bytes\n", nbRead, sizeof(len));
     }
   } while (nbRead > 0);
@@ -139,7 +139,7 @@ void *connectionMgt(void *arg){
   } else if (errno == EINTR) {
     printf("\t...commReadFully was aborted\n");
   } else
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "commReadFully");
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "commReadFully");
 
   return NULL ;
 }
@@ -158,7 +158,7 @@ int main(int argc, char *argv[]){
   printf("Accepting connections on port %s...\n", argv[1]);
   commForAccept = commNewForAccept(argv[1]);
   if (commForAccept == NULL )
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newForAccept");
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newForAccept");
 
   do {
     aComm = commAccept(commForAccept);
@@ -167,10 +167,10 @@ int main(int argc, char *argv[]){
       pthread_t thread;
       int rc = pthread_create(&thread, NULL, &connectionMgt, (void *) aComm);
       if (rc < 0)
-        error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+        ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
       rc = pthread_detach(thread);
       if (rc < 0)
-        error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
+        ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
     }
   } while (aComm != NULL && !terminate);
 
@@ -181,7 +181,7 @@ int main(int argc, char *argv[]){
     if (terminate){
       return EXIT_SUCCESS;
     }
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_accept");}
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_accept");}
 
   return EXIT_SUCCESS;
 }

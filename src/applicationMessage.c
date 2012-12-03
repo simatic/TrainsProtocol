@@ -52,7 +52,7 @@ message *newmsg(int payloadSize){
     counters.flowControl++;
     int rc = pthread_cond_wait(&condWagonToSend, &mutexWagonToSend);
     if (rc < 0)
-      error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_cond_wait");
+      ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_cond_wait");
   }
 
   mp = mallocWiw(payloadSize);

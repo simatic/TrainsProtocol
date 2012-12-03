@@ -29,13 +29,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <error.h>
 #include <errno.h>
 #include <unistd.h>
 #include <string.h>
 #include <assert.h>
 
 #include "comm.h"
+#include "errorTrains.h"
 #include "trains.h" // To have message typedef
 #define CONNECT_TIMEOUT 2000 // milliseconds
 #define HW "Hello world!"
@@ -60,7 +60,7 @@ int main(int argc, char *argv[]){
   printf("Connecting %s on port %s...\n", argv[1], argv[2]);
   commForConnect = commNewAndConnect(argv[1], argv[2], CONNECT_TIMEOUT);
   if (commForConnect == NULL )
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
         "comm_newAndConnect");
   printf("...OK\n");
 
@@ -72,7 +72,7 @@ int main(int argc, char *argv[]){
   printf("\tSend message of %d bytes with: \"%s\"...\n", len, HW);
   nbWritten = commWrite(commForConnect, msg, msg->header.len);
   if (nbWritten != len) {
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
         "sent only %d/%d bytes", nbWritten, len);
   }
   free(msg);
@@ -85,7 +85,7 @@ int main(int argc, char *argv[]){
   printf("\tSend message of %d bytes with: \"%s\"...\n", len, LONG_MESSAGE);
   nbWritten = commWrite(commForConnect, msg, msg->header.len);
   if (nbWritten != len) {
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
         "sent only %d/%d bytes", nbWritten, len);
   }
   free(msg);
@@ -108,7 +108,7 @@ int main(int argc, char *argv[]){
   }
   nbWritten = commWritev(commForConnect, iov, IOVCNT);
   if (nbWritten != len) {
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
         "sent only %d/%d bytes", nbWritten, len);
   }
   // We do not free msg yet, as we reuse it in the following lines
@@ -121,7 +121,7 @@ int main(int argc, char *argv[]){
       lenIncomplete, len);
   nbWritten = commWritev(commForConnect, iov, IOVCNT - 1);
   if (nbWritten != lenIncomplete) {
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
         "sent only %d/%d bytes", nbWritten, lenIncomplete);
   }
   free(msg);

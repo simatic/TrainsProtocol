@@ -25,7 +25,6 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <errno.h>
-//#include <error.h>
 
 #include "interface.h"
 #include "management_addr.h"
@@ -35,6 +34,7 @@
 
 #include "applicationMessage.h"
 #include "trains_Interface.h"
+#include "errorTrains.h"
 
 sem_t sem_init_done;
 
@@ -99,6 +99,8 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
   if(rc)
     ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "sem_init");
 
+  pthread_mutex_init(&mutexWagonToSend, NULL );
+
   rc= pthread_cond_init(&condWagonToSend, NULL);
   assert(rc == 0);
 
@@ -142,7 +144,7 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
 }
 
 /**
- * @brief TrainsProtocol version of error_at_line
+ * @brief TrainsProtocol version of ERROR_AT_LINE
  * @param[in] status
  * @param[in] errnum
  * @param[in] filename

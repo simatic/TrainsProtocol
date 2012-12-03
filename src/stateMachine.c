@@ -21,10 +21,6 @@
  Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Nathan Reboud
  */
 
-//#define to access to definition of PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
-// (Linux specific?)
-#define _GNU_SOURCE
-
 #include <stdio.h>
 #include <time.h>
 #include "stateMachine.h"
@@ -49,7 +45,7 @@ double floatRecoveryRecentTrainDuration, floatRecoveryNewCircuitDuration;
 #endif /* INSERTION_TEST */
 
 State automatonState = OFFLINE_CONNECTION_ATTEMPT;
-pthread_mutex_t stateMachineMutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+pthread_mutex_t stateMachineMutex;
 address myAddress;
 address prec;
 address succ;
@@ -124,10 +120,10 @@ void *acceptMgt(void *arg){
       pthread_t thread;
       int rc = pthread_create(&thread, NULL, &connectionMgt, (void *) aComm);
       if (rc < 0)
-        error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+        ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
       rc = pthread_detach(thread);
       if (rc < 0)
-        error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
+        ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
     }
   } while (aComm != NULL );
 
@@ -142,14 +138,14 @@ void participate(bool b){
     commForAccept = commNewForAccept(
         globalAddrArray[addrToRank(myAddress)].chan);
     if (commForAccept == NULL )
-      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
           "commNewForAccept");
     int rc = pthread_create(&thread, NULL, &acceptMgt, (void *) commForAccept);
     if (rc < 0)
-      error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+      ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
     rc = pthread_detach(thread);
     if (rc < 0)
-      error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
+      ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
   } else {
     freeComm(commForAccept);
   }
@@ -159,6 +155,8 @@ void automatonInit(){
   int id;
   int round;
   srand(getpid() + time(NULL ));
+  pthread_mutex_init(&stateMachineMutex, NULL );
+
   lis = ntr - 1;
   for (id = 0; id < ntr; id++) {
     //(lts[id]).lng is not initialized because lng is only set in sendTrain()
@@ -292,7 +290,7 @@ void offlineInit(){
     //printf("Nextstate(fake) = %s\n", stateToStr(automatonState));
     int rc = sem_post(&sem_init_done);
     if (rc)
-      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
           "error in sem_post");
     prec = myAddress;
     return;
@@ -319,7 +317,7 @@ void waitBeforeConnect(){
   int rc;
   pthread_t sleepThread;
   if (waitNb > waitNbMax) {
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
         "waitNbMax owerflowed");
   }
   participate(false);
@@ -333,10 +331,10 @@ void waitBeforeConnect(){
   }
   rc = pthread_create(&sleepThread, NULL, &sleepTreatment, NULL );
   if (rc < 0)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
   rc = pthread_detach(sleepThread);
   if (rc < 0)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
   return;
 }
 
@@ -365,7 +363,7 @@ void nextState(State s){
     automatonState = SEVERAL;
     break;
   default:
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
         "unexpected Automaton State : %d", s);
     break;
   }
@@ -397,7 +395,7 @@ void stateMachine(womim* p_womim){
       nextState(OFFLINE_CONFIRMATION_WAIT);
       break;
     default:
-      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
           "unexpected case : received message %s in state %s",
           msgTypeToStr(p_womim->msg.type), stateToStr(automatonState));
       break;
@@ -449,13 +447,13 @@ void stateMachine(womim* p_womim){
         nextState(SEVERAL);
         int rc = sem_post(&sem_init_done);
         if (rc)
-          error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+          ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
               "error in sem_post");
       }
       freeWomim(p_womim);
       break;
     default:
-      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
           "unexpected case : received message %s in state %s",
           msgTypeToStr(p_womim->msg.type), stateToStr(automatonState));
       freeWomim(p_womim);
@@ -486,7 +484,7 @@ void stateMachine(womim* p_womim){
       MUTEX_UNLOCK(mutexWagonToSend);
       break;
     default:
-      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
           "unexpected case : received message %s in state %s",
           msgTypeToStr(p_womim->msg.type), stateToStr(automatonState));
       freeWomim(p_womim);
@@ -522,7 +520,7 @@ void stateMachine(womim* p_womim){
       nextState(SEVERAL);
       break;
     default:
-      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
           "unexpected case : received message %s in state %s",
           msgTypeToStr(p_womim->msg.type), stateToStr(automatonState));
       freeWomim(p_womim);
@@ -567,7 +565,7 @@ void stateMachine(womim* p_womim){
             sendTrain(succ, false, lts[lis]);
         }
       } else {
-        error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
+        ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__,
             "myAddress not in the circuit ==> Suicide");
       }
       freeWomim(p_womim);
@@ -641,14 +639,14 @@ void stateMachine(womim* p_womim){
       freeWomim(p_womim);
       break;
     default:
-      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
           "unexpected case : received message %s in state %s",
           msgTypeToStr(p_womim->msg.type), stateToStr(automatonState));
       break;
     }
     break;
   default:
-    error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__, "Unknown state : %d",
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "Unknown state : %d",
         automatonState);
     freeWomim(p_womim);
     break;

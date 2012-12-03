@@ -40,11 +40,11 @@
 #ifdef INSERTION_TEST
 
 #include <unistd.h>
-#include <error.h>
 #include <errno.h>
 #include <semaphore.h>
 #include <strings.h>
 #include "trains.h"
+#include "errorTrains.h"
 
 int size, interval, position, participantNumber, trainsNumber;
 
@@ -125,10 +125,10 @@ int main(int argc, char *argv[]){
   // We create the timeKeeper thread
   rc = pthread_create(&timeKeeperThread, NULL, timeKeeper, NULL );
   if (rc < 0)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
   rc = pthread_detach(timeKeeperThread);
   if (rc < 0)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
 
   // We initialize the trains protocol
   rc = trInit(trainsNumber, wagonMaxLen, 0, 0, callbackCircuitChange, callbackUtoDeliver);

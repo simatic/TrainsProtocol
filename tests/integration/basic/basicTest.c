@@ -34,11 +34,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <error.h>
 #include <errno.h>
 #include <semaphore.h>
 #include <strings.h>
 #include "trains.h"
+#include "errorTrains.h"
 
 #define PAYLOAD_SIZE sizeof(int)
 
@@ -67,7 +67,7 @@ void callbackCircuitChange(circuitView *cp){
     printf("!!! ******** enough members to start utoBroadcasting\n");
     int rc = sem_post(&semWaitEnoughMembers);
     if (rc) {
-      error_at_line(rc, errno, __FILE__, __LINE__, "sem_post()");
+      ERROR_AT_LINE(rc, errno, __FILE__, __LINE__, "sem_post()");
       exit(EXIT_FAILURE);
     }
   }
@@ -88,7 +88,7 @@ void callbackUtoDeliver(address sender, message *mp){
   if (nbRecMsg >= nbRecMsgBeforeStop) {
     terminate = true;
     if (sem_post(&semWaitToDie) < 0) {
-      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_post()");
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_post()");
     }
   }
 
@@ -123,13 +123,13 @@ int main(int argc, char *argv[]){
 
   rc = sem_init(&semWaitEnoughMembers, 0, 0);
   if (rc) {
-    error_at_line(rc, errno, __FILE__, __LINE__, "sem_init()");
+    ERROR_AT_LINE(rc, errno, __FILE__, __LINE__, "sem_init()");
     return EXIT_FAILURE;
   }
 
   rc = sem_init(&semWaitToDie, 0, 0);
   if (rc) {
-    error_at_line(rc, errno, __FILE__, __LINE__, "sem_init()");
+    ERROR_AT_LINE(rc, errno, __FILE__, __LINE__, "sem_init()");
     return EXIT_FAILURE;
   }
 
@@ -144,7 +144,7 @@ int main(int argc, char *argv[]){
     rc = sem_wait(&semWaitEnoughMembers);
   } while ((rc < 0) && (errno == EINTR));
   if (rc) {
-    error_at_line(rc, errno, __FILE__, __LINE__, "sem_wait()");
+    ERROR_AT_LINE(rc, errno, __FILE__, __LINE__, "sem_wait()");
     return EXIT_FAILURE;
   }
 
@@ -171,7 +171,7 @@ int main(int argc, char *argv[]){
       rc = sem_wait(&semWaitToDie);
     } while ((rc < 0) && (errno == EINTR));
     if (rc) {
-      error_at_line(rc, errno, __FILE__, __LINE__, "sem_wait()");
+      ERROR_AT_LINE(rc, errno, __FILE__, __LINE__, "sem_wait()");
       return EXIT_FAILURE;
     }
   }

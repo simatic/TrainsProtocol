@@ -21,7 +21,6 @@
  Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Nathan Reboud
  */
 
-#include <error.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -37,6 +36,7 @@
 #include "comm.h"
 #include "signalMgt.h"
 #include "counter.h"
+#include "errorTrains.h"
 
 /**
  * @brief Variable to hold a null thread identifier
@@ -164,7 +164,7 @@ trComm *commNewAndConnect(char *hostname, char *port, int connectTimeout){
       aTimer.it_interval.tv_sec = 0;
       aTimer.it_interval.tv_usec = 0;
       if (setitimer(ITIMER_REAL, &aTimer, NULL) < 0)
-	error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "setitimer");
+	ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "setitimer");
     }
 
     do {
@@ -175,7 +175,7 @@ trComm *commNewAndConnect(char *hostname, char *port, int connectTimeout){
       struct itimerval aTimer = {{0,0},{0,0}};
       // We stop the timer
       if (setitimer(ITIMER_REAL, &aTimer, NULL) < 0)
-	error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "setitimer");
+	ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "setitimer");
 
       // There is no more communication handle blocked on connect()
       commDoingConnect = NULL;
@@ -187,7 +187,7 @@ trComm *commNewAndConnect(char *hostname, char *port, int connectTimeout){
       break;                  /* Success */
     
     if (close(fd) < 0)
-      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "close");
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "close");
   }
 
   freeaddrinfo(result);           /* No longer needed */
@@ -201,7 +201,7 @@ trComm *commNewAndConnect(char *hostname, char *port, int connectTimeout){
   // will not be delayed by the system layer
   if (setsockopt(fd,IPPROTO_TCP, TCP_NODELAY, &status,sizeof(status)) < 0){
     free(aComm);
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "setsockopt");
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "setsockopt");
   }
 
   // Everything went fine: we can return a communication handle.
@@ -254,7 +254,7 @@ trComm *commNewForAccept(char *port){
       break;                  /* Success */
 
     if (close(fd) < 0)
-      error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "close");      
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "close");      
   }
 
   if (rp == NULL) {               /* No address succeeded */
@@ -439,10 +439,10 @@ void freeComm(trComm *aComm){
   int rc;
   commAbort(aComm);
   if (close(aComm->fd) < 0)
-    error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__, "close");
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "close");
   rc = pthread_mutex_destroy(&(aComm->mutexForSynch));
   if(rc)
-    error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_mutex_destroy");
+    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_mutex_destroy");
   free(aComm);
 }
 

@@ -21,10 +21,6 @@
  Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Nathan Reboud
  */
 
-//#define to access to definition of PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
-// (Linux specific?)
-#define _GNU_SOURCE 
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
@@ -44,7 +40,7 @@ wagon* firstWagon(Msg * msg){
     }
   }
   else {
-    error_at_line(EXIT_FAILURE,0,__FILE__,__LINE__,"Bad type of message given to firstWagon");
+    ERROR_AT_LINE(EXIT_FAILURE,0,__FILE__,__LINE__,"Bad type of message given to firstWagon");
     return(NULL);
   }
 }

@@ -23,7 +23,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <error.h>
 #include <errno.h>
 #include <pthread.h>
 #include <unistd.h>
@@ -31,6 +30,7 @@
 
 #include "signalMgt.h"
 #include "common.h"
+#include "errorTrains.h"
 
 pid_t signalMgtThreadTid = 0;
 
@@ -44,7 +44,7 @@ void commAbortWhenIT();
  */
 void signalMgtFunction(int num) {
   if (num != SIGNAL_FOR_ABORT)
-    error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__, "received unexpected signal %d", num);
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "received unexpected signal %d", num);
   // Otherwise we do nothing (except discard SIGNAL_FOR_ABORT silently)
 }
 
@@ -52,11 +52,11 @@ void signalMgtFunction(int num) {
  * @brief Thread to take care of signals
  */
 void *signalMgtThread(void *null) {
-  siginfo_t info;
+  int sig;
 
   int rc = pthread_detach(pthread_self());
   if (rc < 0)
-    error(EXIT_FAILURE, rc, "pthread_detach");
+    ERROR(EXIT_FAILURE, rc, "pthread_detach");
 
   // We iniatialize signalMgtThreadTid
   // Glibc does not provide a wrapper for this system call; call it using syscall(2).
@@ -69,18 +69,18 @@ void *signalMgtThread(void *null) {
 
   do{
     do {
-      rc = sigwaitinfo(&mask,&info);
+      rc = sigwait(&mask,&sig);
     } while (rc < 0 && errno == EINTR);
     if (rc < 0)
-     error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "sigwaitinfo");
+     ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "sigwaitinfo");
     // The following "if" sequence cannot be replaced by a "switch"
     // because SIGNAL_FOR_ABORT is not a constant
-    if (info.si_signo == SIGALRM){
+    if (sig == SIGALRM){
       // SIGALRM can only be delivered because we called setitimer in
       // comm.c and we came to expiration
       commAbortWhenIT();
     } else {
-      fprintf(stderr,"Signal %d received", info.si_signo);
+      fprintf(stderr,"Signal %d received", sig);
       // As this should never happen here, we exit
       exit(EXIT_FAILURE);
     }
@@ -102,19 +102,21 @@ void signalMgtInitialize() {
     sigaddset(&mask,SIGALRM);
     rc = pthread_sigmask(SIG_BLOCK, &mask, NULL);
     if (rc < 0)
-      error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_sigmask");
+      ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_sigmask");
 
     // For SIGNAL_FOR_ABORT signal, we put in place a signal handler
     action.sa_handler = signalMgtFunction;
     sigemptyset(&(action.sa_mask));
+#ifdef SA_INTERRUPT // This #ifdef seems required by systems like MacOS
     action.sa_flags = SA_INTERRUPT;
+#endif
     if (sigaction(SIGNAL_FOR_ABORT, &action, NULL) != 0) 
-      error_at_line(EXIT_FAILURE, rc, __FILE__, __LINE__, "sigaction");
+      ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "sigaction");
 
     // Now we can create the thread which will take care of all signals.
     rc = pthread_create(&thread, NULL, signalMgtThread, NULL);
     if (rc < 0)
-      error(EXIT_FAILURE, rc, "pthread_create");
+      ERROR(EXIT_FAILURE, rc, "pthread_create");
 
     done = true;
   }

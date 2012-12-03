@@ -122,7 +122,7 @@ ADDR* addrGenerator(char* locate, int length){
           strcpy(errorType, "RANK already exists in a previous line");
         }
 
-        error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
+        ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__,
             "\n%s:%d: %s\n\n"
             "Each line should be RANK:HOSTNAME:PORT\n"
             "\tRANK being a number between 0 and 15\n"
@@ -142,7 +142,7 @@ ADDR* addrGenerator(char* locate, int length){
           char ipOnlyForHostname[64];
           i = gethostname(ipOnlyForHostname, 64);
           if (i < 0) {
-            error_at_line(EXIT_FAILURE, errno, __FILE__, __LINE__,
+            ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
                 "Error getting hostname");
           }
           ipOnly = ipOnlyForHostname;
@@ -151,7 +151,7 @@ ADDR* addrGenerator(char* locate, int length){
         for (i = 0; i < length; i++) {
           if (!strcmp(array[i].ip, ipOnly)) {
             if (!strcmp(array[i].chan, addrFull)) {
-              error_at_line(EXIT_FAILURE, 0, __FILE__, __LINE__,
+              ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__,
                   "\n%s:%d: This participant already exists in a previous line\n"
                       "Each hostname:port pair should be unique\n", locate,
                   currentLine);

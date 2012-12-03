@@ -86,11 +86,11 @@ extern int trErrno;
  * @brief Prints an error message
 
  * Same as gnu @a error_at_line function (see man error_at_line) except that 1) @a errnum is searched in trains middleware specific errors and 2) parameters behind @a format are not taken into account
- * @param[in] status same role as in @a error_at_line
- * @param[in] errnum same role as in @a error_at_line except that @a trError_at_line uses the string given by @a trPerror(errnum)
- * @param[in] filename same role as in @a error_at_line
- * @param[in] linenum same role as in @a error_at_line
- * @param[in] format same role as in @a error_at_line
+ * @param[in] status same role as in @a ERROR_AT_LINE
+ * @param[in] errnum same role as in @a ERROR_AT_LINE except that @a trError_at_line uses the string given by @a trPerror(errnum)
+ * @param[in] filename same role as in @a ERROR_AT_LINE
+ * @param[in] linenum same role as in @a ERROR_AT_LINE
+ * @param[in] format same role as in @a ERROR_AT_LINE
  */
 void trError_at_line(int status, int errnum, const char *filename, unsigned int linenum, const char *format);
 
