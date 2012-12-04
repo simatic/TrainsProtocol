@@ -32,6 +32,7 @@
 #define _BQUEUE_H_
 
 #include <semaphore.h>
+#include <sys/stat.h>
 #include "list.h"
 
 /** 
@@ -39,7 +40,7 @@
  */
 typedef struct{
   trList *list;   /**< List holding the different values in the queue */
-  sem_t  readSem; /**< Semaphore used to determine how many values are present in \a list */
+  sem_t *readSem; /**< Semaphore used to determine how many values are present in \a list */
 } trBqueue;
 
 /**

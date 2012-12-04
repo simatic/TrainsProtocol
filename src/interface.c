@@ -32,7 +32,7 @@
 #include "stateMachine.h"
 #include "errorTrains.h"
 
-sem_t sem_init_done;
+sem_t *sem_init_done;
 
 int trErrno;
 
@@ -69,9 +69,12 @@ int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime,
     waitDefaultTime = waitTime;
 
 
-  rc = sem_init(&sem_init_done,0,0);
-  if(rc)
-    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "sem_init");
+  //rc = sem_init(&sem_init_done,0,0);
+  //if(rc)
+  //  ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "sem_init");
+  sem_init_done = sem_open("sem_init_done", O_CREAT, 0600, 0);
+  if(sem_init_done == SEM_FAILED)
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_open");
 
   pthread_mutex_init(&mutexWagonToSend, NULL );
 
@@ -98,7 +101,7 @@ int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime,
 
   automatonInit();
   do {
-    rc = sem_wait(&sem_init_done);
+    rc = sem_wait(sem_init_done);
   } while ((rc < 0) && (errno == EINTR));
   if (rc)
     ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_wait()");
