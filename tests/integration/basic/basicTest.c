@@ -123,21 +123,26 @@ int main(int argc, char *argv[]){
   nbRecMsgBeforeStop = atoi(argv[4]);
 
   //rc = sem_init(&semWaitEnoughMembers, 0, 0);
-  semWaitEnoughMembers = sem_open("semWaitEnoughMembers", O_CREAT, 0600, 0);
+  rc = sem_unlink("semWaitEnoughMembers");
+  if (rc){
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_unlink()");
+  }
+  semWaitEnoughMembers = sem_open("semWaitEnoughMembers", O_CREAT, 0644, 0);
   //if (rc) {
     //ERROR_AT_LINE(rc, errno, __FILE__, __LINE__, "sem_init()");
   if (semWaitEnoughMembers == SEM_FAILED){ 
-    ERROR_AT_LINE(-1, errno, __FILE__, __LINE__, "sem_open()");
-    return EXIT_FAILURE;
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_open()");
+    //return EXIT_FAILURE;
   }
+  printf("%p\n", semWaitEnoughMembers);
 
   //rc = sem_init(&semWaitToDie, 0, 0);
   semWaitToDie = sem_open("semWaitToDie", O_CREAT, 0600, 0);
   if (semWaitToDie == SEM_FAILED){
   //if (rc) {
     //ERROR_AT_LINE(rc, errno, __FILE__, __LINE__, "sem_init()");
-    ERROR_AT_LINE(-1, errno, __FILE__, __LINE__, "sem_open()");
-    return EXIT_FAILURE;
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_open()");
+    //return EXIT_FAILURE;
   }
 
   // We initialize the trains protocol
