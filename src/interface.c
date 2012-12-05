@@ -55,7 +55,8 @@ int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime,
   char trainsHost[1024];
   char *trainsPort;
   int rank;
-  
+  char sem_name[128];
+ 
   if (trainsNumber > 0)
   ntr = trainsNumber;
 
@@ -72,7 +73,8 @@ int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime,
   //rc = sem_init(&sem_init_done,0,0);
   //if(rc)
   //  ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "sem_init");
-  sem_init_done = sem_open("sem_init_done", O_CREAT, 0600, 0);
+  sprintf(sem_name, "sem_init_done_%d", getpid());
+  sem_init_done = sem_open(sem_name, O_CREAT, 0600, 0);
   if(sem_init_done == SEM_FAILED)
     ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_open");
 

@@ -24,9 +24,12 @@
 #include <errno.h>
 #include <assert.h>
 #include <stdlib.h>
-
+#include <sys/types.h>
+#include <unistd.h>
 #include "bqueue.h"
 #include "errorTrains.h"
+
+static int rank = 0;
 
 trBqueue *newBqueue(){
   trBqueue *aBQueue;
@@ -38,7 +41,9 @@ trBqueue *newBqueue(){
 
   //if (sem_init(&(aBQueue->readSem),0,0))
   //  ERROR_AT_LINE(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_init");
-  aBQueue->readSem = sem_open("aBQueue->readSem", O_CREAT, 0644, 0);
+  sprintf(aBQueue->semName, "bqueueSem_%d_%d", getpid(), rank); 
+  rank++;
+  aBQueue->readSem = sem_open(aBQueue->semName, O_CREAT, 0600, 0);
   if (aBQueue->readSem == SEM_FAILED)
     ERROR_AT_LINE(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_open");
 
@@ -81,7 +86,7 @@ void freeBqueue(trBqueue *aBQueue){
   if (sem_close(aBQueue->readSem) < 0)
     ERROR_AT_LINE(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_close");
   
-  if (sem_unlink("aBQueue->readSem") < 0)
+  if (sem_unlink(aBQueue->semName) < 0)
     ERROR_AT_LINE(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_unlink");
   
 

@@ -102,6 +102,8 @@ void callbackUtoDeliver(address sender, message *mp){
 int main(int argc, char *argv[]){
   int rc;
   int rankMessage = 0;
+  char semWaitEnoughMembersName[128];
+  char semWaitToDieName[128];
 
   if (argc != 5) {
     printf(
@@ -124,10 +126,8 @@ int main(int argc, char *argv[]){
   delayBetweenTwoUtoBroadcast = atoi(argv[3]);
   nbRecMsgBeforeStop = atoi(argv[4]);
 
-  //rc = sem_init(&semWaitEnoughMembers, 0, 0);
-  //char sem_name[128];
-  //sprintf(sem_name, "semWaitEnoughMembers_%d", getpid()); 
-  semWaitEnoughMembers = sem_open("semWaitEnoughMembers", O_CREAT, 0644, 0);
+  sprintf(semWaitEnoughMembersName, "semWaitEnoughMembers_%d", getpid()); 
+  semWaitEnoughMembers = sem_open(semWaitEnoughMembersName, O_CREAT, 0644, 0);
   if (semWaitEnoughMembers == SEM_FAILED){ 
     ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_open()");
   }
@@ -138,7 +138,8 @@ int main(int argc, char *argv[]){
   if (rc){
     ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_unlink()");
   }*/
-  semWaitToDie = sem_open("semWaitToDie", O_CREAT, 0644, 0);
+  sprintf(semWaitToDieName, "semWaitToDie_%d", getpid()); 
+  semWaitToDie = sem_open(semWaitToDieName, O_CREAT, 0644, 0);
   if (semWaitToDie == SEM_FAILED){
   //if (rc) {
     //ERROR_AT_LINE(rc, errno, __FILE__, __LINE__, "sem_init()");
