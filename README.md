@@ -40,4 +40,4 @@ Bibliography
 ------------
 [Défago et al., 2004] Défago, X., Schiper, A. et Urbán, P. (2004). Total order broadcast and multicast algorithms : Taxonomy and survey. ACM Comput. Surv., 36:372?421.
 
-[Simatic, 2012] M. Simatic. Communication et partage de données dans les systèmes répartis (Data communication and data sharing in distributed system, in French). PhD thesis, École Doctorale ÉDITE, 2012 (To be published).
+[Simatic, 2012] M. Simatic. Communication et partage de données dans les systèmes répartis (Data communication and data sharing in distributed system, in French). PhD thesis, École Doctorale ÉDITE, October 2012 (available at http://www-public.it-sudparis.eu/~simatic/Recherche/Publications/theseSimatic.pdf).
