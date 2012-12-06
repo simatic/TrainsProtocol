@@ -131,7 +131,6 @@ int main(int argc, char *argv[]){
   if (semWaitEnoughMembers == SEM_FAILED){ 
     ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_open()");
   }
-  printf("%p\n", semWaitEnoughMembers);
 
   //rc = sem_init(&semWaitToDie, 0, 0);
   /*rc = sem_unlink("semWaitToDie");
