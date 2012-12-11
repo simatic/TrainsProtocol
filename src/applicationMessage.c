@@ -62,6 +62,7 @@ JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, ji
   // MUTEX_UNLOCK(mutexWagonToSend);
   //
   //return mp;
+  return 0;
 }
 
 //int utoBroadcast(message *mp){
