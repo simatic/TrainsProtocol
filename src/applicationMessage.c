@@ -150,9 +150,9 @@ void *utoDeliveries(void *null){
   /* Instantiate Java objects: MessageHeader, Message and CircuitView */
   cls = (*JNIenv)->FindClass(JNIenv, "trains/MessageHeader");
   if (cls != 0){
-    mid = (*JNIenv)->GetMethodID(JNIenv, cls, "MessageHeader", "(LMessageHeader)IS");
+    mid = (*JNIenv)->GetMethodID(JNIenv, cls, "MessageHeader", "(LMessageHeader)II");
     if(mid != 0){      
-      jmsg_hdr = (*JNIenv)->NewObject(JNIenv, cls, mid, 0, "my_string");
+      jmsg_hdr = (*JNIenv)->NewObject(JNIenv, cls, mid, 0, 0);
     }
   }
   
@@ -252,7 +252,7 @@ void *utoDeliveries(void *null){
 
   cls = (*JNIenv)->FindClass(JNIenv, "trains/MessageHeader");
   if (cls != 0){
-    jmsghdr_setTypeId = (*JNIenv)->GetMethodID(JNIenv, cls, "setType", "(V)S");
+    jmsghdr_setTypeId = (*JNIenv)->GetMethodID(JNIenv, cls, "setType", "(V)I");
   } 
   if (jmsghdr_setTypeId == 0){
     ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jmsghdr_setTypeId");
