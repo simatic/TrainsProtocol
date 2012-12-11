@@ -64,8 +64,10 @@ JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, ji
   //return mp;
 }
 
-int utoBroadcast(message *mp){
-  //  MUTEX_LOCK(stateMachineMutex); // We DO NOT take this mutex
+//int utoBroadcast(message *mp){
+JNIEXPORT jint JNICALL Java_trains_Interface_utoBroadcast(JNIEnv *env, 
+    jobject obj, jMessage msg) 
+ //  MUTEX_LOCK(stateMachineMutex); // We DO NOT take this mutex
   // state ALONE_INSERT_WAIT => ALONE_CONNECTION_WAIT require mutexWagonToSend
   // thus cannot corrupt this sending
   // state SEVERAL => ALONE_INSERT_WAIT also require mutexWagonToSend
