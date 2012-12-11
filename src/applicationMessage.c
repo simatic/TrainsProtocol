@@ -41,7 +41,7 @@ char *theJNICallbackUtoDeliver;
 JNIEnv *JNIenv;
 
 JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, jint payloadSize){
-  message *mp;
+  //message *mp;
   counters.newmsg++;
   MUTEX_LOCK(mutexWagonToSend);
 
@@ -65,8 +65,7 @@ JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, ji
 }
 
 //int utoBroadcast(message *mp){
-JNIEXPORT jint JNICALL Java_trains_Interface_utoBroadcast(JNIEnv *env, 
-    jobject obj, jMessage msg) 
+JNIEXPORT jint JNICALL Java_trains_Interface_utoBroadcast(JNIEnv *env, jobject obj, jobject msg){ 
  //  MUTEX_LOCK(stateMachineMutex); // We DO NOT take this mutex
   // state ALONE_INSERT_WAIT => ALONE_CONNECTION_WAIT require mutexWagonToSend
   // thus cannot corrupt this sending
