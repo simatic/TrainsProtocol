@@ -39,6 +39,14 @@ JNIEXPORT void JNICALL Java_trains_Interface_trPerror
 JNIEXPORT jint JNICALL Java_trains_Interface_trTerminate
   (JNIEnv *, jobject);
 
+/*
+ * Class:     trains_Interface
+ * Method:    utoBroadcast
+ * Signature: (Ltrains/Message;)I
+ */
+JNIEXPORT jint JNICALL Java_trains_Interface_utoBroadcast
+  (JNIEnv *, jobject, jobject);
+
 #ifdef __cplusplus
 }
 #endif
