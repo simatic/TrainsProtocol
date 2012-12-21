@@ -41,11 +41,27 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trTerminate
 
 /*
  * Class:     trains_Interface
+ * Method:    newmsg
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_trains_Interface_newmsg
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     trains_Interface
  * Method:    utoBroadcast
  * Signature: (Ltrains/Message;)I
  */
 JNIEXPORT jint JNICALL Java_trains_Interface_utoBroadcast
   (JNIEnv *, jobject, jobject);
+
+/*
+ * Class:     trains_Interface
+ * Method:    initIDs
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_trains_Interface_initIDs
+  (JNIEnv *, jclass);
 
 #ifdef __cplusplus
 }

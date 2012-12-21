@@ -33,8 +33,6 @@
 
 #include "address.h"
 
-/* JNI */
-#include <jni.h>
 
 /** 
  * @brief Header of messages carried by trains protocol for the application using the middleware
@@ -136,11 +134,6 @@ extern CallbackCircuitChange theCallbackCircuitChange;
  */
 extern CallbackUtoDeliver theCallbackUtoDeliver;
 
-/* JNI */
-
-extern char *theJNICallbackCircuitChange;
-extern char *theJNICallbackUtoDeliver;
-extern JavaVM *jvm;
 
 /**
  * @brief Request for a pointer on a new message with a payload of size @a payloadSize
@@ -148,14 +141,16 @@ extern JavaVM *jvm;
  * @return pointer on a message upon successful completion, or NULL if an error occurred 
  * (in which case, @a trErrno is set appropriately)
  */
-message *newmsg(int payloadSize);
+//XXX
+//message *newmsg(int payloadSize);
 
 /**
  * @brief uto-broadcast of message @a mp
  * @param[in] mp Message to be uto-broadcasted
  * @return 0 upon successful completion, or -1 if an error occurred (in which case, @a trErrno is set appropriately)
  */
-int utoBroadcast(message *mp);
+//XXX
+//int utoBroadcast(message *mp);
 
 /**
  * @brief Function (to be executed by a thread) responsible for delivering messages stored in

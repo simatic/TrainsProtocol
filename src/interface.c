@@ -34,15 +34,21 @@
 
 #include "applicationMessage.h"
 #include "trains_Interface.h"
+#include "jniContext.h"
 #include "errorTrains.h"
 
-char *theJNICallbackCircuitChange;
-char *theJNICallbackUtoDeliver;
-JavaVM *jvm;
 
 sem_t sem_init_done;
 
 int trErrno;
+
+/* JNI extern vars */
+char *theJNICallbackCircuitChange;
+char *theJNICallbackUtoDeliver;
+JavaVM *jvm;
+jobject jmsghdr;
+jfieldID jmsghdr_lenID;
+jfieldID jmsghdr_typeID;
 
 /**
  * @brief Initialization of trains protocol middleware
@@ -176,3 +182,24 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trTerminate
   (JNIEnv *env, jobject obj){
   return 0;
 }
+
+/* Caching the method IDs */
+JNIEXPORT void JNICALL Java_trains_Interface_initIDs(JNIEnv *env, jclass cls){
+  printf("here\n");
+  jclass class = (*env)->FindClass(env, "trains/MessageHeader"); 
+  jmethodID mid;
+  
+  /* Instantiate a MessageHeader object */
+  if (class != NULL){
+    mid = (*env)->GetMethodID(env, class,
+                               "<init>", "(II)V");
+    if (mid != NULL){
+      jmsghdr = (*env)->NewObject(env, class, mid, 0, 0);
+    }
+
+   jmsghdr_lenID = (*env)->GetFieldID(env, class, "len", "I");
+   //testing
+   (*env)->SetObjectField(env, jmsghdr, jmsghdr_lenID, 0);
+  }
+}
+
