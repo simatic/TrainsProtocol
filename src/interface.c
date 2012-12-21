@@ -36,6 +36,10 @@
 #include "trains_Interface.h"
 #include "errorTrains.h"
 
+char *theJNICallbackCircuitChange;
+char *theJNICallbackUtoDeliver;
+JavaVM *jvm;
+
 sem_t sem_init_done;
 
 int trErrno;
@@ -109,7 +113,7 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
 
   theJNICallbackCircuitChange = myCallbackCircuitChange;
   theJNICallbackUtoDeliver = myCallbackUtoDeliver;
-  JNIenv = env;
+  (*env)->GetJavaVM(env, &jvm);
 
   globalAddrArray = addrGenerator(LOCALISATION, NP);
 

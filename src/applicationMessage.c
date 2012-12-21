@@ -34,11 +34,6 @@ Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Natha
 #include <jni.h>
 #include "trains_Interface.h"
 
-//CallbackCircuitChange theCallbackCircuitChange;
-//CallbackUtoDeliver theCallbackUtoDeliver;
-char *theJNICallbackCircuitChange;
-char *theJNICallbackUtoDeliver;
-JNIEnv *JNIenv;
 
 JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, jint payloadSize){
   //message *mp;
@@ -149,6 +144,9 @@ void *utoDeliveries(void *null){
   vm_args.options = options;
   status = JNI_CreateJavaVM(&jvm, (void**)&JNIenv, &vm_args); */
 
+  /* Get the JNIenv pointer*/
+  JNIEnv *JNIenv;
+  (*jvm)->AttachCurrentThread(jvm, (void **)&JNIenv, NULL);
   /* Instantiate Java objects: MessageHeader, Message and CircuitView */
   cls = (*JNIenv)->FindClass(JNIenv, "trains/MessageHeader");
   if (cls != 0){
