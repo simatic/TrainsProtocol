@@ -57,10 +57,26 @@ JNIEXPORT jint JNICALL Java_trains_Interface_utoBroadcast
 
 /*
  * Class:     trains_Interface
- * Method:    initIDs
+ * Method:    initIDsMessageHeader
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_trains_Interface_initIDs
+JNIEXPORT void JNICALL Java_trains_Interface_initIDsMessageHeader
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     trains_Interface
+ * Method:    initIDsMessage
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_trains_Interface_initIDsMessage
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     trains_Interface
+ * Method:    initIDsCircuitView
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_trains_Interface_initIDsCircuitView
   (JNIEnv *, jclass);
 
 #ifdef __cplusplus

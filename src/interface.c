@@ -32,7 +32,6 @@
 #include "stateMachine.h"
 #include <string.h>
 
-#include "applicationMessage.h"
 #include "trains_Interface.h"
 #include "jniContext.h"
 #include "errorTrains.h"
@@ -42,13 +41,29 @@ sem_t sem_init_done;
 
 int trErrno;
 
-/* JNI extern vars */
+/* JNI global variables */
 char *theJNICallbackCircuitChange;
 char *theJNICallbackUtoDeliver;
 JavaVM *jvm;
-jobject jmsghdr;
-jfieldID jmsghdr_lenID;
-jfieldID jmsghdr_typeID;
+
+/* Callback IDs*/
+jmethodID jcircuitChangeID;
+jmethodID jutoDeliverID;
+ 
+/* Objects & Fields IDs*/
+jobject jmsghdr = NULL;
+jfieldID jmsghdr_lenID = NULL;
+jfieldID jmsghdr_typeID = NULL;
+
+jobject jmsg = NULL;
+jfieldID jmsg_hdrID = NULL;
+jfieldID jmsg_payloadID = NULL;
+
+jobject jcv = NULL;
+jfieldID jcv_nmembID = NULL;
+jfieldID jcv_membersID = NULL;
+jfieldID jcv_joinedID = NULL;
+jfieldID jcv_departedID = NULL;
 
 /**
  * @brief Initialization of trains protocol middleware
@@ -183,9 +198,9 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trTerminate
   return 0;
 }
 
-/* Caching the method IDs */
-JNIEXPORT void JNICALL Java_trains_Interface_initIDs(JNIEnv *env, jclass cls){
-  printf("here\n");
+/* Caching the method IDs for the MessageHeader object */
+JNIEXPORT void JNICALL Java_trains_Interface_initIDsMessageHeader(JNIEnv *env, jclass cls){
+  printf("Init IDs - MessageHeader\n");
   jclass class = (*env)->FindClass(env, "trains/MessageHeader"); 
   jmethodID mid;
   
@@ -197,9 +212,55 @@ JNIEXPORT void JNICALL Java_trains_Interface_initIDs(JNIEnv *env, jclass cls){
       jmsghdr = (*env)->NewObject(env, class, mid, 0, 0);
     }
 
+    //if (jmsghdr == NULL){
+    //  ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jmsg");
+    //}
+
    jmsghdr_lenID = (*env)->GetFieldID(env, class, "len", "I");
+   jmsghdr_typeID = (*env)->GetFieldID(env, class, "type", "C");
    //testing
-   (*env)->SetObjectField(env, jmsghdr, jmsghdr_lenID, 0);
+   //(*env)->SetObjectField(env, jmsghdr, jmsghdr_lenID, 0);
   }
 }
 
+/* Caching the method IDs for the Message object */
+JNIEXPORT void JNICALL Java_trains_Interface_initIDsMessage(JNIEnv *env, jclass cls){
+  printf("Init IDs - Message\n");
+  jclass class = (*env)->FindClass(env, "trains/Message"); 
+  jmethodID mid;
+  
+  /* Instantiate a Message object */
+  if (class != NULL){
+    mid = (*env)->GetMethodID(env, class,
+                               "<init>", "(Ltrains/MessageHeader;Ljava/lang/String;)V");
+    if (mid != NULL){
+      jmsg = (*env)->NewObject(env, class, mid, NULL, "");
+    }
+   
+   jmsg_payloadID = (*env)->GetFieldID(env, class, "payload", "Ljava/lang/String;");
+   jmsg_hdrID = (*env)->GetFieldID(env, class, "messageHeader", "Ltrains/MessageHeader;");
+   //testing
+   //(*env)->SetObjectField(env, jmsg, jmsg_hdrID, jmsghdr);
+  }
+}
+
+/* Caching the method IDs for the CircuitView singleton */
+JNIEXPORT void JNICALL Java_trains_Interface_initIDsCircuitView(JNIEnv *env, jclass cls){
+  printf("Init IDs - CircuitView\n");
+  jclass class = (*env)->FindClass(env, "trains/CircuitView"); 
+  jmethodID mid;
+  
+  /* Get the CircuitView singleton */
+  if (class != NULL){
+    mid = (*env)->GetStaticMethodID(env, class, "getInstance", "()Ltrains/CircuitView;");
+    if (mid != NULL){
+      jcv = (*env)->CallStaticObjectMethod(env, class, mid);
+    }
+   
+   jcv_nmembID = (*env)->GetFieldID(env, class, "nmemb", "I");
+   jcv_membersID = (*env)->GetFieldID(env, class, "members", "Ljava/util/HashMap;");
+   jcv_joinedID = (*env)->GetFieldID(env, class, "joined", "I");
+   jcv_departedID = (*env)->GetFieldID(env, class, "departed", "I");
+
+  }
+}

@@ -23,7 +23,6 @@ Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Natha
 
 #include <string.h>
 #include <stdio.h>
-#include "applicationMessage.h"
 #include "trains.h"
 #include "wagon.h"
 #include "msg.h"
@@ -34,6 +33,11 @@ Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Natha
 #include "trains_Interface.h"
 #include "jniContext.h"
 
+/* Global JNI variables */
+jobject jcallbackUtoDeliver;
+jobject jcallbackCircuitChange;
+jmethodID jcallbackUtoDeliver_runID;
+jmethodID jcallbackCircuitChange_runID;
 
 JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, jint payloadSize){
   //message *mp;
@@ -104,7 +108,7 @@ void *utoDeliveries(void *null){
   circuitView cv;
   bool terminate = false;
 
-  jclass cls;
+  jclass class;
   jmethodID mid = NULL;
 
   /*Java objects */
@@ -120,8 +124,6 @@ void *utoDeliveries(void *null){
   JNIEnv *JNIenv;
   (*jvm)->AttachCurrentThread(jvm, (void **)&JNIenv, NULL);
 
-  /* Instantiate Java objects: MessageHeader, Message and CircuitView */
-//  cls = (*JNIenv)->FindClass(JNIenv, "trains/MessageHeader");
   /*jclass stringClass = (*JNIenv)->FindClass(JNIenv, "java/lang/String");
      if (stringClass == NULL) {
          return NULL; *//* exception thrown */
@@ -131,7 +133,7 @@ void *utoDeliveries(void *null){
                                "<init>", "([C)V");
      if (cid == NULL) {
          return NULL;*/ /* exception thrown */
-    // }
+   // }
   /*jthrowable exec;
   exec = (JNIenv*)->ExceptionOccurred();
   if (exec) {
@@ -140,51 +142,33 @@ void *utoDeliveries(void *null){
     (JNIenv*)->ExceptionClear();
   }*/
 
-//  if (cls != 0){
-//    mid = (*JNIenv)->GetMethodID(JNIenv, cls, "MessageHeader", "(LMessageHeader)II");
-//    if(mid != 0){      
-//      jmsg_hdr = (*JNIenv)->NewObject(JNIenv, cls, mid, 0, 0);
-//    }
-//  }
-//  
-//  if(jmsg_hdr == 0){
-//    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jmsg_hdr");
-//  }
-//
-//  cls = (*JNIenv)->FindClass(JNIenv, "trains/Message");
-//  if (cls != 0){
-//    mid = (*JNIenv)->GetMethodID(JNIenv, cls, "Message", "(LMessage)SV");
-//    if(mid != 0){      
-//      jmsg = (*JNIenv)->NewObject(JNIenv, cls, mid, "my_string", jmsg);
-//    }
-//  }
-//  
-//  if(jmsg == 0){
-//    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jmsg");
-//  }
-//  
-//  cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
-//  if (cls != 0){
-//    mid = (*JNIenv)->GetMethodID(JNIenv, cls, "CircuitView", "(LCircuitView)IIII");
-//    if(mid != 0){      
-//      jcircuit_view = (*JNIenv)->NewObject(JNIenv, cls, mid, 0, 0, 0, 0);
-//    }
-//  }
-//  
-//  if(jcircuit_view == 0){
-//    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jcircuit_view");
-//  }
-//
-//  /* Get java methods IDs */
-//
-//  /* Callbacks : get methods IDs and instantiate objects  */
-//  cls = (*JNIenv)->FindClass(JNIenv, theJNICallbackUtoDeliver); //XXX: check it is a correct string
-//  if (cls != 0){
-//    jutoDeliverId = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(V)ILMessage");
-//    //mid = (*JNIenv)->GetMethodID(JNIenv, cls, "", "(V)ILMessage"); //XXX: be careful with the prototype, to be changed
-//  }
-// 
-//  if(jutoDeliverId == 0){
+  /* Get java methods IDs */
+
+  /* Callbacks : get methods IDs and instantiate objects  */
+  printf("Init IDs - callbackUtoDeliver\n");
+  class = (*JNIenv)->FindClass(JNIenv, theJNICallbackUtoDeliver); //XXX: check it is a correct string
+  if (class != 0){
+    mid = (*JNIenv)->GetMethodID(JNIenv, class, "<init>", "(V)V");
+    
+    if (mid != NULL){
+      jcallbackUtoDeliver = (*JNIenv)->NewObject(JNIenv, class, mid);
+      jcallbackUtoDeliver_runID = (*JNIenv)->GetMethodID(JNIenv, class, "run", "(ILtrains/Message;)V");
+    }
+    
+  }
+ 
+  printf("Init IDs - callbackCircuitChange\n");
+  class = (*JNIenv)->FindClass(JNIenv, theJNICallbackCircuitChange); //XXX: check it is a correct string
+  if (class != 0){
+    mid = (*JNIenv)->GetMethodID(JNIenv, class, "<init>", "(V)V");
+    
+    if (mid != NULL){
+      jcallbackCircuitChange = (*JNIenv)->NewObject(JNIenv, class, mid);
+      jcallbackCircuitChange_runID = (*JNIenv)->GetMethodID(JNIenv, class, "run", "(ILtrains/CircuitView;)V");
+    }
+    
+  }
+//  if(jutoDeliverID == 0){
 //  /*  ERROR_AT_LINE();
 //  }
 //  if(mid == 0){*/
