@@ -114,6 +114,9 @@ void *utoDeliveries(void *null){
   /* Get the JNIenv pointer*/
   JNIEnv *JNIenv;
   (*jvm)->AttachCurrentThread(jvm, (void **)&JNIenv, NULL);
+  if (*JNIenv == NULL){
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "attach the current thread to the JVM");
+  }
 
   /*jclass stringClass = (*JNIenv)->FindClass(JNIenv, "java/lang/String");
      if (stringClass == NULL) {
@@ -136,27 +139,45 @@ void *utoDeliveries(void *null){
   /* Callbacks : get methods IDs and instantiate objects  */
   printf("Init IDs - callbackUtoDeliver\n");
   class = (*JNIenv)->FindClass(JNIenv, theJNICallbackUtoDeliver); //XXX: check it is a correct string
-  if (class != 0){
-    mid = (*JNIenv)->GetMethodID(JNIenv, class, "<init>", "(V)V");
-    
-    if (mid != NULL){
-      jcallbackUtoDeliver = (*JNIenv)->NewObject(JNIenv, class, mid);
-      jcallbackUtoDeliver_runID = (*JNIenv)->GetMethodID(JNIenv, class, "run", "(ILtrains/Message;)V");
-    }
-    
+  if (class == NULL){
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "find class implementing CallbackUtoDeliver");
   }
+  
+  mid = (*JNIenv)->GetMethodID(JNIenv, class, "<init>", "(V)V");
+  if (mid == NULL){
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "find callbackUtoDeliver constructor");
+  }  
  
+  jcallbackUtoDeliver = (*JNIenv)->NewObject(JNIenv, class, mid);
+  if (jcallbackUtoDeliver == NULL){
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate callbackUtoDeliver");
+  }  
+  
+  jcallbackUtoDeliver_runID = (*JNIenv)->GetMethodID(JNIenv, class, "run", "(ILtrains/Message;)V");
+  if (jcallbackUtoDeliver_runID == NULL){
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "get method ID for running callbackUtoDeliver");
+  }  
+    
   printf("Init IDs - callbackCircuitChange\n");
   class = (*JNIenv)->FindClass(JNIenv, theJNICallbackCircuitChange); //XXX: check it is a correct string
-  if (class != 0){
-    mid = (*JNIenv)->GetMethodID(JNIenv, class, "<init>", "(V)V");
-    
-    if (mid != NULL){
-      jcallbackCircuitChange = (*JNIenv)->NewObject(JNIenv, class, mid);
-      jcallbackCircuitChange_runID = (*JNIenv)->GetMethodID(JNIenv, class, "run", "(ILtrains/CircuitView;)V");
-    }
-    
+  if (class == NULL){
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "find class implementing CallbackCircuitChange");
   }
+    mid = (*JNIenv)->GetMethodID(JNIenv, class, "<init>", "(V)V");
+  if (mid == NULL){
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "find callbackCircuitChange constructor");
+  }  
+    
+  jcallbackCircuitChange = (*JNIenv)->NewObject(JNIenv, class, mid);
+  if (jcallbackCircuitChange == NULL){
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate callbackCircuitChange");
+  }  
+  
+  jcallbackCircuitChange_runID = (*JNIenv)->GetMethodID(JNIenv, class, "run", "(Ltrains/CircuitView;)V");
+  if (jcallbackUtoDeliver_runID == NULL){
+    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "get method ID for running callbackUtoDeliver");
+  }  
+    
 //  if(mid == 0){*/
 //    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jcircuitChangeID");
 //  } else {
@@ -184,55 +205,68 @@ void *utoDeliveries(void *null){
         case AM_PONG:
 #endif /* LATENCY_TEST */
         case AM_BROADCAST:
-//            //(*theCallbackUtoDeliver)(w->header.sender, mp);
-//            //mp: type message
-//            //w->header.sender: type address (which is unsigned short)
-//           
-//	  /* Set message header */
-//          (*JNIenv)->CallVoidMethod(JNIenv, jmsg_hdr, jmsghdr_setLenId, mp->header.len); 
-//          (*JNIenv)->CallVoidMethod(JNIenv, jmsg_hdr, jmsghdr_setTypeId, mp->header.typ); 
-//	  /* Set message */
-//          (*JNIenv)->CallVoidMethod(JNIenv, jmsg, jmsg_setMessageHeaderId, jmsg_hdr); 
-//          //XXX: mp->payload is char[]
-//          (*JNIenv)->CallVoidMethod(JNIenv, jmsg, jmsg_setPayloadId, mp->payload); 
-//          
-//          /* Call callback */
-//          //give int w->header.sender directly ?
-//	  (*JNIenv)->CallVoidMethod(JNIenv, jcallbackUtoDeliver, jutoDeliverID, w->header.sender, jmsg);
-//             
+        {    //(*theCallbackUtoDeliver)(w->header.sender, mp);
+            //mp: type message
+            //w->header.sender: type address (which is unsigned short)
+           
+	  /* Set message header */
+          (*JNIenv)->SetIntField(JNIenv, jmsghdr, jmsghdr_lenID, mp->header.len); 
+          (*JNIenv)->SetIntField(JNIenv, jmsghdr, jmsghdr_typeID, mp->header.typ); 
+
+	  /* Set message */
+          (*JNIenv)->SetObjectField(JNIenv, jmsg, jmsg_hdrID, jmsghdr); 
+          //XXX: mp->payload is char[]
+          // We want to convert a char* to a jstring
+
+          /*jclass strClass = (*JNIenv)->FindClass(JNIenv,"java/lang/String"); 
+	  jmethodID ctorID = (*JNIenv)->GetMethodID(JNIenv, strClass, "<init>", "([BLjava/lang/String;)V");*/ 
+          //This works for UTF-8 strings
+          jstring encoding = (*JNIenv)->NewStringUTF(JNIenv, mp->payload); 
+
+          /*jbyteArray bytes = (*JNIenv)->NewByteArray(JNIenv, strlen(mp->payload)); 
+          (*JNIenv)->SetByteArrayRegion(JNIenv, bytes, 0, strlen(mp->payload), (jbyte*)mp->payload); 
+          jstring str = (jstring)(*JNIenv)->NewObject(JNIenv, strClass, ctorID, bytes, encoding);*/
+
+          (*JNIenv)->SetObjectField(JNIenv, jmsg, jmsg_payloadID, encoding); 
+          
+          /* Call callback */
+          //give int w->header.sender directly ?
+	  (*JNIenv)->CallVoidMethod(JNIenv, jcallbackUtoDeliver, jcallbackUtoDeliver_runID, w->header.sender, jmsg);
+             
           break;
+        }
         case AM_ARRIVAL:
-//          fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
-//          cv.cv_joined = ((payloadArrivalDeparture*) (mp->payload))->ad;
-//            //(*theCallbackCircuitChange)(&cv);
-//            //cv wich is a circuitView object (to be defined in Java)
-//          /* Set CircuitView */
-//          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setMembId, cv.cv_nmemb); 
-//          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setMembersAddressId, cv.cv_members[MAX_MEMB]); 
-//          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setJoinedId, cv.cv_joined); 
-//          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setDepartedId, cv.cv_departed); 
-//          
-//          (*JNIenv)->CallVoidMethod(JNIenv, jcallbackCircuitChange, jcircuitChangeID, jcircuit_view);
+          fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
+          cv.cv_joined = ((payloadArrivalDeparture*) (mp->payload))->ad;
+            //(*theCallbackCircuitChange)(&cv);
+            //cv wich is a circuitView object (to be defined in Java)
+          /* Set CircuitView */
+          (*JNIenv)->SetIntField(JNIenv, jcv, jcv_nmembID, cv.cv_nmemb); 
+          (*JNIenv)->SetIntField(JNIenv, jcv, jcv_membersID, cv.cv_members[MAX_MEMB]); 
+          (*JNIenv)->SetIntField(JNIenv, jcv, jcv_joinedID, cv.cv_joined); 
+          (*JNIenv)->SetIntField(JNIenv, jcv, jcv_departedID, cv.cv_departed); 
+          
+          (*JNIenv)->CallVoidMethod(JNIenv, jcallbackCircuitChange, jcallbackCircuitChange_runID, jcv);
           break;
         case AM_DEPARTURE:
-//          fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
-//          cv.cv_departed = ((payloadArrivalDeparture*) (mp->payload))->ad;
-//            //(*theCallbackCircuitChange)(&cv);
-//            //mp->payload wich is char[]
-//          /* Set CircuitView */
-//          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setMembId, cv.cv_nmemb); 
-//          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setMembersAddressId, cv.cv_members[MAX_MEMB]); 
-//          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setJoinedId, cv.cv_joined); 
-//          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setDepartedId, cv.cv_departed); 
-//          
-//          (*JNIenv)->CallVoidMethod(JNIenv, jcallbackCircuitChange, jcircuitChangeID, jcircuit_view);
+          fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
+          cv.cv_departed = ((payloadArrivalDeparture*) (mp->payload))->ad;
+            //(*theCallbackCircuitChange)(&cv);
+            //mp->payload wich is char[]
+          /* Set CircuitView */
+          (*JNIenv)->SetIntField(JNIenv, jcv, jcv_nmembID, cv.cv_nmemb); 
+          (*JNIenv)->SetIntField(JNIenv, jcv, jcv_membersID, cv.cv_members[MAX_MEMB]); 
+          (*JNIenv)->SetIntField(JNIenv, jcv, jcv_joinedID, cv.cv_joined); 
+          (*JNIenv)->SetIntField(JNIenv, jcv, jcv_departedID, cv.cv_departed); 
+          
+          (*JNIenv)->CallVoidMethod(JNIenv, jcallbackCircuitChange, jcallbackCircuitChange_runID, jcv);
           break;
         case AM_TERMINATE:
-//          terminate = true;
+          terminate = true;
           break;
         default:
-//          fprintf(stderr, "Received a message with unknown typ \"%d\"\n",
-//              mp->header.typ);
+          fprintf(stderr, "Received a message with unknown typ \"%d\"\n",
+              mp->header.typ);
           break;
       }
     }
