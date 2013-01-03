@@ -111,15 +111,6 @@ void *utoDeliveries(void *null){
   jclass class;
   jmethodID mid = NULL;
 
-  /*Java objects */
-  jobject jmsg_hdr;
-  jobject jmsg;
-  jobject jcircuit_view;
-  jobject jcallbackCircuitChange;
-  jobject jcallbackUtoDeliver;
-
-
-
   /* Get the JNIenv pointer*/
   JNIEnv *JNIenv;
   (*jvm)->AttachCurrentThread(jvm, (void **)&JNIenv, NULL);
@@ -141,8 +132,6 @@ void *utoDeliveries(void *null){
     (JNIenv*)->ExceptionDescribe();
     (JNIenv*)->ExceptionClear();
   }*/
-
-  /* Get java methods IDs */
 
   /* Callbacks : get methods IDs and instantiate objects  */
   printf("Init IDs - callbackUtoDeliver\n");
@@ -168,123 +157,33 @@ void *utoDeliveries(void *null){
     }
     
   }
-//  if(jutoDeliverID == 0){
-//  /*  ERROR_AT_LINE();
-//  }
 //  if(mid == 0){*/
-//  
-//    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "get jutoDeliverId");
+//    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jcircuitChangeID");
 //  } else {
-//    jcallbackUtoDeliver = (*JNIenv)->NewObject(JNIenv, cls, jutoDeliverId);
-//    if(jcallbackUtoDeliver == 0){
-//      ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jcallbackUtoDeliver");
-//    }
-//  }
-//
-//
-//  cls = (*JNIenv)->FindClass(JNIenv, theJNICallbackCircuitChange); //XXX: check it is a correct string
-//  if (cls != 0){
-//    jcircuitChangeId = (*JNIenv)->GetMethodID(JNIenv, cls, "run", "(V)LCircuitView");
-//    //mid = (*JNIenv)->GetMethodID(JNIenv, cls, cls, "(V)LCircuitView"); //XXX: be careful with the prototype, to be changed
-//  }
-//
-//  if(jcircuitChangeId == 0){
-//  /*  ERROR_AT_LINE();
-//  }
-//  if(mid == 0){*/
-//    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jcircuitChangeId");
-//  } else {
-//    jcallbackCircuitChange = (*JNIenv)->NewObject(JNIenv, cls, jcircuitChangeId);
+//    jcallbackCircuitChange = (*JNIenv)->NewObject(JNIenv, class, jcircuitChangeID);
 //    if(jcallbackCircuitChange == 0){
 //      ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jcallbackCircuitChange");
 //    }
 //  }
-//  
-//  /* Setters */
-//  cls = (*JNIenv)->FindClass(JNIenv, "trains/Message");
-//  if (cls != 0){
-//    jmsg_setMessageHeaderId = (*JNIenv)->GetMethodID(JNIenv, cls, "setMessageHeader", "(V)LMessageHeader");
-//  } 
-//  if (jmsg_setMessageHeaderId == 0){
-//    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jmsg_setMessageHeaderId");
-//  }
-//  
-//  cls = (*JNIenv)->FindClass(JNIenv, "trains/Message");
-//  if (cls != 0){
-//    jmsg_setPayloadId = (*JNIenv)->GetMethodID(JNIenv, cls, "setPayload", "(V)I");
-//  } 
-//  if (jmsg_setPayloadId == 0){
-//    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jmsg_setPayloadId");
-//  }
-//  
-//  cls = (*JNIenv)->FindClass(JNIenv, "trains/MessageHeader");
-//  if (cls != 0){
-//    jmsghdr_setLenId = (*JNIenv)->GetMethodID(JNIenv, cls, "setLen", "(V)I");
-//  } 
-//  if (jmsghdr_setLenId == 0){
-//    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jmsghdr_setLenId");
-//  }
 //
-//  cls = (*JNIenv)->FindClass(JNIenv, "trains/MessageHeader");
-//  if (cls != 0){
-//    jmsghdr_setTypeId = (*JNIenv)->GetMethodID(JNIenv, cls, "setType", "(V)I");
-//  } 
-//  if (jmsghdr_setTypeId == 0){
-//    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jmsghdr_setTypeId");
-//  }
-//
-//  cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
-//  if (cls != 0){
-//    jcv_setMembId = (*JNIenv)->GetMethodID(JNIenv, cls, "setMemb", "(V)I");
-//  } 
-//  if (jcv_setMembId == 0){
-//    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jcv_setMembId");
-//  }
-//
-//  cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
-//  if (cls != 0){
-//    jcv_setMembersAddressId = (*JNIenv)->GetMethodID(JNIenv, cls, "setMembersAddress", "(V)I");
-//  } 
-//  if (jcv_setMembersAddressId == 0){
-//    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jcv_setMemberAddressId");
-//  }
-//
-//  cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
-//  if (cls != 0){
-//    jcv_setJoinedId = (*JNIenv)->GetMethodID(JNIenv, cls, "setJoined", "(V)I");
-//  } 
-//  if (jcv_setJoinedId == 0){
-//    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jcv_setJoinedId");
-//  }
-//  
-//  cls = (*JNIenv)->FindClass(JNIenv, "trains/CircuitView");
-//  if (cls != 0){
-//    jcv_setDepartedId = (*JNIenv)->GetMethodID(JNIenv, cls, "setDeparted", "(V)I");
-//  } 
-//  if (jcv_setDepartedId == 0){
-//    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jcv_setDepartedId");
-//  }
-//
-//  //if (status != JNI_ERR){
-//
-//  do {
-//    wi = bqueueDequeue(wagonsToDeliver);
-//    w = wi->p_wagon;
-//
-//    counters.wagons_delivered++;
-//
-//    // We analyze all messages in this wagon
-//    for (mp = firstMsg(w); mp != NULL ; mp = nextMsg(w, mp)) {
-//
-//      counters.messages_delivered++;
-//      counters.messages_bytes_delivered += payloadSize(mp);
-//
-//      switch (mp->header.typ) {
-//#ifdef LATENCY_TEST
-//        case AM_PING:
-//        case AM_PONG:
-//#endif /* LATENCY_TEST */
-//        case AM_BROADCAST:
+  do {
+    wi = bqueueDequeue(wagonsToDeliver);
+    w = wi->p_wagon;
+
+    counters.wagons_delivered++;
+
+    // We analyze all messages in this wagon
+    for (mp = firstMsg(w); mp != NULL ; mp = nextMsg(w, mp)) {
+
+      counters.messages_delivered++;
+      counters.messages_bytes_delivered += payloadSize(mp);
+
+      switch (mp->header.typ) {
+#ifdef LATENCY_TEST
+        case AM_PING:
+        case AM_PONG:
+#endif /* LATENCY_TEST */
+        case AM_BROADCAST:
 //            //(*theCallbackUtoDeliver)(w->header.sender, mp);
 //            //mp: type message
 //            //w->header.sender: type address (which is unsigned short)
@@ -299,10 +198,10 @@ void *utoDeliveries(void *null){
 //          
 //          /* Call callback */
 //          //give int w->header.sender directly ?
-//	  (*JNIenv)->CallVoidMethod(JNIenv, jcallbackUtoDeliver, jutoDeliverId, w->header.sender, jmsg);
+//	  (*JNIenv)->CallVoidMethod(JNIenv, jcallbackUtoDeliver, jutoDeliverID, w->header.sender, jmsg);
 //             
-//          break;
-//        case AM_ARRIVAL:
+          break;
+        case AM_ARRIVAL:
 //          fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
 //          cv.cv_joined = ((payloadArrivalDeparture*) (mp->payload))->ad;
 //            //(*theCallbackCircuitChange)(&cv);
@@ -313,9 +212,9 @@ void *utoDeliveries(void *null){
 //          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setJoinedId, cv.cv_joined); 
 //          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setDepartedId, cv.cv_departed); 
 //          
-//          (*JNIenv)->CallVoidMethod(JNIenv, jcallbackCircuitChange, jcircuitChangeId, jcircuit_view);
-//          break;
-//        case AM_DEPARTURE:
+//          (*JNIenv)->CallVoidMethod(JNIenv, jcallbackCircuitChange, jcircuitChangeID, jcircuit_view);
+          break;
+        case AM_DEPARTURE:
 //          fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
 //          cv.cv_departed = ((payloadArrivalDeparture*) (mp->payload))->ad;
 //            //(*theCallbackCircuitChange)(&cv);
@@ -326,20 +225,19 @@ void *utoDeliveries(void *null){
 //          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setJoinedId, cv.cv_joined); 
 //          (*JNIenv)->CallVoidMethod(JNIenv, jcircuit_view, jcv_setDepartedId, cv.cv_departed); 
 //          
-//          (*JNIenv)->CallVoidMethod(JNIenv, jcallbackCircuitChange, jcircuitChangeId, jcircuit_view);
-//          break;
-//        case AM_TERMINATE:
+//          (*JNIenv)->CallVoidMethod(JNIenv, jcallbackCircuitChange, jcircuitChangeID, jcircuit_view);
+          break;
+        case AM_TERMINATE:
 //          terminate = true;
-//          break;
-//        default:
+          break;
+        default:
 //          fprintf(stderr, "Received a message with unknown typ \"%d\"\n",
 //              mp->header.typ);
-//          break;
-//      }
-//    }
-//    freeWiw(wi);
-//  } while (!terminate);
+          break;
+      }
+    }
+    freeWiw(wi);
+  } while (!terminate);
 
-  //}
   return NULL ;
 }
