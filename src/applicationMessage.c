@@ -115,7 +115,7 @@ void *utoDeliveries(void *null){
   JNIEnv *JNIenv;
   (*jvm)->AttachCurrentThread(jvm, (void **)&JNIenv, NULL);
   if (*JNIenv == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "attach the current thread to the JVM");
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "attach the current thread to the JVM");
   }
 
   /*jclass stringClass = (*JNIenv)->FindClass(JNIenv, "java/lang/String");
@@ -138,52 +138,53 @@ void *utoDeliveries(void *null){
 
   /* Callbacks : get methods IDs and instantiate objects  */
   printf("Init IDs - callbackUtoDeliver\n");
+  printf("theJNICallbackUtoDeliver: %s\n", theJNICallbackUtoDeliver);
   class = (*JNIenv)->FindClass(JNIenv, theJNICallbackUtoDeliver); //XXX: check it is a correct string
   if (class == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "find class implementing CallbackUtoDeliver");
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find class implementing CallbackUtoDeliver");
   }
   
   mid = (*JNIenv)->GetMethodID(JNIenv, class, "<init>", "(V)V");
   if (mid == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "find callbackUtoDeliver constructor");
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find callbackUtoDeliver constructor");
   }  
  
   jcallbackUtoDeliver = (*JNIenv)->NewObject(JNIenv, class, mid);
   if (jcallbackUtoDeliver == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate callbackUtoDeliver");
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "instantiate callbackUtoDeliver");
   }  
   
   jcallbackUtoDeliver_runID = (*JNIenv)->GetMethodID(JNIenv, class, "run", "(ILtrains/Message;)V");
   if (jcallbackUtoDeliver_runID == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "get method ID for running callbackUtoDeliver");
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get method ID for running callbackUtoDeliver");
   }  
     
   printf("Init IDs - callbackCircuitChange\n");
   class = (*JNIenv)->FindClass(JNIenv, theJNICallbackCircuitChange); //XXX: check it is a correct string
   if (class == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "find class implementing CallbackCircuitChange");
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find class implementing CallbackCircuitChange");
   }
     mid = (*JNIenv)->GetMethodID(JNIenv, class, "<init>", "(V)V");
   if (mid == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "find callbackCircuitChange constructor");
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find callbackCircuitChange constructor");
   }  
     
   jcallbackCircuitChange = (*JNIenv)->NewObject(JNIenv, class, mid);
   if (jcallbackCircuitChange == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate callbackCircuitChange");
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "instantiate callbackCircuitChange");
   }  
   
   jcallbackCircuitChange_runID = (*JNIenv)->GetMethodID(JNIenv, class, "run", "(Ltrains/CircuitView;)V");
   if (jcallbackUtoDeliver_runID == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "get method ID for running callbackUtoDeliver");
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get method ID for running callbackUtoDeliver");
   }  
     
 //  if(mid == 0){*/
-//    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jcircuitChangeID");
+//    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "instantiate jcircuitChangeID");
 //  } else {
 //    jcallbackCircuitChange = (*JNIenv)->NewObject(JNIenv, class, jcircuitChangeID);
 //    if(jcallbackCircuitChange == 0){
-//      ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__, "instantiate jcallbackCircuitChange");
+//      ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "instantiate jcallbackCircuitChange");
 //    }
 //  }
 //
