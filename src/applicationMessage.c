@@ -139,12 +139,27 @@ void *utoDeliveries(void *null){
   /* Callbacks : get methods IDs and instantiate objects  */
   printf("Init IDs - callbackUtoDeliver\n");
   printf("theJNICallbackUtoDeliver: %s\n", theJNICallbackUtoDeliver);
-  class = (*JNIenv)->FindClass(JNIenv, theJNICallbackUtoDeliver); //XXX: check it is a correct string
+  class = (*JNIenv)->FindClass(JNIenv, "examples/Example$myCallbackUtoDeliver"); //XXX: check it is a correct string
+  //replace '.' by '/' in the string theJNICallbackUtoDeliver
+  //class = (*JNIenv)->FindClass(JNIenv, theJNICallbackUtoDeliver); //XXX: check it is a correct string
+  jthrowable exec;
+  exec = (*JNIenv)->ExceptionOccurred(JNIenv);
+  if (exec) {
+    jclass newExcCls;
+    (*JNIenv)->ExceptionDescribe(JNIenv);
+    (*JNIenv)->ExceptionClear(JNIenv);
+  }
   if (class == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find class implementing CallbackUtoDeliver");
   }
   
-  mid = (*JNIenv)->GetMethodID(JNIenv, class, "<init>", "(V)V");
+  mid = (*JNIenv)->GetMethodID(JNIenv, class, "<init>", "()V");
+  exec = (*JNIenv)->ExceptionOccurred(JNIenv);
+  if (exec) {
+    jclass newExcCls;
+    (*JNIenv)->ExceptionDescribe(JNIenv);
+    (*JNIenv)->ExceptionClear(JNIenv);
+  }
   if (mid == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find callbackUtoDeliver constructor");
   }  
@@ -160,11 +175,13 @@ void *utoDeliveries(void *null){
   }  
     
   printf("Init IDs - callbackCircuitChange\n");
-  class = (*JNIenv)->FindClass(JNIenv, theJNICallbackCircuitChange); //XXX: check it is a correct string
+  printf("theJNICallbackCircuitChange: %s\n", theJNICallbackCircuitChange);
+  class = (*JNIenv)->FindClass(JNIenv, "examples/Example$myCallbackCircuitChange"); //XXX: check it is a correct string
+  //class = (*JNIenv)->FindClass(JNIenv, theJNICallbackCircuitChange); //XXX: check it is a correct string
   if (class == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find class implementing CallbackCircuitChange");
   }
-    mid = (*JNIenv)->GetMethodID(JNIenv, class, "<init>", "(V)V");
+    mid = (*JNIenv)->GetMethodID(JNIenv, class, "<init>", "()V");
   if (mid == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find callbackCircuitChange constructor");
   }  
