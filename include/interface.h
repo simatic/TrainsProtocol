@@ -38,4 +38,6 @@
  */
 extern sem_t sem_init_done;
 
+void format_class_name(char *);
+
 #endif /* _INTERFACE_H */

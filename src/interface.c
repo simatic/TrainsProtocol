@@ -129,11 +129,15 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
   rc= pthread_cond_init(&condWagonToSend, NULL);
   assert(rc == 0);
 
-  theJNICallbackCircuitChange = malloc(128*sizeof(char));
-  theJNICallbackUtoDeliver = malloc(128*sizeof(char));
+  /* Get and format the name of the callback classes */
+  theJNICallbackCircuitChange = malloc(255*sizeof(char));
+  theJNICallbackUtoDeliver = malloc(255*sizeof(char));
 
   theJNICallbackCircuitChange = myCallbackCircuitChange;
-  theJNICallbackUtoDeliver = myCallbackUtoDeliver;
+  theJNICallbackUtoDeliver = myCallbackUtoDeliver;   
+  format_class_name(theJNICallbackCircuitChange); 
+  format_class_name(theJNICallbackUtoDeliver); 
+
   (*env)->GetJavaVM(env, &jvm);
 
   globalAddrArray = addrGenerator(LOCALISATION, NP);
@@ -198,10 +202,21 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trTerminate
   return 0;
 }
 
+void format_class_name(char *arg){
+  int j;
+
+  for (j = 0; j < strlen(arg) ; j++) {
+    if (arg[j] == '.'){
+      arg[j] = '/';
+    }
+  }
+}
+
 /* Caching the method IDs for the MessageHeader object */
 JNIEXPORT void JNICALL Java_trains_Interface_initIDsMessageHeader(JNIEnv *env, jclass cls){
   printf("Init IDs - MessageHeader\n");
   jmethodID mid;
+  jobject jobj;
  
   /* Instantiate a MessageHeader object */
   jclass class = (*env)->FindClass(env, "trains/MessageHeader"); 
@@ -221,7 +236,7 @@ JNIEXPORT void JNICALL Java_trains_Interface_initIDsMessageHeader(JNIEnv *env, j
   } 
     
   jmsghdr = (*env)->NewGlobalRef(env, jobj);
-  if(jmshdr == NULL){
+  if(jmsghdr == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "Global ref for CircuitView");
   }
   (*env)->DeleteLocalRef(env, jobj);

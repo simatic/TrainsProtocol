@@ -138,11 +138,7 @@ void *utoDeliveries(void *null){
   }*/
 
   /* Callbacks : get methods IDs and instantiate objects  */
-  printf("Init IDs - callbackUtoDeliver\n");
-  printf("theJNICallbackUtoDeliver: %s\n", theJNICallbackUtoDeliver);
-  class = (*JNIenv)->FindClass(JNIenv, "examples/Example$myCallbackUtoDeliver"); //XXX: check it is a correct string
-  //replace '.' by '/' in the string theJNICallbackUtoDeliver
-  //class = (*JNIenv)->FindClass(JNIenv, theJNICallbackUtoDeliver); //XXX: check it is a correct string
+  class = (*JNIenv)->FindClass(JNIenv, theJNICallbackUtoDeliver); //XXX: check it is a correct string
   jthrowable exec;
   exec = (*JNIenv)->ExceptionOccurred(JNIenv);
   if (exec) {
@@ -181,10 +177,7 @@ void *utoDeliveries(void *null){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get method ID for running callbackUtoDeliver");
   }  
     
-  printf("Init IDs - callbackCircuitChange\n");
-  printf("theJNICallbackCircuitChange: %s\n", theJNICallbackCircuitChange);
-  class = (*JNIenv)->FindClass(JNIenv, "examples/Example$myCallbackCircuitChange"); //XXX: check it is a correct string
-  //class = (*JNIenv)->FindClass(JNIenv, theJNICallbackCircuitChange); //XXX: check it is a correct string
+  class = (*JNIenv)->FindClass(JNIenv, theJNICallbackCircuitChange); //XXX: check it is a correct string
   if (class == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find class implementing CallbackCircuitChange");
   }
@@ -242,6 +235,7 @@ void *utoDeliveries(void *null){
             //mp: type message
             //w->header.sender: type address (which is unsigned short)
            
+          printf("AM_BROADCAST\n");
 	  /* Set message header */
           (*JNIenv)->SetIntField(JNIenv, jmsghdr, jmsghdr_lenID, mp->header.len); 
           (*JNIenv)->SetIntField(JNIenv, jmsghdr, jmsghdr_typeID, mp->header.typ); 
@@ -274,7 +268,7 @@ void *utoDeliveries(void *null){
             //(*theCallbackCircuitChange)(&cv);
             //cv wich is a circuitView object (to be defined in Java)
           /* Set CircuitView */
-          printf("Set fields in CircuitView\n");
+          printf("AM_ARRIVAL\n");
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_nmembID, cv.cv_nmemb); 
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_membersID, cv.cv_members[MAX_MEMB]); 
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_joinedID, cv.cv_joined); 
@@ -283,6 +277,7 @@ void *utoDeliveries(void *null){
           (*JNIenv)->CallVoidMethod(JNIenv, jcallbackCircuitChange, jcallbackCircuitChange_runID, jcv);
           break;
         case AM_DEPARTURE:
+          printf("AM_DEPARTURE\n");
           fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
           cv.cv_departed = ((payloadArrivalDeparture*) (mp->payload))->ad;
             //(*theCallbackCircuitChange)(&cv);
