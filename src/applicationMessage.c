@@ -110,6 +110,7 @@ void *utoDeliveries(void *null){
 
   jclass class;
   jmethodID mid = NULL;
+  jobject jobj;
 
   /* Get the JNIenv pointer*/
   JNIEnv *JNIenv;
@@ -164,10 +165,16 @@ void *utoDeliveries(void *null){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find callbackUtoDeliver constructor");
   }  
  
-  jcallbackUtoDeliver = (*JNIenv)->NewObject(JNIenv, class, mid);
-  if (jcallbackUtoDeliver == NULL){
+  jobj = (*JNIenv)->NewObject(JNIenv, class, mid);
+  if (jobj == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "instantiate callbackUtoDeliver");
   }  
+  
+  jcallbackUtoDeliver = (*JNIenv)->NewGlobalRef(JNIenv, jobj);
+  if(jcallbackUtoDeliver == NULL){
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "Global ref for CircuitView");
+  }
+  (*JNIenv)->DeleteLocalRef(JNIenv, jobj);
   
   jcallbackUtoDeliver_runID = (*JNIenv)->GetMethodID(JNIenv, class, "run", "(ILtrains/Message;)V");
   if (jcallbackUtoDeliver_runID == NULL){
@@ -186,10 +193,16 @@ void *utoDeliveries(void *null){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find callbackCircuitChange constructor");
   }  
     
-  jcallbackCircuitChange = (*JNIenv)->NewObject(JNIenv, class, mid);
-  if (jcallbackCircuitChange == NULL){
+  jobj = (*JNIenv)->NewObject(JNIenv, class, mid);
+  if (jobj == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "instantiate callbackCircuitChange");
   }  
+  
+  jcallbackCircuitChange = (*JNIenv)->NewGlobalRef(JNIenv, jobj);
+  if(jcallbackCircuitChange == NULL){
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "Global ref for CircuitView");
+  }
+  (*JNIenv)->DeleteLocalRef(JNIenv, jobj);
   
   jcallbackCircuitChange_runID = (*JNIenv)->GetMethodID(JNIenv, class, "run", "(Ltrains/CircuitView;)V");
   if (jcallbackUtoDeliver_runID == NULL){
@@ -205,6 +218,8 @@ void *utoDeliveries(void *null){
 //    }
 //  }
 //
+
+
   do {
     wi = bqueueDequeue(wagonsToDeliver);
     w = wi->p_wagon;
@@ -259,6 +274,7 @@ void *utoDeliveries(void *null){
             //(*theCallbackCircuitChange)(&cv);
             //cv wich is a circuitView object (to be defined in Java)
           /* Set CircuitView */
+          printf("Set fields in CircuitView\n");
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_nmembID, cv.cv_nmemb); 
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_membersID, cv.cv_members[MAX_MEMB]); 
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_joinedID, cv.cv_joined); 
