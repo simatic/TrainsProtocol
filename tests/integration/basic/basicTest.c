@@ -36,14 +36,17 @@
 #include <stdio.h>
 #include <errno.h>
 #include <semaphore.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
 #include <strings.h>
 #include "trains.h"
 #include "errorTrains.h"
 
 #define PAYLOAD_SIZE sizeof(int)
 
-sem_t semWaitEnoughMembers;
-sem_t semWaitToDie;
+sem_t *semWaitEnoughMembers;
+sem_t *semWaitToDie;
 
 bool sender;
 int nbMemberMin;
@@ -65,7 +68,7 @@ void callbackCircuitChange(circuitView *cp){
 
   if (cp->cv_nmemb >= nbMemberMin) {
     printf("!!! ******** enough members to start utoBroadcasting\n");
-    int rc = sem_post(&semWaitEnoughMembers);
+    int rc = sem_post(semWaitEnoughMembers);
     if (rc) {
       ERROR_AT_LINE(rc, errno, __FILE__, __LINE__, "sem_post()");
       exit(EXIT_FAILURE);
@@ -87,7 +90,7 @@ void callbackUtoDeliver(address sender, message *mp){
   nbRecMsg++;
   if (nbRecMsg >= nbRecMsgBeforeStop) {
     terminate = true;
-    if (sem_post(&semWaitToDie) < 0) {
+    if (sem_post(semWaitToDie) < 0) {
       ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_post()");
     }
   }
@@ -99,6 +102,8 @@ void callbackUtoDeliver(address sender, message *mp){
 int main(int argc, char *argv[]){
   int rc;
   int rankMessage = 0;
+  char semWaitEnoughMembersName[128];
+  char semWaitToDieName[128];
 
   if (argc != 5) {
     printf(
@@ -121,16 +126,24 @@ int main(int argc, char *argv[]){
   delayBetweenTwoUtoBroadcast = atoi(argv[3]);
   nbRecMsgBeforeStop = atoi(argv[4]);
 
-  rc = sem_init(&semWaitEnoughMembers, 0, 0);
-  if (rc) {
-    ERROR_AT_LINE(rc, errno, __FILE__, __LINE__, "sem_init()");
-    return EXIT_FAILURE;
+  sprintf(semWaitEnoughMembersName, "semWaitEnoughMembers_%d", getpid()); 
+  semWaitEnoughMembers = sem_open(semWaitEnoughMembersName, O_CREAT, 0644, 0);
+  if (semWaitEnoughMembers == SEM_FAILED){ 
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_open()");
   }
 
-  rc = sem_init(&semWaitToDie, 0, 0);
-  if (rc) {
-    ERROR_AT_LINE(rc, errno, __FILE__, __LINE__, "sem_init()");
-    return EXIT_FAILURE;
+  //rc = sem_init(&semWaitToDie, 0, 0);
+  /*rc = sem_unlink("semWaitToDie");
+  if (rc){
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_unlink()");
+  }*/
+  sprintf(semWaitToDieName, "semWaitToDie_%d", getpid()); 
+  semWaitToDie = sem_open(semWaitToDieName, O_CREAT, 0644, 0);
+  if (semWaitToDie == SEM_FAILED){
+  //if (rc) {
+    //ERROR_AT_LINE(rc, errno, __FILE__, __LINE__, "sem_init()");
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_open()");
+    //return EXIT_FAILURE;
   }
 
   // We initialize the trains protocol
@@ -141,7 +154,7 @@ int main(int argc, char *argv[]){
   }
 
   do {
-    rc = sem_wait(&semWaitEnoughMembers);
+    rc = sem_wait(semWaitEnoughMembers);
   } while ((rc < 0) && (errno == EINTR));
   if (rc) {
     ERROR_AT_LINE(rc, errno, __FILE__, __LINE__, "sem_wait()");
@@ -168,7 +181,7 @@ int main(int argc, char *argv[]){
   } else {
     // Process waits that callbackUtoDelivery tells it to die
     do {
-      rc = sem_wait(&semWaitToDie);
+      rc = sem_wait(semWaitToDie);
     } while ((rc < 0) && (errno == EINTR));
     if (rc) {
       ERROR_AT_LINE(rc, errno, __FILE__, __LINE__, "sem_wait()");

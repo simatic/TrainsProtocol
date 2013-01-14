@@ -288,7 +288,7 @@ void offlineInit(){
     wagonToSend = newWiw();
     automatonState = ALONE_INSERT_WAIT;
     //printf("Nextstate(fake) = %s\n", stateToStr(automatonState));
-    int rc = sem_post(&sem_init_done);
+    int rc = sem_post(sem_init_done);
     if (rc)
       ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
           "error in sem_post");
@@ -373,6 +373,7 @@ void stateMachine(womim* p_womim){
   int id;
   MUTEX_LOCK(stateMachineMutex);
   //printf("State = %s, receive message = %s\n", stateToStr(automatonState), msgTypeToStr(p_womim->msg.type));
+  char sem_name[128];
   switch (automatonState) {
   case OFFLINE_CONNECTION_ATTEMPT:
     switch (p_womim->msg.type) {
@@ -445,7 +446,7 @@ void stateMachine(womim* p_womim){
         lis = p_womim->msg.body.train.stamp.id;
         signalArrival(myAddress, lts[lis].circuit);
         nextState(SEVERAL);
-        int rc = sem_post(&sem_init_done);
+        int rc = sem_post(sem_init_done);
         if (rc)
           ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
               "error in sem_post");
