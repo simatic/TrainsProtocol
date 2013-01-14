@@ -40,7 +40,7 @@ jmethodID jcallbackUtoDeliver_runID;
 jmethodID jcallbackCircuitChange_runID;
 
 JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, jint payloadSize){
-  //message *mp;
+  message *mp;
   counters.newmsg++;
   MUTEX_LOCK(mutexWagonToSend);
 
@@ -54,8 +54,8 @@ JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, ji
       ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_cond_wait");
   }
 
-  //mp = mallocWiw(payloadSize);
-  //mp->header.typ = AM_BROADCAST;
+  mp = mallocWiw(payloadSize);
+  mp->header.typ = AM_BROADCAST;
 
   // MUTEX_UNLOCK will be done in utoBroadcast
   // MUTEX_UNLOCK(mutexWagonToSend);
