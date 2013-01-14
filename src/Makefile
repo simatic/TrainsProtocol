@@ -2,8 +2,15 @@
 
 GCCMAKEDEP ?= gccmakedep
 
+UNAME := $(shell uname)
+
 # Binary to build
-BIN		= libtrains.so
+ifeq ($(UNAME), Linux)
+	BIN		= libtrains.so
+endif
+ifeq ($(UNAME), Darwin)
+	BIN		= libtrains.jnilib
+endif
 # C source files for the library
 SOURCES		= $(wildcard *.c)
 # Object files corresponding to source files
