@@ -70,6 +70,16 @@ JNIEXPORT jint JNICALL Java_trains_Interface_utoBroadcast(JNIEnv *env, jobject o
   // state ALONE_INSERT_WAIT => ALONE_CONNECTION_WAIT require mutexWagonToSend
   // thus cannot corrupt this sending
   // state SEVERAL => ALONE_INSERT_WAIT also require mutexWagonToSend
+ 
+  jobject jmsghdr;
+  int type;
+  jmsghdr = (*env)->GetObjectField(env, msg, jmsg_hdrID); 
+  if (jmsghdr == NULL){
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get jmsghdr in utoBroadcast");
+  }
+  type = (*env)->GetIntField(env, jmsghdr, jmsghdr_typeID); 
+ 
+  printf("Type of message in utoBroadcast: %d\n", type); 
 
   if (automatonState == ALONE_INSERT_WAIT) {
     bqueueEnqueue(wagonsToDeliver, wagonToSend);
@@ -111,6 +121,8 @@ void *utoDeliveries(void *null){
   jclass class;
   jmethodID mid = NULL;
   jobject jobj;
+
+  printf("In utoDeliveries \n");
 
   /* Get the JNIenv pointer*/
   JNIEnv *JNIenv;
@@ -242,17 +254,11 @@ void *utoDeliveries(void *null){
 
 	  /* Set message */
           (*JNIenv)->SetObjectField(JNIenv, jmsg, jmsg_hdrID, jmsghdr); 
+          
           //XXX: mp->payload is char[]
           // We want to convert a char* to a jstring
-
-          /*jclass strClass = (*JNIenv)->FindClass(JNIenv,"java/lang/String"); 
-	  jmethodID ctorID = (*JNIenv)->GetMethodID(JNIenv, strClass, "<init>", "([BLjava/lang/String;)V");*/ 
           //This works for UTF-8 strings
           jstring encoding = (*JNIenv)->NewStringUTF(JNIenv, mp->payload); 
-
-          /*jbyteArray bytes = (*JNIenv)->NewByteArray(JNIenv, strlen(mp->payload)); 
-          (*JNIenv)->SetByteArrayRegion(JNIenv, bytes, 0, strlen(mp->payload), (jbyte*)mp->payload); 
-          jstring str = (jstring)(*JNIenv)->NewObject(JNIenv, strClass, ctorID, bytes, encoding);*/
 
           (*JNIenv)->SetObjectField(JNIenv, jmsg, jmsg_payloadID, encoding); 
           
@@ -291,6 +297,7 @@ void *utoDeliveries(void *null){
           (*JNIenv)->CallVoidMethod(JNIenv, jcallbackCircuitChange, jcallbackCircuitChange_runID, jcv);
           break;
         case AM_TERMINATE:
+          printf("AM_TERMINATE\n");
           terminate = true;
           break;
         default:
