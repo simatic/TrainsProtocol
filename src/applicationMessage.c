@@ -210,16 +210,18 @@ void *utoDeliveries(void *null){
   if (class == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find class implementing CallbackCircuitChange");
   }
-    mid = (*JNIenv)->GetMethodID(JNIenv, class, "<init>", "()V");
+
+  //XXX
+  mid = (*JNIenv)->GetStaticMethodID(JNIenv, class, "getInstance", "()Lexamples/Example$myCallbackCircuitChange;");
   if (mid == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find callbackCircuitChange constructor");
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find callbackCircuitChange getInstance()");
   }  
-    
-  jobj = (*JNIenv)->NewObject(JNIenv, class, mid);
+
+  jobj = (*JNIenv)->CallStaticObjectMethod(JNIenv, class, mid);
   if (jobj == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "instantiate callbackCircuitChange");
-  }  
-  
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "call static factory for callbackCircuitChange");
+  }
+
   jcallbackCircuitChange = (*JNIenv)->NewGlobalRef(JNIenv, jobj);
   if(jcallbackCircuitChange == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "Global ref for CircuitView");
