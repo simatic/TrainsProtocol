@@ -138,7 +138,9 @@ void *utoDeliveries(void *null){
   jclass class;
   jmethodID mid = NULL;
   jobject jobj;
-
+  char destUto[255];
+  char destCC[255];
+  
   //printf("In utoDeliveries \n");
 
   /* Get the JNIenv pointer*/
@@ -179,17 +181,20 @@ void *utoDeliveries(void *null){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find class implementing CallbackUtoDeliver");
   }
   
-  mid = (*JNIenv)->GetMethodID(JNIenv, class, "<init>", "()V");
-  exec = (*JNIenv)->ExceptionOccurred(JNIenv);
-  if (exec) {
-    jclass newExcCls;
-    (*JNIenv)->ExceptionDescribe(JNIenv);
-    (*JNIenv)->ExceptionClear(JNIenv);
-  }
+  strcat(destUto, "()L");
+  strcat(destUto, theJNICallbackUtoDeliver);
+  strcat(destUto, ";");  
+
+  mid = (*JNIenv)->GetStaticMethodID(JNIenv, class, "getInstance", destUto);
   if (mid == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find callbackUtoDeliver constructor");
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find callbackCircuitChange getInstance()");
   }  
- 
+  
+  jobj = (*JNIenv)->CallStaticObjectMethod(JNIenv, class, mid);
+  if (jobj == NULL){
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "call static factory for callbackCircuitChange");
+  }
+  
   jobj = (*JNIenv)->NewObject(JNIenv, class, mid);
   if (jobj == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "instantiate callbackUtoDeliver");
@@ -211,13 +216,11 @@ void *utoDeliveries(void *null){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find class implementing CallbackCircuitChange");
   }
 
-  char dest[255];
-  strcat(dest, "()L");
-  strcat(dest, theJNICallbackCircuitChange);
-  strcat(dest, ";");  
+  strcat(destCC, "()L");
+  strcat(destCC, theJNICallbackCircuitChange);
+  strcat(destCC, ";");  
 
-  printf("%s\n", dest);
-  mid = (*JNIenv)->GetStaticMethodID(JNIenv, class, "getInstance", dest);
+  mid = (*JNIenv)->GetStaticMethodID(JNIenv, class, "getInstance", destCC);
   if (mid == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find callbackCircuitChange getInstance()");
   }  
