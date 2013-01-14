@@ -211,8 +211,13 @@ void *utoDeliveries(void *null){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find class implementing CallbackCircuitChange");
   }
 
-  //XXX
-  mid = (*JNIenv)->GetStaticMethodID(JNIenv, class, "getInstance", "()Lexamples/Example$myCallbackCircuitChange;");
+  char dest[255];
+  strcat(dest, "()L");
+  strcat(dest, theJNICallbackCircuitChange);
+  strcat(dest, ";");  
+
+  printf("%s\n", dest);
+  mid = (*JNIenv)->GetStaticMethodID(JNIenv, class, "getInstance", dest);
   if (mid == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find callbackCircuitChange getInstance()");
   }  
