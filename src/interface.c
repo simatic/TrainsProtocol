@@ -214,7 +214,7 @@ void format_class_name(char *arg){
 
 /* Caching the method IDs for the MessageHeader object */
 JNIEXPORT void JNICALL Java_trains_Interface_initIDsMessageHeader(JNIEnv *env, jclass cls){
-  printf("Init IDs - MessageHeader\n");
+  //printf("Init IDs - MessageHeader\n");
   jmethodID mid;
   jobject jobj;
  
@@ -256,7 +256,7 @@ JNIEXPORT void JNICALL Java_trains_Interface_initIDsMessageHeader(JNIEnv *env, j
 
 /* Caching the method IDs for the Message object */
 JNIEXPORT void JNICALL Java_trains_Interface_initIDsMessage(JNIEnv *env, jclass cls){
-  printf("Init IDs - Message\n");
+  //printf("Init IDs - Message\n");
   jmethodID mid;
   jobject jobj;
   
@@ -265,9 +265,9 @@ JNIEXPORT void JNICALL Java_trains_Interface_initIDsMessage(JNIEnv *env, jclass 
   if (class == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find class Message");
   }
-
+ 
   mid = (*env)->GetMethodID(env, class,
-                               "<init>", "(Ltrains/MessageHeader;Ljava/lang/String;)V");
+                               "<init>", "(Ltrains/MessageHeader;[B)V");
   if (mid == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find constructor for Message");
   } 
@@ -283,7 +283,7 @@ JNIEXPORT void JNICALL Java_trains_Interface_initIDsMessage(JNIEnv *env, jclass 
   }
   (*env)->DeleteLocalRef(env, jobj);
 
-  jmsg_payloadID = (*env)->GetFieldID(env, class, "payload", "Ljava/lang/String;");
+  jmsg_payloadID = (*env)->GetFieldID(env, class, "payload", "[B");
   if (jmsg_payloadID == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get Message payload field ID");
   }
@@ -298,7 +298,7 @@ JNIEXPORT void JNICALL Java_trains_Interface_initIDsMessage(JNIEnv *env, jclass 
 
 /* Caching the method IDs for the CircuitView singleton */
 JNIEXPORT void JNICALL Java_trains_Interface_initIDsCircuitView(JNIEnv *env, jclass cls){
-  printf("Init IDs - CircuitView\n");
+  //printf("Init IDs - CircuitView\n");
   jmethodID mid;
   jobject jobj;
   

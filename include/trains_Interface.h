@@ -42,10 +42,10 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trTerminate
 /*
  * Class:     trains_Interface
  * Method:    newmsg
- * Signature: (I)I
+ * Signature: (I[B)I
  */
 JNIEXPORT jint JNICALL Java_trains_Interface_newmsg
-  (JNIEnv *, jobject, jint);
+  (JNIEnv *, jobject, jint, jbyteArray);
 
 /*
  * Class:     trains_Interface

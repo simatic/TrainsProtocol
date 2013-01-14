@@ -39,7 +39,7 @@ jobject jcallbackCircuitChange;
 jmethodID jcallbackUtoDeliver_runID;
 jmethodID jcallbackCircuitChange_runID;
 
-JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, jint payloadSize){
+JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, jint payloadSize, jbyteArray payload){
   message *mp;
   counters.newmsg++;
   MUTEX_LOCK(mutexWagonToSend);
@@ -57,29 +57,46 @@ JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, ji
   mp = mallocWiw(payloadSize);
   mp->header.typ = AM_BROADCAST;
 
+  int size = (*env)->GetArrayLength(env, payload);
+  jbyte buf[size];
+  (*env)->GetByteArrayRegion(env, payload, 0, size, buf);
+  *((char*) (mp->payload)) = *buf; 
+
   // MUTEX_UNLOCK will be done in utoBroadcast
   // MUTEX_UNLOCK(mutexWagonToSend);
   //
+
+  //return address of mp  
   //return mp;
   return 0;
 }
 
-//int utoBroadcast(message *mp){
 JNIEXPORT jint JNICALL Java_trains_Interface_utoBroadcast(JNIEnv *env, jobject obj, jobject msg){ 
  //  MUTEX_LOCK(stateMachineMutex); // We DO NOT take this mutex
   // state ALONE_INSERT_WAIT => ALONE_CONNECTION_WAIT require mutexWagonToSend
   // thus cannot corrupt this sending
   // state SEVERAL => ALONE_INSERT_WAIT also require mutexWagonToSend
  
-  jobject jmsghdr;
+  /*jobject jmsghdr;
   int type;
+  jstring jpayload;
+  const char* payload;
   jmsghdr = (*env)->GetObjectField(env, msg, jmsg_hdrID); 
   if (jmsghdr == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get jmsghdr in utoBroadcast");
   }
   type = (*env)->GetIntField(env, jmsghdr, jmsghdr_typeID); 
+  jpayload = (*env)->GetObjectField(env, msg, jmsg_payloadID); 
+  payload = (*env)->GetStringUTFChars(env, jpayload, NULL);
+
+  if(payload == NULL){
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "payload is NULL");
+  }
  
   printf("Type of message in utoBroadcast: %d\n", type); 
+  printf("Payload of message in utoBroadcast: %s\n", payload); 
+  (*env)->ReleaseStringUTFChars(env, jpayload, payload);
+  */
 
   if (automatonState == ALONE_INSERT_WAIT) {
     bqueueEnqueue(wagonsToDeliver, wagonToSend);
@@ -122,7 +139,7 @@ void *utoDeliveries(void *null){
   jmethodID mid = NULL;
   jobject jobj;
 
-  printf("In utoDeliveries \n");
+  //printf("In utoDeliveries \n");
 
   /* Get the JNIenv pointer*/
   JNIEnv *JNIenv;
@@ -247,7 +264,8 @@ void *utoDeliveries(void *null){
             //mp: type message
             //w->header.sender: type address (which is unsigned short)
            
-          printf("AM_BROADCAST\n");
+          //printf("AM_BROADCAST\n");
+          //printf("payload in utoDeliver: %5d\n", *((int *) (mp->payload)));
 	  /* Set message header */
           (*JNIenv)->SetIntField(JNIenv, jmsghdr, jmsghdr_lenID, mp->header.len); 
           (*JNIenv)->SetIntField(JNIenv, jmsghdr, jmsghdr_typeID, mp->header.typ); 
@@ -258,7 +276,7 @@ void *utoDeliveries(void *null){
           //XXX: mp->payload is char[]
           // We want to convert a char* to a jstring
           //This works for UTF-8 strings
-          jstring encoding = (*JNIenv)->NewStringUTF(JNIenv, mp->payload); 
+          jstring encoding = (*JNIenv)->NewStringUTF(JNIenv, (const char*) mp->payload); 
 
           (*JNIenv)->SetObjectField(JNIenv, jmsg, jmsg_payloadID, encoding); 
           
@@ -274,7 +292,7 @@ void *utoDeliveries(void *null){
             //(*theCallbackCircuitChange)(&cv);
             //cv wich is a circuitView object (to be defined in Java)
           /* Set CircuitView */
-          printf("AM_ARRIVAL\n");
+          //printf("AM_ARRIVAL\n");
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_nmembID, cv.cv_nmemb); 
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_membersID, cv.cv_members[MAX_MEMB]); 
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_joinedID, cv.cv_joined); 
@@ -283,7 +301,7 @@ void *utoDeliveries(void *null){
           (*JNIenv)->CallVoidMethod(JNIenv, jcallbackCircuitChange, jcallbackCircuitChange_runID, jcv);
           break;
         case AM_DEPARTURE:
-          printf("AM_DEPARTURE\n");
+          //printf("AM_DEPARTURE\n");
           fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
           cv.cv_departed = ((payloadArrivalDeparture*) (mp->payload))->ad;
             //(*theCallbackCircuitChange)(&cv);
@@ -297,7 +315,7 @@ void *utoDeliveries(void *null){
           (*JNIenv)->CallVoidMethod(JNIenv, jcallbackCircuitChange, jcallbackCircuitChange_runID, jcv);
           break;
         case AM_TERMINATE:
-          printf("AM_TERMINATE\n");
+          //printf("AM_TERMINATE\n");
           terminate = true;
           break;
         default:
