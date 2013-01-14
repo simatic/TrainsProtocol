@@ -32,11 +32,12 @@
 #define _INTERFACE_H
 
 #include <semaphore.h>
+#include <sys/stat.h>
 
 /**
  * @brief The big semaphore used to manage the protocol in the function trInit
  */
-extern sem_t sem_init_done;
+extern sem_t *sem_init_done;
 
 void format_class_name(char *);
 

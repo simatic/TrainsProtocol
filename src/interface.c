@@ -36,8 +36,7 @@
 #include "jniContext.h"
 #include "errorTrains.h"
 
-
-sem_t sem_init_done;
+sem_t *sem_init_done;
 
 int trErrno;
 
@@ -107,6 +106,8 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
   strncpy(myCallbackUtoDeliver, str, 128);
   (*env)->ReleaseStringUTFChars(env, callbackUtoDeliver, str);
 
+  char sem_name[128];
+ 
   if (trainsNumber > 0)
   ntr = trainsNumber;
 
@@ -120,9 +121,13 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
     waitDefaultTime = waitTime;
 
 
-  rc = sem_init(&sem_init_done,0,0);
-  if(rc)
-    ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "sem_init");
+  //rc = sem_init(&sem_init_done,0,0);
+  //if(rc)
+  //  ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "sem_init");
+  sprintf(sem_name, "sem_init_done_%d", getpid());
+  sem_init_done = sem_open(sem_name, O_CREAT, 0600, 0);
+  if(sem_init_done == SEM_FAILED)
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_open");
 
   pthread_mutex_init(&mutexWagonToSend, NULL );
 
@@ -157,7 +162,7 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
 
   automatonInit();
   do {
-    rc = sem_wait(&sem_init_done);
+    rc = sem_wait(sem_init_done);
   } while ((rc < 0) && (errno == EINTR));
   if (rc)
     ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_wait()");
