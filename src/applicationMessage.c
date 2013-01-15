@@ -41,6 +41,11 @@ jmethodID jcallbackCircuitChange_runID;
 
 JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, jint payloadSize, jbyteArray payload){
   message *mp;
+  int i=0;
+  int size = (*env)->GetArrayLength(env, payload);
+  long unsigned int buf[size];
+  char buf1[size/2];
+  
   counters.newmsg++;
   MUTEX_LOCK(mutexWagonToSend);
 
@@ -57,17 +62,23 @@ JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, ji
   mp = mallocWiw(payloadSize);
   mp->header.typ = AM_BROADCAST;
 
-  int size = (*env)->GetArrayLength(env, payload);
-  jbyte buf[size];
-  (*env)->GetByteArrayRegion(env, payload, 0, size, buf);
-  *((char*) (mp->payload)) = *buf; 
+  (*env)->GetByteArrayRegion(env, payload, 0, size-1, (jbyte *) buf);
+  //buf is char[(long unsigned int)(size)] after this call
+
+  while(i<size/2){
+    strncpy(buf1+i, (char *)buf+i*2, sizeof(char));
+    i++;
+  }
+  
+  for(i=0; i<size/2; i++){
+    //delete unwanted characters
+    sprintf(mp->payload+i, "%c", buf1[i]);
+  }
 
   // MUTEX_UNLOCK will be done in utoBroadcast
   // MUTEX_UNLOCK(mutexWagonToSend);
   //
 
-  //return address of mp  
-  //return mp;
   return 0;
 }
 
@@ -287,7 +298,6 @@ void *utoDeliveries(void *null){
           // We want to convert a char* to a jstring
           //This works for UTF-8 strings
           jstring encoding = (*JNIenv)->NewStringUTF(JNIenv, (const char*) mp->payload); 
-
           (*JNIenv)->SetObjectField(JNIenv, jmsg, jmsg_payloadID, encoding); 
           
           /* Call callback */
