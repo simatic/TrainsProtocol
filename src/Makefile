@@ -6,15 +6,15 @@ UNAME := $(shell uname)
 
 # Binary to build
 ifeq ($(UNAME), Linux)
-	BIN		= libtrains.so
+	BIN  = libtrains.so
 endif
 ifeq ($(UNAME), Darwin)
-	BIN		= libtrains.jnilib
+	BIN  = libtrains.jnilib
 endif
 # C source files for the library
-SOURCES		= $(wildcard *.c)
+SOURCES  = $(wildcard *.c)
 # Object files corresponding to source files
-OBJECTS		= $(SOURCES:.c=.o)
+OBJECTS  = $(SOURCES:.c=.o)
 # Include directory
 INCLUDEDIRS = -I../include -I$(JAVA_HOME)/include
 # Compilation flags (the -fPIC flag is because the files are compiled for a dynamic library)
