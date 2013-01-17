@@ -42,9 +42,9 @@ jmethodID jcallbackCircuitChange_runID;
 JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, jint payloadSize, jbyteArray payload){
   message *mp;
   int i=0;
-  int size = (*env)->GetArrayLength(env, payload);
-  long unsigned int buf[size];
-  char buf1[size/2];
+  char *buf;
+  
+  buf = malloc(payloadSize*sizeof(char));
   
   counters.newmsg++;
   MUTEX_LOCK(mutexWagonToSend);
@@ -62,18 +62,9 @@ JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, ji
   mp = mallocWiw(payloadSize);
   mp->header.typ = AM_BROADCAST;
 
-  (*env)->GetByteArrayRegion(env, payload, 0, size-1, (jbyte *) buf);
-  //buf is char[(long unsigned int)(size)] after this call
+  (*env)->GetByteArrayRegion(env, payload, 0, payloadSize, (jbyte *) buf);
 
-  while(i<size/2){
-    strncpy(buf1+i, (char *)buf+i*2, sizeof(char));
-    i++;
-  }
-  
-  for(i=0; i<size/2; i++){
-    //delete unwanted characters
-    sprintf(mp->payload+i, "%c", buf1[i]);
-  }
+   memcpy(mp->payload, buf, payloadSize);
 
   // MUTEX_UNLOCK will be done in utoBroadcast
   // MUTEX_UNLOCK(mutexWagonToSend);
@@ -151,6 +142,8 @@ void *utoDeliveries(void *null){
   jobject jobj;
   char destUto[255];
   char destCC[255];
+  jbyteArray msgPayload_temp;
+  jbyteArray msgPayload;
   
   //printf("In utoDeliveries \n");
 
@@ -286,23 +279,28 @@ void *utoDeliveries(void *null){
             //w->header.sender: type address (which is unsigned short)
            
           //printf("AM_BROADCAST\n");
-          //printf("payload in utoDeliver: %5d\n", *((int *) (mp->payload)));
-	  /* Set message header */
+	        /* Set message header */
           (*JNIenv)->SetIntField(JNIenv, jmsghdr, jmsghdr_lenID, mp->header.len); 
           (*JNIenv)->SetIntField(JNIenv, jmsghdr, jmsghdr_typeID, mp->header.typ); 
 
-	  /* Set message */
+	        /* Set message */
           (*JNIenv)->SetObjectField(JNIenv, jmsg, jmsg_hdrID, jmsghdr); 
           
-          //XXX: mp->payload is char[]
-          // We want to convert a char* to a jstring
-          //This works for UTF-8 strings
-          jstring encoding = (*JNIenv)->NewStringUTF(JNIenv, (const char*) mp->payload); 
-          (*JNIenv)->SetObjectField(JNIenv, jmsg, jmsg_payloadID, encoding); 
+          msgPayload_temp = (*JNIenv)->NewByteArray(JNIenv, mp->header.len);
+          if(msgPayload_temp == NULL){
+            ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__,"msgPayload");
+          }
+          msgPayload = (*JNIenv)->NewGlobalRef(JNIenv, msgPayload_temp);
+          if(msgPayload == NULL){
+            ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "Global ref for msgPayload");
+          }
+          (*JNIenv)->DeleteLocalRef(JNIenv, msgPayload_temp);
+          
+          (*JNIenv)->SetByteArrayRegion(JNIenv, msgPayload, 0, payloadSize(mp), (jbyte *)mp->payload); 
+          (*JNIenv)->SetObjectField(JNIenv, jmsg, jmsg_payloadID, msgPayload); 
           
           /* Call callback */
-          //give int w->header.sender directly ?
-	  (*JNIenv)->CallVoidMethod(JNIenv, jcallbackUtoDeliver, jcallbackUtoDeliver_runID, w->header.sender, jmsg);
+	        (*JNIenv)->CallVoidMethod(JNIenv, jcallbackUtoDeliver, jcallbackUtoDeliver_runID, w->header.sender, jmsg);
              
           break;
         }
