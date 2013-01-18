@@ -199,11 +199,6 @@ void *utoDeliveries(void *null){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "call static factory for callbackCircuitChange");
   }
   
-  jobj = (*JNIenv)->NewObject(JNIenv, class, mid);
-  if (jobj == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "instantiate callbackUtoDeliver");
-  }  
-  
   jcallbackUtoDeliver = (*JNIenv)->NewGlobalRef(JNIenv, jobj);
   if(jcallbackUtoDeliver == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "Global ref for CircuitView");
