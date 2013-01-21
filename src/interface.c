@@ -32,6 +32,7 @@
 #include "stateMachine.h"
 #include <string.h>
 
+#include "counter.h"
 #include "trains_Interface.h"
 #include "jniContext.h"
 #include "errorTrains.h"
@@ -347,4 +348,24 @@ JNIEXPORT void JNICALL Java_trains_Interface_initIDsCircuitView(JNIEnv *env, jcl
   if (jcv_departedID == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get CircuitView nmemb field ID");
   }
+}
+
+JNIEXPORT void JNICALL Java_trains_Interface_dumpCountersData(JNIEnv *env, jobject jobj, jbyteArray data){ 
+  //jbyteArray counters_data_temp;
+  //jbyteArray counters_data;
+
+  int size;
+  size = sizeof(counters);
+
+  /*counters_data_temp = (env*)->NewByteArray(env, size);
+  if(counters_data_temp = NULL){
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "create counters_data_temp byte array");
+  }
+  counters_data = (env*)->NewGlobalRef(env, counters_data_temp);
+  if(counters_data = NULL){
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "create countersdata byte array");
+  }
+  (*env)->DeleteLocalRef(env, counters_data_temp);
+*/
+  (*env)->SetByteArrayRegion(env, data, 0, size, (jbyte *) (&counters));
 }

@@ -79,6 +79,14 @@ JNIEXPORT void JNICALL Java_trains_Interface_initIDsMessage
 JNIEXPORT void JNICALL Java_trains_Interface_initIDsCircuitView
   (JNIEnv *, jclass);
 
+/*
+ * Class:     trains_Interface
+ * Method:    dumpCountersData
+ * Signature: ([B)V
+ */
+JNIEXPORT void JNICALL Java_trains_Interface_dumpCountersData
+  (JNIEnv *, jobject, jbyteArray);
+
 #ifdef __cplusplus
 }
 #endif
