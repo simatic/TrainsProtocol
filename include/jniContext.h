@@ -22,6 +22,7 @@ extern jfieldID jmsg_payloadID;
 
 extern jobject jcv;
 extern jfieldID jcv_nmembID;
-extern jfieldID jcv_membersID;
+//extern jfieldID jcv_membersID;
 extern jfieldID jcv_joinedID;
 extern jfieldID jcv_departedID;
+extern jmethodID jcv_setMembersAddressID;

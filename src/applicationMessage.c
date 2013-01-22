@@ -41,7 +41,6 @@ jmethodID jcallbackCircuitChange_runID;
 
 JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, jint payloadSize, jbyteArray payload){
   message *mp;
-  int i=0;
   char *buf;
   
   buf = malloc(payloadSize*sizeof(char));
@@ -136,6 +135,7 @@ void *utoDeliveries(void *null){
   message *mp;
   circuitView cv;
   bool terminate = false;
+  int i=0;
 
   jclass class;
   jmethodID mid = NULL;
@@ -144,8 +144,8 @@ void *utoDeliveries(void *null){
   char destCC[255];
   jbyteArray msgPayload_temp;
   jbyteArray msgPayload;
-  
-  //printf("In utoDeliveries \n");
+  //jintArray membAddresses_temp;
+  //jintArray membAddresses;
 
   /* Get the JNIenv pointer*/
   JNIEnv *JNIenv;
@@ -302,12 +302,13 @@ void *utoDeliveries(void *null){
         case AM_ARRIVAL:
           fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
           cv.cv_joined = ((payloadArrivalDeparture*) (mp->payload))->ad;
-            //(*theCallbackCircuitChange)(&cv);
-            //cv wich is a circuitView object (to be defined in Java)
-          /* Set CircuitView */
-          //printf("AM_ARRIVAL\n");
+          
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_nmembID, cv.cv_nmemb); 
-          (*JNIenv)->SetIntField(JNIenv, jcv, jcv_membersID, cv.cv_members[MAX_MEMB]); 
+          
+          for(i=0; i< MAX_MEMB; i++){
+            (*JNIenv)->CallVoidMethod(JNIenv, jcv, jcv_setMembersAddressID, i, cv.cv_members[i]);
+          }            
+          
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_joinedID, cv.cv_joined); 
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_departedID, cv.cv_departed); 
           
@@ -321,7 +322,6 @@ void *utoDeliveries(void *null){
             //mp->payload wich is char[]
           /* Set CircuitView */
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_nmembID, cv.cv_nmemb); 
-          (*JNIenv)->SetIntField(JNIenv, jcv, jcv_membersID, cv.cv_members[MAX_MEMB]); 
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_joinedID, cv.cv_joined); 
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_departedID, cv.cv_departed); 
           
