@@ -60,9 +60,11 @@ jfieldID jmsg_payloadID = NULL;
 
 jobject jcv = NULL;
 jfieldID jcv_nmembID = NULL;
-jfieldID jcv_membersID = NULL;
+//jfieldID jcv_membersID = NULL;
 jfieldID jcv_joinedID = NULL;
 jfieldID jcv_departedID = NULL;
+jmethodID jcv_setMembersAddressID;
+
 
 /**
  * @brief Initialization of trains protocol middleware
@@ -82,7 +84,7 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
     jstring callbackUtoDeliver){
     //jobject callbackCircuitChange, 
     //jobject callbackUtoDeliver){
-  
+
   int rc;
   pthread_t thread;
   char trainsHost[1024];
@@ -333,18 +335,27 @@ JNIEXPORT void JNICALL Java_trains_Interface_initIDsCircuitView(JNIEnv *env, jcl
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get CircuitView nmemb field ID");
   }
 
-  jcv_membersID = (*env)->GetFieldID(env, class, "members", "Ljava/util/HashMap;");
+  /*jcv_membersID = (*env)->GetFieldID(env, class, "members", "[C");
   if (jcv_membersID == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get CircuitView nmemb field ID");
-  }
+  }*/
 
   jcv_joinedID = (*env)->GetFieldID(env, class, "joined", "I");
   if (jcv_joinedID == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get CircuitView nmemb field ID");
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get CircuitView joined field ID");
   }
 
   jcv_departedID = (*env)->GetFieldID(env, class, "departed", "I");
   if (jcv_departedID == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get CircuitView nmemb field ID");
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get CircuitView departed field ID");
   }
+
+  jcv_setMembersAddressID = (*env)->GetMethodID(env, class, "setMembersAddress", "(II)V");
+  if (mid == NULL){
+    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find setMembersAddress methodID");
+  }  
+}
+
+JNIEXPORT jint JNICALL Java_trains_Interface_getMAX_1MEMB(JNIEnv *env, jclass cls){
+  return MAX_MEMB;
 }
