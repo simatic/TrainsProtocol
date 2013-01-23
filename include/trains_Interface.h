@@ -65,6 +65,14 @@ JNIEXPORT jint JNICALL Java_trains_Interface_getMAX_1MEMB
 
 /*
  * Class:     trains_Interface
+ * Method:    getMyAddress
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_trains_Interface_getMyAddress
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     trains_Interface
  * Method:    initIDsMessageHeader
  * Signature: ()V
  */

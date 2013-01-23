@@ -380,3 +380,8 @@ JNIEXPORT void JNICALL Java_trains_Interface_dumpCountersData(JNIEnv *env, jobje
 */
   (*env)->SetByteArrayRegion(env, data, 0, size, (jbyte *) (&counters));
 }
+
+JNIEXPORT jint JNICALL Java_trains_Interface_getMyAddress(JNIEnv *env, jclass cls){
+  return myAddress;
+}
+
