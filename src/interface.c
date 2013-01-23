@@ -359,3 +359,8 @@ JNIEXPORT void JNICALL Java_trains_Interface_initIDsCircuitView(JNIEnv *env, jcl
 JNIEXPORT jint JNICALL Java_trains_Interface_getMAX_1MEMB(JNIEnv *env, jclass cls){
   return MAX_MEMB;
 }
+
+JNIEXPORT jint JNICALL Java_trains_Interface_getMyAddress(JNIEnv *env, jclass cls){
+  return myAddress;
+}
+
