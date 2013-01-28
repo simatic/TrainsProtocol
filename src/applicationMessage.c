@@ -61,6 +61,8 @@ JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, ji
   mp = mallocWiw(payloadSize);
   mp->header.typ = AM_BROADCAST;
 
+  /* The content of the message is filled at these two lines 
+   * We get the content of payload in buf, and then we memcopy it in mp->payload */
   (*env)->GetByteArrayRegion(env, payload, 0, payloadSize, (jbyte *) buf);
 
    memcpy(mp->payload, buf, payloadSize);
@@ -124,7 +126,11 @@ void *utoDeliveries(void *null){
   jbyteArray msgPayload_temp;
   jbyteArray msgPayload;
 
-  /* Get the JNIenv pointer*/
+  /* Get the JNIenv pointer
+   * This operation is necessary because we want to perform actions
+   * in the same Java Virtual Machine that initializes the trains protocol
+   * in trInit() - which was done in another thread, so we had to cache
+   * the JVM in the variable jvm in trInit() and here we get the JNIenv pointer from it. */
   JNIEnv *JNIenv;
   (*jvm)->AttachCurrentThread(jvm, (void **)&JNIenv, NULL);
   if (*JNIenv == NULL){
@@ -249,6 +255,7 @@ void *utoDeliveries(void *null){
           
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_nmembID, cv.cv_nmemb); 
           
+          /* Set CircuitView */
           for(i=0; i< MAX_MEMB; i++){
             (*JNIenv)->CallVoidMethod(JNIenv, jcv, jcv_setMembersAddressID, i, cv.cv_members[i]);
           }            
