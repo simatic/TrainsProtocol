@@ -60,7 +60,6 @@ jfieldID jmsg_payloadID = NULL;
 
 jobject jcv = NULL;
 jfieldID jcv_nmembID = NULL;
-//jfieldID jcv_membersID = NULL;
 jfieldID jcv_joinedID = NULL;
 jfieldID jcv_departedID = NULL;
 jmethodID jcv_setMembersAddressID;
@@ -82,8 +81,6 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
     jint waitTime, 
     jstring callbackCircuitChange,
     jstring callbackUtoDeliver){
-    //jobject callbackCircuitChange, 
-    //jobject callbackUtoDeliver){
 
   int rc;
   pthread_t thread;
@@ -99,12 +96,10 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
   myCallbackUtoDeliver = malloc(128*sizeof(char));
   
   const char *str = (*env)->GetStringUTFChars(env, callbackCircuitChange, 0);
-  //XXX - length should be enough
   strncpy(myCallbackCircuitChange, str, 128);
   (*env)->ReleaseStringUTFChars(env, callbackCircuitChange, str);
   
   str = (*env)->GetStringUTFChars(env, callbackUtoDeliver, 0);
-  //XXX - length should be enough
   strncpy(myCallbackUtoDeliver, str, 128);
   (*env)->ReleaseStringUTFChars(env, callbackUtoDeliver, str);
 
@@ -123,9 +118,6 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
     waitDefaultTime = waitTime;
 
 
-  //rc = sem_init(&sem_init_done,0,0);
-  //if(rc)
-  //  ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "sem_init");
   sprintf(sem_name, "sem_init_done_%d", getpid());
   sem_init_done = sem_open(sem_name, O_CREAT, 0600, 0);
   if(sem_init_done == SEM_FAILED)
@@ -221,7 +213,6 @@ void format_class_name(char *arg){
 
 /* Caching the method IDs for the MessageHeader object */
 JNIEXPORT void JNICALL Java_trains_Interface_initIDsMessageHeader(JNIEnv *env, jclass cls){
-  //printf("Init IDs - MessageHeader\n");
   jmethodID mid;
   jobject jobj;
  
@@ -257,13 +248,10 @@ JNIEXPORT void JNICALL Java_trains_Interface_initIDsMessageHeader(JNIEnv *env, j
   if (jmsghdr_lenID == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get MessageHeader type field ID");
   }
-  //testing
-  (*env)->SetIntField(env, jmsghdr, jmsghdr_lenID, 564);
 }
 
 /* Caching the method IDs for the Message object */
 JNIEXPORT void JNICALL Java_trains_Interface_initIDsMessage(JNIEnv *env, jclass cls){
-  //printf("Init IDs - Message\n");
   jmethodID mid;
   jobject jobj;
   
@@ -299,13 +287,10 @@ JNIEXPORT void JNICALL Java_trains_Interface_initIDsMessage(JNIEnv *env, jclass 
   if (jmsg_hdrID == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get Message messageHeader field ID");
   }
-   //testing
-   //(*env)->SetObjectField(env, jmsg, jmsg_hdrID, jmsghdr);
 }
 
 /* Caching the method IDs for the CircuitView singleton */
 JNIEXPORT void JNICALL Java_trains_Interface_initIDsCircuitView(JNIEnv *env, jclass cls){
-  //printf("Init IDs - CircuitView\n");
   jmethodID mid;
   jobject jobj;
   
@@ -334,11 +319,6 @@ JNIEXPORT void JNICALL Java_trains_Interface_initIDsCircuitView(JNIEnv *env, jcl
   if (jcv_nmembID == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get CircuitView nmemb field ID");
   }
-
-  /*jcv_membersID = (*env)->GetFieldID(env, class, "members", "[C");
-  if (jcv_membersID == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get CircuitView nmemb field ID");
-  }*/
 
   jcv_joinedID = (*env)->GetFieldID(env, class, "joined", "I");
   if (jcv_joinedID == NULL){
