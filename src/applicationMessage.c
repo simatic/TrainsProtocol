@@ -322,6 +322,11 @@ void *utoDeliveries(void *null){
             //mp->payload wich is char[]
           /* Set CircuitView */
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_nmembID, cv.cv_nmemb); 
+          
+          /* Set CircuitView */
+          for(i=0; i< MAX_MEMB; i++){
+            (*JNIenv)->CallVoidMethod(JNIenv, jcv, jcv_setMembersAddressID, i, cv.cv_members[i]);
+          }            
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_joinedID, cv.cv_joined); 
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_departedID, cv.cv_departed); 
           
