@@ -46,11 +46,15 @@ char *theJNICallbackCircuitChange;
 char *theJNICallbackUtoDeliver;
 JavaVM *jvm;
 
-/* Callback IDs*/
+/* Global variables for caching methods and fields IDs
+ * to speed up performances. 
+ */
+
+/* Callback IDs */
 jmethodID jcircuitChangeID;
 jmethodID jutoDeliverID;
  
-/* Objects & Fields IDs*/
+/* Objects & Fields IDs */
 jobject jmsghdr = NULL;
 jfieldID jmsghdr_lenID = NULL;
 jfieldID jmsghdr_typeID = NULL;
@@ -138,6 +142,9 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
   format_class_name(theJNICallbackCircuitChange); 
   format_class_name(theJNICallbackUtoDeliver); 
 
+  /* Store the JVM in the jvm variable so that 
+   * we can perform the callbacks in the same JVM
+   * in applicationMessage.c (in diferrent threads) */
   (*env)->GetJavaVM(env, &jvm);
 
   globalAddrArray = addrGenerator(LOCALISATION, NP);
