@@ -18,7 +18,7 @@
  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  USA
 
- Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Nathan Reboud
+ Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Stephanie Ouillon, Nathan Reboud
  */
 
 #include <stdlib.h>
