@@ -344,10 +344,6 @@ JNIEXPORT void JNICALL Java_trains_Interface_initIDsCircuitView(JNIEnv *env, jcl
   }  
 }
 
-JNIEXPORT jint JNICALL Java_trains_Interface_getMAX_1MEMB(JNIEnv *env, jclass cls){
-  return MAX_MEMB;
-}
-
 JNIEXPORT void JNICALL Java_trains_Interface_dumpCountersData(JNIEnv *env, jobject jobj, jbyteArray data){ 
   //jbyteArray counters_data_temp;
   //jbyteArray counters_data;
@@ -366,6 +362,11 @@ JNIEXPORT void JNICALL Java_trains_Interface_dumpCountersData(JNIEnv *env, jobje
   (*env)->DeleteLocalRef(env, counters_data_temp);
 */
   (*env)->SetByteArrayRegion(env, data, 0, size, (jbyte *) (&counters));
+}
+
+
+JNIEXPORT jint JNICALL Java_trains_Interface_getMAX_1MEMB(JNIEnv *env, jclass cls){
+  return MAX_MEMB;
 }
 
 JNIEXPORT jint JNICALL Java_trains_Interface_getMyAddress(JNIEnv *env, jclass cls){
