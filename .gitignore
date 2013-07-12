@@ -17,3 +17,6 @@ basicTest
 client
 server
 perf
+tests/integration/insertion/insertion
+tests/integration/latency/latency
+tests/integration/wagonFiller/wagonFiller
