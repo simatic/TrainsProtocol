@@ -45,8 +45,7 @@ clean:
 	rm -f *.o $(BIN) depend
 
 depend: $(SOURCES)
-	touch depend
-	makedepend -fdepend -- $(CFLAGS) -- $(SOURCES) 2>/dev/null
+	gcc -M $(CFLAGS) $(SOURCES) >depend 2>/dev/null
 
 # Run all the tests
 run: $(BIN)
