@@ -45,7 +45,6 @@
 int main(int argc, char *argv[]){
 
   int i, j;
-  int rc;
   int msgCounter;
   int wagonSizes[] = { 1024, 2048, 4096, 8192, 16384, 32768, 65536 };
   int payloadSizes[] = { 10, 100, 200, 500, 1000, 2000, 5000, 10000, 15000,
@@ -78,11 +77,11 @@ int main(int argc, char *argv[]){
           + sizeof(messageHeader) < wagonMaxLen) {
         message *mp = newmsg(payloadSizes[j]);
         if (mp == NULL ) {
-          trError_at_line(rc, trErrno, __FILE__, __LINE__, "newmsg()");
+          trError_at_line(0, trErrno, __FILE__, __LINE__, "newmsg()");
           exit(EXIT_FAILURE);
         }
         if (utoBroadcast(mp) < 0) {
-          trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
+          trError_at_line(0, trErrno, __FILE__, __LINE__, "utoBroadcast()");
           exit(EXIT_FAILURE);
         }
         msgCounter++;
