@@ -30,7 +30,6 @@ clean:
 	rm -f $(OBJECTS) $(BIN) depend
 
 depend: $(SOURCES)
-	touch depend
-	makedepend -fdepend -- $(CFLAGS) -- $(SOURCES) 2>/dev/null
+	gcc -M $(CFLAGS) $(SOURCES) >depend 2>/dev/null
 
 -include depend
