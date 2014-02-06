@@ -173,7 +173,7 @@ void callbackUtoDeliver(address sender, message *mp){
 
   if (payloadSize(mp) != size) {
     fprintf(stderr,
-        "Error in file %s:%d : Payload size is incorrect: it is %lu when it should be %d\n",
+        "Error in file %s:%d : Payload size is incorrect: it is %zu when it should be %d\n",
         __FILE__, __LINE__, payloadSize(mp), size);
     exit(EXIT_FAILURE);
   }
