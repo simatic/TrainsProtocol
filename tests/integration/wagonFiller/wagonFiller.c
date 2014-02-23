@@ -45,7 +45,6 @@
 int main(int argc, char *argv[]){
 
   int i, j;
-  int rc;
   int msgCounter;
   int wagonSizes[] = { 1024, 2048, 4096, 8192, 16384, 32768, 65536 };
   int payloadSizes[] = { 10, 100, 200, 500, 1000, 2000, 5000, 10000, 15000,

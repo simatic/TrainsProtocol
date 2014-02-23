@@ -122,13 +122,13 @@ void *connectionMgt(void *arg){
         }
 
       } else {
-        printf("\t\t...Received only %d/%lu bytes ", nbRead,
+        printf("\t\t...Received only %d/%zu bytes ", nbRead,
             msg->header.len - sizeof(len));
       }
       free(msg);
     } else if (nbRead > 0) {
       ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
-          "Read only %d/%lu bytes\n", nbRead, sizeof(len));
+          "Read only %d/%zu bytes\n", nbRead, sizeof(len));
     }
   } while (nbRead > 0);
 

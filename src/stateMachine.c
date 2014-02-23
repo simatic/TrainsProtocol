@@ -373,7 +373,6 @@ void stateMachine(womim* p_womim){
   int id;
   MUTEX_LOCK(stateMachineMutex);
   //printf("State = %s, receive message = %s\n", stateToStr(automatonState), msgTypeToStr(p_womim->msg.type));
-  char sem_name[128];
   switch (automatonState) {
   case OFFLINE_CONNECTION_ATTEMPT:
     switch (p_womim->msg.type) {

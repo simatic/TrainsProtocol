@@ -67,7 +67,7 @@ JNIEXPORT void JNICALL Java_perf_InterfaceJNI_getrusageEnd(JNIEnv *env, jobject 
 
 JNIEXPORT void JNICALL Java_perf_InterfaceJNI_setcountersBegin(JNIEnv *env, jobject jobj, jbyteArray data){
   //memcpy(&countersBegin, data, (*env)->GetArrayLength(env, data));
-  int size = (*env)->GetArrayLength(env, data);
+  //int size = (*env)->GetArrayLength(env, data);
   char *buf = malloc(sizeof(t_counter)*18);
   (*env)->GetByteArrayRegion(env, data, 0, sizeof(t_counter)*18, (jbyte *)buf);
 
@@ -77,7 +77,7 @@ JNIEXPORT void JNICALL Java_perf_InterfaceJNI_setcountersBegin(JNIEnv *env, jobj
 JNIEXPORT void JNICALL Java_perf_InterfaceJNI_setcountersEnd(JNIEnv *env, jobject jobj, jbyteArray data){
   //memcpy(&countersEnd, data, (*env)->GetArrayLength(env, data));
   //countersEnd =  data;
-  int size = (*env)->GetArrayLength(env, data);
+  //int size = (*env)->GetArrayLength(env, data);
   char *buf = malloc(sizeof(t_counter)*18);
   (*env)->GetByteArrayRegion(env, data, 0, sizeof(t_counter)*18, (jbyte *)buf);
 

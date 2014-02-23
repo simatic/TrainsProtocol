@@ -1,7 +1,5 @@
 ### Configuration.  ####################################################
 
-GCCMAKEDEP ?= gccmakedep
-
 UNAME := $(shell uname)
 
 # Binary to build
@@ -39,7 +37,6 @@ clean:
 	rm -f $(OBJECTS) $(BIN) depend
 
 depend: $(SOURCES)
-	touch depend
-	$(GCCMAKEDEP) -fdepend -- $(CFLAGS) -- $(SOURCES)
+	gcc -M $(CFLAGS) $(SOURCES) >depend 2>/dev/null
 
 -include depend

@@ -30,27 +30,28 @@ Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Steph
 #include "counter.h"
 #include "stateMachine.h"
 #include "errorTrains.h"
+
+#ifdef JNI
 #include "trains_Interface.h"
 #include "jniContext.h"
-
 /* Global JNI variables */
 jobject jcallbackUtoDeliver;
 jobject jcallbackCircuitChange;
 jmethodID jcallbackUtoDeliver_runID;
 jmethodID jcallbackCircuitChange_runID;
+#else /* JNI */
+CallbackCircuitChange theCallbackCircuitChange;
+CallbackUtoDeliver theCallbackUtoDeliver;
+#endif /* JNI */
 
-JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, jint payloadSize, jbyteArray payload){
+message *newmsg(int payloadSize){
   message *mp;
-  char *buf;
-  
-  buf = malloc(payloadSize*sizeof(char));
-  
   counters.newmsg++;
   MUTEX_LOCK(mutexWagonToSend);
 
   // We check that we have enough space for the message the caller wants to allocate
   while ((wagonToSend->p_wagon->header.len + sizeof(messageHeader) + payloadSize
-        > wagonMaxLen)
+      > wagonMaxLen)
       && (wagonToSend->p_wagon->header.len != sizeof(wagonHeader))) {
     counters.flowControl++;
     int rc = pthread_cond_wait(&condWagonToSend, &mutexWagonToSend);
@@ -61,25 +62,29 @@ JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, ji
   mp = mallocWiw(payloadSize);
   mp->header.typ = AM_BROADCAST;
 
-  /* The content of the message is filled at these two lines 
-   * We get the content of payload in buf, and then we memcopy it in mp->payload */
-  (*env)->GetByteArrayRegion(env, payload, 0, payloadSize, (jbyte *) buf);
-
-   memcpy(mp->payload, buf, payloadSize);
-
   // MUTEX_UNLOCK will be done in utoBroadcast
   // MUTEX_UNLOCK(mutexWagonToSend);
   //
+  return mp;
+}
+
+#ifdef JNI
+JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, jint payloadSize, jbyteArray payload){
+  message *mp = newmsg(payloadSize);
+
+  /* The content of the message is filled */
+  (*env)->GetByteArrayRegion(env, payload, 0, payloadSize, (jbyte *) (mp->payload));
 
   return 0;
 }
+#endif /* JNI */
 
-JNIEXPORT jint JNICALL Java_trains_Interface_utoBroadcast(JNIEnv *env, jobject obj, jobject msg){ 
- //  MUTEX_LOCK(stateMachineMutex); // We DO NOT take this mutex
+int utoBroadcast(message *mp){
+  //  MUTEX_LOCK(stateMachineMutex); // We DO NOT take this mutex
   // state ALONE_INSERT_WAIT => ALONE_CONNECTION_WAIT require mutexWagonToSend
   // thus cannot corrupt this sending
   // state SEVERAL => ALONE_INSERT_WAIT also require mutexWagonToSend
- 
+
   if (automatonState == ALONE_INSERT_WAIT) {
     bqueueEnqueue(wagonsToDeliver, wagonToSend);
     wagonToSend = newWiw();
@@ -93,6 +98,14 @@ JNIEXPORT jint JNICALL Java_trains_Interface_utoBroadcast(JNIEnv *env, jobject o
   MUTEX_UNLOCK(mutexWagonToSend);
   return 0;
 }
+
+#ifdef JNI
+JNIEXPORT jint JNICALL Java_trains_Interface_utoBroadcast(JNIEnv *env, jobject obj, jobject msg){ 
+  utoBroadcast(NULL);
+
+  return 0;
+}
+#endif /* JNI */
 
 /**
  * @brief Fill parts of @a cv common to arrival and departure of a process
@@ -116,6 +129,8 @@ void *utoDeliveries(void *null){
   message *mp;
   circuitView cv;
   bool terminate = false;
+
+#ifdef JNI
   int i=0;
 
   jclass class;
@@ -204,6 +219,7 @@ void *utoDeliveries(void *null){
   if (jcallbackUtoDeliver_runID == NULL){
     ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get method ID for running callbackUtoDeliver");
   }  
+#endif /* JNI */
     
   do {
     wi = bqueueDequeue(wagonsToDeliver);
@@ -224,6 +240,9 @@ void *utoDeliveries(void *null){
 #endif /* LATENCY_TEST */
         case AM_BROADCAST:
         {   
+#ifndef JNI
+        (*theCallbackUtoDeliver)(w->header.sender, mp);
+#else /* JNI */
 	        /* Set message header */
           (*JNIenv)->SetIntField(JNIenv, jmsghdr, jmsghdr_lenID, mp->header.len); 
           (*JNIenv)->SetIntField(JNIenv, jmsghdr, jmsghdr_typeID, mp->header.typ); 
@@ -246,6 +265,7 @@ void *utoDeliveries(void *null){
           
           /* Call callback */
 	        (*JNIenv)->CallVoidMethod(JNIenv, jcallbackUtoDeliver, jcallbackUtoDeliver_runID, w->header.sender, jmsg);
+#endif /* JNI */
              
           break;
         }
@@ -253,6 +273,9 @@ void *utoDeliveries(void *null){
           fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
           cv.cv_joined = ((payloadArrivalDeparture*) (mp->payload))->ad;
           
+#ifndef JNI
+        (*theCallbackCircuitChange)(&cv);
+#else /* JNI */
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_nmembID, cv.cv_nmemb); 
           
           /* Set CircuitView */
@@ -264,11 +287,15 @@ void *utoDeliveries(void *null){
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_departedID, cv.cv_departed); 
           
           (*JNIenv)->CallVoidMethod(JNIenv, jcallbackCircuitChange, jcallbackCircuitChange_runID, jcv);
+#endif /* JNI */
           break;
         case AM_DEPARTURE:
           fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
           cv.cv_departed = ((payloadArrivalDeparture*) (mp->payload))->ad;
           
+#ifndef JNI
+        (*theCallbackCircuitChange)(&cv);
+#else /* JNI */
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_nmembID, cv.cv_nmemb); 
           
           /* Set CircuitView */
@@ -279,6 +306,7 @@ void *utoDeliveries(void *null){
           (*JNIenv)->SetIntField(JNIenv, jcv, jcv_departedID, cv.cv_departed); 
           
           (*JNIenv)->CallVoidMethod(JNIenv, jcallbackCircuitChange, jcallbackCircuitChange_runID, jcv);
+#endif /* JNI */
           break;
         case AM_TERMINATE:
           terminate = true;

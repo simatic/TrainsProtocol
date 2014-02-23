@@ -1,6 +1,5 @@
 ### Configuration.  ####################################################
 
-GCCMAKEDEP ?= gccmakedep
 
 UNAME := $(shell uname)
 
@@ -24,9 +23,12 @@ LDFLAGS = -g -shared
 
 ### Rules.  ############################################################
 
-.PHONY:         all clean
+.PHONY:         all allForJNI clean
 
 all: depend $(BIN)
+
+allForJNI: GLOBALFLAGS = -DJNI
+allForJNI: depend $(BIN)
 
 tests: GLOBALFLAGS = -DLATENCY_TEST -DINSERTION_TEST
 tests: depend $(BIN)
@@ -39,7 +41,6 @@ clean:
 	rm -f $(OBJECTS) $(BIN) depend
 
 depend: $(SOURCES)
-	touch depend
-	$(GCCMAKEDEP) -fdepend -- $(CFLAGS) -- $(SOURCES)
+	gcc -M $(CFLAGS) $(SOURCES) >depend 2>/dev/null
 
 -include depend

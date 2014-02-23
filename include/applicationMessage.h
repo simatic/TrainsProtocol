@@ -141,16 +141,14 @@ extern CallbackUtoDeliver theCallbackUtoDeliver;
  * @return pointer on a message upon successful completion, or NULL if an error occurred 
  * (in which case, @a trErrno is set appropriately)
  */
-//XXX
-//message *newmsg(int payloadSize);
+message *newmsg(int payloadSize);
 
 /**
  * @brief uto-broadcast of message @a mp
  * @param[in] mp Message to be uto-broadcasted
  * @return 0 upon successful completion, or -1 if an error occurred (in which case, @a trErrno is set appropriately)
  */
-//XXX
-//int utoBroadcast(message *mp);
+int utoBroadcast(message *mp);
 
 /**
  * @brief Function (to be executed by a thread) responsible for delivering messages stored in

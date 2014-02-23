@@ -25,21 +25,25 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <errno.h>
+#include <string.h>
 
 #include "interface.h"
 #include "management_addr.h"
 #include "iomsg.h"
 #include "stateMachine.h"
-#include <string.h>
+#include "errorTrains.h"
 
+#ifdef JNI
 #include "counter.h"
 #include "trains_Interface.h"
 #include "jniContext.h"
-#include "errorTrains.h"
+#endif /* JNI */
 
 sem_t *sem_init_done;
 
 int trErrno;
+
+#ifdef JNI
 
 /* JNI global variables */
 char *theJNICallbackCircuitChange;
@@ -69,6 +73,7 @@ jfieldID jcv_joinedID = NULL;
 jfieldID jcv_departedID = NULL;
 jmethodID jcv_setMembersAddressID;
 
+#endif /* JNI */
 
 /**
  * @brief Initialization of trains protocol middleware
@@ -81,18 +86,25 @@ jmethodID jcv_setMembersAddressID;
  * @param[in] callbackUtoDeliver    Function to be called when a message can be uto-delivered by trains protocol
  * @return 0 upon successful completion, or -1 if an error occurred (in which case, @a trErrno is set appropriately)
  */
+#ifndef JNI
+int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime,
+    CallbackCircuitChange callbackCircuitChange,
+    CallbackUtoDeliver callbackUtoDeliver){
+#else /* JNI */
 JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env, 
     jobject obj, jint trainsNumber, jint wagonLength, jint waitNB, 
     jint waitTime, 
     jstring callbackCircuitChange,
     jstring callbackUtoDeliver){
-
+#endif /* JNI */
   int rc;
   pthread_t thread;
   char trainsHost[1024];
   char *trainsPort;
   int rank;
+  char sem_name[128];
  
+#ifdef JNI
   /* Converts Java strings to C strings*/
   char *myCallbackCircuitChange;
   char *myCallbackUtoDeliver;
@@ -107,8 +119,7 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
   str = (*env)->GetStringUTFChars(env, callbackUtoDeliver, 0);
   strncpy(myCallbackUtoDeliver, str, 128);
   (*env)->ReleaseStringUTFChars(env, callbackUtoDeliver, str);
-
-  char sem_name[128];
+#endif /* JNI */
  
   if (trainsNumber > 0)
   ntr = trainsNumber;
@@ -133,6 +144,10 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
   rc= pthread_cond_init(&condWagonToSend, NULL);
   assert(rc == 0);
 
+#ifndef JNI
+  theCallbackCircuitChange = callbackCircuitChange;
+  theCallbackUtoDeliver = callbackUtoDeliver;
+#else /* JNI */
   /* Get and format the name of the callback classes */
   theJNICallbackCircuitChange = malloc(255*sizeof(char));
   theJNICallbackUtoDeliver = malloc(255*sizeof(char));
@@ -146,6 +161,7 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
    * we can perform the callbacks in the same JVM
    * in applicationMessage.c (in diferrent threads) */
   (*env)->GetJavaVM(env, &jvm);
+#endif /* JNI */
 
   globalAddrArray = addrGenerator(LOCALISATION, NP);
 
@@ -188,8 +204,12 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
  * @param[in] format
  * @return void
  */
+#ifndef JNI
+void trError_at_line(int status, int errnum, const char *filename, unsigned int linenum, const char *format){
+#else /* JNI */
 JNIEXPORT void JNICALL Java_trains_Interface_trError_1at_1line
   (JNIEnv *env, jobject obj, jint status, jint errnu){
+#endif /* JNI */
   fflush(stdout);
   fprintf(stderr, "basic version of trError_at_line\n");
 }
@@ -199,16 +219,25 @@ JNIEXPORT void JNICALL Java_trains_Interface_trError_1at_1line
  * @param[in] errnum
  * @return void
  */
+#ifndef JNI
+void trPerror(int errnum){
+#else /* JNI */
 JNIEXPORT void JNICALL Java_trains_Interface_trPerror
   (JNIEnv *env, jobject obj, jint errnum){
+#endif /* JNI */
   fprintf(stderr, "basic version of trPerror");
 }
 
+#ifndef JNI
+int trTerminate(){
+#else /* JNI */
 JNIEXPORT jint JNICALL Java_trains_Interface_trTerminate
   (JNIEnv *env, jobject obj){
+#endif /* JNI */
   return 0;
 }
 
+#ifdef JNI
 void format_class_name(char *arg){
   int j;
 
@@ -372,4 +401,4 @@ JNIEXPORT jint JNICALL Java_trains_Interface_getMAX_1MEMB(JNIEnv *env, jclass cl
 JNIEXPORT jint JNICALL Java_trains_Interface_getMyAddress(JNIEnv *env, jclass cls){
   return myAddress;
 }
-
+#endif /* JNI */
