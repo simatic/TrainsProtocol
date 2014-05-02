@@ -38,8 +38,10 @@
 
 #define CONNECT_TIMEOUT 2000 // milliseconds
 #define LOCAL_HOST "localhost"
-#define REMOTE_HOST "ssh.it-sudparis.eu"
+#define REMOTE_EXISTING "ssh.it-sudparis.eu"
+#define REMOTE_NON_EXISTING "192.168.255.254"
 #define PORT "4242"
+#define PORT_NON_EXISTING "44444"
 
 #define HW "Hello world!"
 #define LONG_MESSAGE "This is a long message: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -91,6 +93,25 @@ void *connectionMgt(void *arg) {
   return NULL;
 }
 
+void *connectionMgt2(void *arg) {
+  trComm *aComm = (trComm*)arg;
+  int nbRead;
+  char msg;
+
+  if (full_or_not==false){
+    nbRead = commRead(aComm, &msg, sizeof(msg));
+   } else {
+    nbRead = commReadFully(aComm, &msg, sizeof(msg));
+  }
+  if (nbRead != 0){
+    printf("We read something else than 0 bytes (nbRead = %d)\n", nbRead);
+    abort();
+  }
+  printf("\t...comm_read was aborted\n");
+
+  return NULL;
+}
+
 // Thread taking care of commAccept for standard connection tests
 void *acceptMgt(void *arg) {
   trComm *commForAccept = (trComm*)arg;
@@ -110,7 +131,7 @@ void *acceptMgt(void *arg) {
     }
   } while (aComm != NULL);
 
-  if (errno == EINTR){
+  if (errno == EINVAL){
     printf("\t...comm_accept was aborted\n");
   }else
     ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_accept");
@@ -129,7 +150,9 @@ void *acceptMgt2(void *arg) {
   aComm = commAccept(commForAccept);
   if (aComm != NULL){
     // We fork a thread responsible for handling this connection
-    rc = pthread_create(&thread, NULL, connectionMgt, (void *)aComm);
+    // Note: We must use a connectionMgt2 because it must not apply
+    //       freeComm() on a aComm
+    rc = pthread_create(&thread, NULL, connectionMgt2, (void *)aComm);
     if (rc < 0)
       ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
   }else
@@ -165,8 +188,7 @@ int main() {
   printf("testing comm...\n");
   puts("Would you like to test with comm_readFully (Y/n)");
   answer=getchar();
-  if (answer=='Y'||answer=='y')
-    full_or_not=true;
+  full_or_not = (answer=='Y'||answer=='y');
 
   commForAccept = commNewForAccept(PORT);
   if (commForAccept == NULL)
@@ -216,18 +238,36 @@ int main() {
   usleep(10000);
 
   // We try to connect to sites that refuse the connection
-  printf("\tTesting user-specified connect timeout when connecting to an existing site which does not accept this port...\n");
-  commForConnect = commNewAndConnect(REMOTE_HOST, PORT, CONNECT_TIMEOUT);
+  printf("\tTesting user-specified connect timeout when connecting to an existing site (%s) which does not accept this port...\n", REMOTE_EXISTING);
+  commForConnect = commNewAndConnect(REMOTE_EXISTING, PORT, CONNECT_TIMEOUT);
   if (commForConnect == NULL){
-    if (errno == EINTR) 
+    if (errno == ENETUNREACH) 
       printf("\t...OK\n");
     else
       ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newAndConnect");
   }
 
-  // We abort the accept to see if this work
-  printf("\tAbort comm_accept...\n");
-  commAbort(commForAccept);
+  printf("\tTesting user-specified connect timeout when connecting to an non-existing site (%s) which does not accept this port...\n", REMOTE_NON_EXISTING);
+  commForConnect = commNewAndConnect(REMOTE_NON_EXISTING, PORT, CONNECT_TIMEOUT);
+  if (commForConnect == NULL){
+    if (errno == ETIMEDOUT) 
+      printf("\t...OK\n");
+    else
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newAndConnect");
+  }
+
+  printf("\tTesting user-specified connect timeout when connecting to localhost with non-existing port (%s)...\n", PORT_NON_EXISTING);
+  commForConnect = commNewAndConnect(LOCAL_HOST, PORT_NON_EXISTING, CONNECT_TIMEOUT);
+  if (commForConnect == NULL){
+    if (errno == ECONNREFUSED) 
+      printf("\t...OK\n");
+    else
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "comm_newAndConnect");
+  }
+
+  // We free commForAccept to check that it shutdowns the socket, so that
+  // the accept is stopped.
+  printf("\tfreeComm commForAccept...\n");
   freeComm(commForAccept);
 
   rc = pthread_join(thread, NULL);
@@ -236,7 +276,7 @@ int main() {
 
   //
   // Now we create a new socket to check that freeComm() works correctly
-  // with a thread blocked on commRead()read works correctly
+  // with a thread blocked on commRead()
   //
   commForAccept = commNewForAccept(PORT);
   if (commForAccept == NULL)
