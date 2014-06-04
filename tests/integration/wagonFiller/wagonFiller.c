@@ -52,6 +52,7 @@ int main(int argc, char *argv[]){
   struct timeval debut, fin, duree;
   struct rusage debutCPU, finCPU, dureeCPU;
   long elapsedTime, cpuTime;
+  int rc;
 
   MUTEX_LOCK(stateMachineMutex);
   automatonState = SEVERAL;
