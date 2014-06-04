@@ -9,7 +9,7 @@ INCLUDEDIRS = -I../../include
 # Compilation flags
 CFLAGS = -g -Wall $(INCLUDEDIRS) $(GLOBALFLAGS)
 # Link flags
-LDFLAGS = -g -L../../src -ltrains -pthread
+LDFLAGS = -g -L../../lib -ltrains -pthread
 # Valgrind options
 VALGRINDFLAGS =--leak-check=yes --leak-resolution=high --num-callers=40 --tool=memcheck --show-reachable=yes
 
@@ -49,10 +49,10 @@ depend: $(SOURCES)
 
 # Run all the tests
 run: $(BIN)
-	for i in $(BIN); do (echo Running $$i; export LD_LIBRARY_PATH=LD_LIBRARY_PATH:../../src; ./$$i); done
+	for i in $(BIN); do (echo Running $$i; export LD_LIBRARY_PATH=LD_LIBRARY_PATH:../../lib; ./$$i); done
 
 # Test memory problems with valgrind
 valgrind: $(BIN)
-	for i in $(BIN); do (echo Running $$i; export LD_LIBRARY_PATH=LD_LIBRARY_PATH:../../src; valgrind $(VALGRINDFLAGS) ./$$i 2>&1); done
+	for i in $(BIN); do (echo Running $$i; export LD_LIBRARY_PATH=LD_LIBRARY_PATH:../../lib; valgrind $(VALGRINDFLAGS) ./$$i 2>&1); done
 
 -include depend

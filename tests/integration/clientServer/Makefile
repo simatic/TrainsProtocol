@@ -11,7 +11,7 @@ INCLUDEDIRS = -I../../../include
 # Compilation flags
 CFLAGS = -Wall -g $(INCLUDEDIRS) $(GLOBALFLAGS)
 # Link flags
-LDFLAGS = -L../../../src -ltrains -pthread
+LDFLAGS = -L../../../lib -ltrains -pthread
 # Valgrind options
 VALGRINDFLAGS =--leak-check=yes --leak-resolution=high --num-callers=40 --tool=memcheck --show-reachable=yes
 
@@ -36,13 +36,5 @@ clean:
 
 depend: $(SOURCES)
 	gcc -M $(CFLAGS) $(SOURCES) >depend 2>/dev/null
-
-# Run all the tests
-run: $(BIN)
-	(export LD_LIBRARY_PATH=LD_LIBRARY_PATH:../../../src; ./basicTest y 1 100000 1)
-
-# Test memory problems with valgrind
-valgrind: $(BIN)
-	(export LD_LIBRARY_PATH=LD_LIBRARY_PATH:../../../src; valgrind $(VALGRINDFLAGS) ./basicTest y 1 100000 1 2>&1)
 
 -include depend

@@ -5,10 +5,10 @@ UNAME := $(shell uname)
 
 # Binary to build
 ifeq ($(UNAME), Linux)
-	BIN  = libtrains.so
+	BIN  = ../lib/libtrains.so
 endif
 ifeq ($(UNAME), Darwin)
-	BIN  = libtrains.jnilib
+	BIN  = ../lib/libtrains.jnilib
 endif
 # C source files for the library
 SOURCES  = $(wildcard *.c)
@@ -34,6 +34,7 @@ tests: GLOBALFLAGS = -DLATENCY_TEST -DINSERTION_TEST
 tests: depend $(BIN)
 
 $(BIN): $(OBJECTS)
+	mkdir -p ../lib
 	$(CC) $(LDFLAGS) $^ -o $@ 
 
 clean:
