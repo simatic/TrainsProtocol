@@ -27,13 +27,21 @@
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/time.h>
+#include <stdio.h>
+#include <time.h>
+#ifdef WINDOWS
+#include <memory.h> //to use memset
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <windows.h>
+#include "missingInMingw.h"
+#else
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/tcp.h>
-#include <sys/time.h>
-#include <stdio.h>
-
+#endif
 #include "comm.h"
 #include "counter.h"
 #include "errorTrains.h"
@@ -43,12 +51,21 @@
  * @param[in] fd File descriptor managed by the allocated communication handle
  * @return The communication handle
  */
+#ifndef WINDOWS
 trComm *commAlloc(int fd){
   trComm *aComm = malloc(sizeof(trComm));
   assert(aComm != NULL);
   aComm->fd = fd;
   return aComm;
 }
+#else
+trComm *commAlloc(SOCKET fd){
+  trComm *aComm = malloc(sizeof(trComm));
+  assert(aComm != NULL);
+  aComm->fd = fd;
+  return aComm;
+}
+#endif
 
 /**
  * @brief Same as \a connect() system call, except that a \a connectTimeout can be 
@@ -59,6 +76,50 @@ trComm *commAlloc(int fd){
  * @param[in] connectTimeout Timeout (in milliseconds) to use instead of system timeout  when attempting connection. If \a connectTimeout is 0, the system timeout is used: it is about 20 seconds on Linux). 
  * @return If  the  connection succeeds, zero is returned.  On error, -1 is returned, and errno is set appropriately.
  */
+#ifdef WINDOWS
+int connectWithTimeout (int ConnectSocket, const struct sockaddr *addr, socklen_t addrlen, int connectTimeout) {	
+    int iResult;
+ 
+    //set the socket in non-blocking
+    unsigned long iMode = 1;
+    iResult = ioctlsocket(ConnectSocket, FIONBIO, &iMode);
+    if (iResult == SOCKET_ERROR)
+		return -1;
+	 
+	iResult=connect(ConnectSocket,addr,addrlen);
+    if(iResult == SOCKET_ERROR)
+    {	
+        int lastError = WSAGetLastError();
+		if (lastError == WSAEWOULDBLOCK){
+			TIMEVAL Timeout;
+			Timeout.tv_sec = connectTimeout/1000;
+			Timeout.tv_usec = (connectTimeout%1000)*1000;
+			// restart the socket mode
+			iMode = 0;
+			iResult = ioctlsocket(ConnectSocket, FIONBIO, &iMode);
+			if (iResult == SOCKET_ERROR)
+				return -1;
+ 
+			fd_set Write, Err;
+			FD_ZERO(&Write);
+			FD_ZERO(&Err);
+			FD_SET(ConnectSocket, &Write);
+			FD_SET(ConnectSocket, &Err);
+ 
+			// check if the socket is ready
+			iResult = select(0,NULL,&Write,&Err,&Timeout);		
+			if(iResult == SOCKET_ERROR) {
+				return -1;
+			} else if (iResult == 0  || FD_ISSET(ConnectSocket, &Err)) {
+				return -1;
+			}
+		} else {
+			return -1;
+		}
+	}
+	return 1;
+}
+#else
 int connectWithTimeout(int sockfd, const struct sockaddr *addr, socklen_t addrlen, int connectTimeout) {
   long arg;
   fd_set myset; 
@@ -127,14 +188,28 @@ int connectWithTimeout(int sockfd, const struct sockaddr *addr, socklen_t addrle
   }
   return 1;
 }
-
+#endif
 trComm *commNewAndConnect(char *hostname, char *port, int connectTimeout){
-  int fd;
+  
   struct addrinfo hints;
   struct addrinfo *result, *rp;
   int s;
   int rc;
   int status=1;
+  
+#ifndef WINDOWS
+  int fd;
+#else
+  WSADATA wsaData;
+  SOCKET fd = INVALID_SOCKET; // is equivalent to fd in windows, 
+							//the difference is that it may take any value in the range 0 to INVALID_SOCKET–1
+  s = WSAStartup(MAKEWORD(2,2), &wsaData);
+    if (s != 0) {
+        printf("WSAStartup failed with error: %d\n", s);
+        return 1;
+    }
+  
+#endif
 
   //
   // The following code is an adaptation from the example in man getaddrinfo
@@ -151,6 +226,9 @@ trComm *commNewAndConnect(char *hostname, char *port, int connectTimeout){
   if (s != 0) {
     ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, 
 		  "getaddrinfo on hostname \"%s\": %s\n", hostname, gai_strerror(s));
+#ifdef WINDOWS
+	WSACleanup();
+#endif
   }
   
   // getaddrinfo() returns a list of address structures.
@@ -159,17 +237,31 @@ trComm *commNewAndConnect(char *hostname, char *port, int connectTimeout){
   // and) try the next address. */
   
   for (rp = result; rp != NULL; rp = rp->ai_next) {
+
     fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+#ifndef WINDOWS
     if (fd == -1)
-      continue;
+		continue;
+#else
+	if (fd == INVALID_SOCKET){
+		WSACleanup();
+		continue;
+	}
+#endif
 
     rc = connectWithTimeout(fd , rp->ai_addr, rp->ai_addrlen, connectTimeout);
 
     if (rc > 0)
       break;                  /* Success */
     
+#ifndef WINDOWS
     if (close(fd) < 0)
       ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "close");
+#else
+	if (closesocket(fd) != 0)
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "closesocket");
+#endif
+
   }
 
   freeaddrinfo(result);           /* No longer needed */
@@ -180,20 +272,38 @@ trComm *commNewAndConnect(char *hostname, char *port, int connectTimeout){
 
   // We set TCP_NODELAY flag so that packets sent on this TCP connection
   // will not be delayed by the system layer
-  if (setsockopt(fd,IPPROTO_TCP, TCP_NODELAY, &status,sizeof(status)) < 0){
+  if (setsockopt(fd,IPPROTO_TCP, TCP_NODELAY, &status,sizeof(status)) != 0){
     //free(aComm);
     ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "setsockopt");
+#ifdef WINDOWS
+  WSACleanup();
+#endif
   }
 
   // Everything went fine: we can return a communication handle.
+#ifdef WINDOWS
+  WSACleanup();
+#endif
   return commAlloc(fd);
 }
 
 trComm *commNewForAccept(char *port){
-  int fd, s, on = 1;
+  int s, on = 1;
   struct addrinfo hints;
   struct addrinfo *result, *rp;
-
+#ifndef WINDOWS
+  int fd;
+#else
+  WSADATA wsaData;
+  SOCKET fd = INVALID_SOCKET; // is equivalent to fd in windows, 
+							//the difference is that it may take any value in the range 0 to INVALID_SOCKET–1
+  s = WSAStartup(MAKEWORD(2,2), &wsaData);
+    if (s != 0) {
+        printf("WSAStartup failed with error: %d\n", s);
+        return 1;
+    }
+  
+#endif
   //
   // The following code is an adaptation from the example in man getaddrinfo
   //
@@ -210,6 +320,9 @@ trComm *commNewForAccept(char *port){
   s = getaddrinfo(NULL, port, &hints, &result);
   if (s != 0) {
     fprintf(stderr, "%s:%d: getaddrinfo: %s\n", __FILE__, __LINE__, gai_strerror(s));
+#ifdef WINDOWS
+	WSACleanup();
+#endif
     exit(EXIT_FAILURE);
   }
 
@@ -221,30 +334,45 @@ trComm *commNewForAccept(char *port){
   for (rp = result; rp != NULL; rp = rp->ai_next) {
     fd = socket(rp->ai_family, rp->ai_socktype,
 		 rp->ai_protocol);
+#ifndef WINDOWS
     if (fd == -1)
-      continue;
+		continue;
+#else
+	if (fd == INVALID_SOCKET){
+		WSACleanup();
+		continue;
+	}
+#endif
 
     // We position the option to be able to reuse a port in case this port
     // was already used in a near past by another process
-    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) != 0)
       continue;
 
     if (bind(fd, rp->ai_addr, rp->ai_addrlen) == 0)
       break;                  /* Success */
 
+#ifndef WINDOWS
     if (close(fd) < 0)
-      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "close");      
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "close");
+#else
+	if (closesocket(fd) != 0)
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "closesocket");
+#endif     
   }
 
   if (rp == NULL) {               /* No address succeeded */
     fprintf(stderr, "%s:%d: Could not bind\n", __FILE__, __LINE__);
+#ifdef WINDOWS
+	WSACleanup();
+#endif
     exit(EXIT_FAILURE);
   }
 
   freeaddrinfo(result);           /* No longer needed */
 
   // We want to accept 5 simultaneous connections
-  if( listen (fd,5) < 0 )
+  if( listen (fd,5) != 0 )
     return NULL;
 
   // Everything went fine: we can return a communication handle.
@@ -252,20 +380,44 @@ trComm *commNewForAccept(char *port){
 }
 
 trComm *commAccept(trComm *aComm){
-  int connection;
+  int s;
   int status=1;
+#ifndef WINDOWS
+  int connection;
+#else
+  WSADATA wsaData;
+  SOCKET connection = INVALID_SOCKET; // is equivalent to fd in windows, 
+							//the difference is that it may take any value in the range 0 to INVALID_SOCKET–1
+  s = WSAStartup(MAKEWORD(2,2), &wsaData);
+    if (s != 0) {
+        printf("WSAStartup failed with error: %d\n", s);
+        return 1;
+    }
+#endif
 
   connection = accept(aComm->fd,NULL,NULL);
-
+#ifndef WINDOWS
   if(connection < 0) 
     return NULL;
+#else
+  if(connection == INVALID_SOCKET){
+    WSACleanup();
+    return NULL;
+  }
+#endif
 
   // We set TCP_NODELAY flag so that packets sent on this TCP connection
   // will not be delayed by the system layer
-  if (setsockopt(connection,IPPROTO_TCP, TCP_NODELAY, &status, sizeof(status)) < 0)
+  if (setsockopt(connection,IPPROTO_TCP, TCP_NODELAY, &status, sizeof(status)) != 0){
+#ifdef WINDOWS
+    WSACleanup();
+#endif
     return NULL;
-
+  }
   // Everything went fine: we can return a communication handle.
+#ifdef WINDOWS
+  WSACleanup();
+#endif
   return commAlloc(connection);
 }
 
@@ -323,10 +475,19 @@ int commWritev(trComm *aComm, const struct iovec *iov, int iovcnt){
 
 void freeComm(trComm *aComm){
 
-  if (shutdown(aComm->fd, SHUT_RDWR) < 0)
-    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "shutdown");      
-  if (close(aComm->fd) < 0)
+ 
+#ifndef WINDOWS    
+  if (shutdown(aComm->fd, SHUT_RDWR) != 0)
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "shutdown"); 
+  if (close(aComm->fd) != 0)
     ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "close");
+#else
+  if (shutdown(aComm->fd, SD_BOTH) != 0)
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "shutdown"); 
+  if (closesocket(aComm->fd) != 0)
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "closesocket");
+
+#endif
 
   free(aComm);
 }

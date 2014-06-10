@@ -136,9 +136,13 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
 
   sprintf(sem_name, "sem_init_done_%d", getpid());
   sem_init_done = sem_open(sem_name, O_CREAT, 0600, 0);
+#ifndef WINDOWS
   if(sem_init_done == SEM_FAILED)
     ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_open");
-
+#else
+  if(sem_init_done == NULL)
+    ERROR_AT_LINE(EXIT_FAILURE, GetLastError(), __FILE__, __LINE__, "sem_open");
+#endif
   pthread_mutex_init(&mutexWagonToSend, NULL );
 
   rc= pthread_cond_init(&condWagonToSend, NULL);

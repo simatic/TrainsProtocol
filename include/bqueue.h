@@ -41,8 +41,13 @@
  */
 typedef struct{
   trList *list;   /**< List holding the different values in the queue */
+#ifdef DARWIN
+  // MacOS implements only named semaphores
   sem_t *readSem; /**< Semaphore used to determine how many values are present in \a list */
   char semName[128];
+#else
+  sem_t readSem; /**< Semaphore used to determine how many values are present in \a list */
+#endif
 } trBqueue;
 
 /**

@@ -29,7 +29,9 @@
 #include "bqueue.h"
 #include "errorTrains.h"
 
+#ifdef DARWIN
 static int rank = 0;
+#endif
 
 trBqueue *newBqueue(){
   trBqueue *aBQueue;
@@ -39,14 +41,17 @@ trBqueue *newBqueue(){
 
   aBQueue->list = newList();
 
-  //if (sem_init(&(aBQueue->readSem),0,0))
-  //  ERROR_AT_LINE(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_init");
+#ifdef DARWIN
+  // MacOS implements only named semaphores
   sprintf(aBQueue->semName, "bqueueSem_%d_%d", getpid(), rank); 
   rank++;
   aBQueue->readSem = sem_open(aBQueue->semName, O_CREAT, 0600, 0);
   if (aBQueue->readSem == SEM_FAILED)
     ERROR_AT_LINE(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_open");
-
+#else
+  if (sem_init(&(aBQueue->readSem),0,0))
+	ERROR_AT_LINE(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_init");
+#endif
   return aBQueue;
 }
 
@@ -54,7 +59,11 @@ void *bqueueDequeue(trBqueue *aBQueue){
   int rc;
 
   do {
-    rc = sem_wait(aBQueue->readSem);
+#ifdef DARWIN
+	rc = sem_wait(aBQueue->readSem);
+#else
+	rc = sem_wait(&(aBQueue->readSem));
+#endif
   } while ((rc < 0) && (errno == EINTR));
   if (rc)
     ERROR_AT_LINE(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_wait");
@@ -65,7 +74,11 @@ void *bqueueDequeue(trBqueue *aBQueue){
 void bqueueEnqueue(trBqueue *aBQueue, void *anElt){
   listAppend(aBQueue->list, anElt);
 
+#ifdef DARWIN
   if (sem_post(aBQueue->readSem))
+#else
+  if (sem_post(&(aBQueue->readSem)))
+#endif
     ERROR_AT_LINE(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_post");
 }
 
@@ -83,12 +96,16 @@ void bqueueExtend(trBqueue *aBQueue, trList *list){
 void freeBqueue(trBqueue *aBQueue){
   freeList(aBQueue->list);
 
+#ifdef DARWIN
   if (sem_close(aBQueue->readSem) < 0)
     ERROR_AT_LINE(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_close");
   
   if (sem_unlink(aBQueue->semName) < 0)
     ERROR_AT_LINE(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_unlink");
-  
+#else
+  if (sem_destroy(&(aBQueue->readSem)) < 0)
+    ERROR_AT_LINE(EXIT_FAILURE,errno,__FILE__,__LINE__,"sem_destroy");
+#endif  
 
   free(aBQueue);
 }

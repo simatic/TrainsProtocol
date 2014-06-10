@@ -30,15 +30,25 @@
 
 #ifndef _COMM_H_
 #define _COMM_H_
+#include <pthread.h>
+#ifndef WINDOWS
 #include <sys/uio.h>
-
+#else
+#include <winsock2.h>
+#include "missingInMingw.h"
+#endif
 /** 
  * @brief Data structure holding a communication handle
  */
+#ifndef WINDOWS
 typedef struct{
   int  fd;      /**< File descriptor of the communication handle */
 } trComm;
-
+#else
+typedef struct{
+  SOCKET  fd;      /**< File descriptor of the communication handle */
+} trComm;
+#endif
 /**
  * @brief Creates a new handle and connects it to host with \a hostname on \a port
  * @param[in] hostname Hostname of the host to connect to
