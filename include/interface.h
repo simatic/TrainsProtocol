@@ -37,7 +37,12 @@
 /**
  * @brief The big semaphore used to manage the protocol in the function trInit
  */
-extern sem_t *sem_init_done;
+#ifdef DARWIN
+  // MacOS implements only named semaphores
+  extern sem_t *sem_init_done;
+#else
+  extern sem_t sem_init_done;
+#endif
 
 void format_class_name(char *);
 

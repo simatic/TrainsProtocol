@@ -288,7 +288,11 @@ void offlineInit(){
     wagonToSend = newWiw();
     automatonState = ALONE_INSERT_WAIT;
     //printf("Nextstate(fake) = %s\n", stateToStr(automatonState));
+#ifdef DARWIN
     int rc = sem_post(sem_init_done);
+#else
+    int rc = sem_post(&sem_init_done);
+#endif
     if (rc)
       ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
           "error in sem_post");
@@ -445,7 +449,11 @@ void stateMachine(womim* p_womim){
         lis = p_womim->msg.body.train.stamp.id;
         signalArrival(myAddress, lts[lis].circuit);
         nextState(SEVERAL);
+#ifdef DARWIN
         int rc = sem_post(sem_init_done);
+#else
+        int rc = sem_post(&sem_init_done);
+#endif
         if (rc)
           ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
               "error in sem_post");

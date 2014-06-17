@@ -1,9 +1,6 @@
 #ifdef WINDOWS
-#include <config.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <stdio.h>
-#include <windows.h>
 #include "missingInMingw.h"
 
 

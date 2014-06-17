@@ -24,19 +24,20 @@ SOURCES  = $(wildcard *.c)
 # Object files corresponding to source files
 OBJECTS  = $(SOURCES:.c=.o)
 # Include directory
-INCLUDEDIRS = -I../include -I../../../pthreads-w32-2-9-1-release/pthreads.2 -I$(JAVA_HOME)/include
+INCLUDEDIRS = -I../include #-I$(JAVA_HOME)/include
 # Compilation flags (the -fPIC flag is because the files are compiled for a dynamic library)
-CFLAGS = -g -Wall $(INCLUDEDIRS) $(GLOBALFLAGS) -D$(OS) $(PIC) -lpthread 
+CFLAGS = -g -Wall $(INCLUDEDIRS) $(GLOBALFLAGS) -D$(OS) $(PIC) 
 # Link flags
-LDFLAGS = -g -shared
+#LDFLAGS = -g -shared -lpthreadGC2 -lws2_32
+LDFLAGS = -g -shared -pthread -lws2_32
 
 ### Rules.  ############################################################
 
 .PHONY:         all allForJNI clean
 
-#all: depend $(BIN)
-all: $(BIN)
-	echo $(UNAME)
+all: depend $(BIN)
+#all: $(BIN)
+#	echo $(UNAME)
 
 allForJNI: GLOBALFLAGS = -DJNI
 allForJNI: depend $(BIN)
@@ -45,13 +46,14 @@ tests: GLOBALFLAGS = -DLATENCY_TEST -DINSERTION_TEST
 tests: depend $(BIN)
 
 $(BIN): $(OBJECTS)
-	$(CC) $(LDFLAGS) $^ -o $@ 
+	$(CC) $(LDFLAGS) $^ -o $@ $(LDFLAGS) 
 
 clean:
 	rm -f *~ *.bak *.BAK 
 	rm -f $(OBJECTS) $(BIN) depend
 
 depend: $(SOURCES)
-	gcc -M $(CFLAGS) $(SOURCES) >depend 2>/dev/null
+#	gcc -M $(CFLAGS) $(SOURCES) >depend 2>/dev/null
+	gcc -M $(CFLAGS) $(SOURCES) >depend
 
 #-include depend

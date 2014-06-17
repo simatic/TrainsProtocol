@@ -21,6 +21,23 @@
  Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Nathan Reboud
  */
 
+ 
+#ifdef WINDOWS
+#define WIN32_LEAN_AND_MEAN
+#define _WIN32_WINNT  0x501
+
+#include <memory.h> //to use memset
+#include <windows.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include "missingInMingw.h"
+
+#else
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <netinet/tcp.h>
+#endif
 #include <assert.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -30,18 +47,6 @@
 #include <sys/time.h>
 #include <stdio.h>
 #include <time.h>
-#ifdef WINDOWS
-#include <memory.h> //to use memset
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <windows.h>
-#include "missingInMingw.h"
-#else
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <netinet/tcp.h>
-#endif
 #include "comm.h"
 #include "counter.h"
 #include "errorTrains.h"
@@ -196,7 +201,7 @@ trComm *commNewAndConnect(char *hostname, char *port, int connectTimeout){
   int s;
   int rc;
   int status=1;
-  
+
 #ifndef WINDOWS
   int fd;
 #else
@@ -206,7 +211,7 @@ trComm *commNewAndConnect(char *hostname, char *port, int connectTimeout){
   s = WSAStartup(MAKEWORD(2,2), &wsaData);
     if (s != 0) {
         printf("WSAStartup failed with error: %d\n", s);
-        return 1;
+        return NULL;
     }
   
 #endif
@@ -272,7 +277,7 @@ trComm *commNewAndConnect(char *hostname, char *port, int connectTimeout){
 
   // We set TCP_NODELAY flag so that packets sent on this TCP connection
   // will not be delayed by the system layer
-  if (setsockopt(fd,IPPROTO_TCP, TCP_NODELAY, &status,sizeof(status)) != 0){
+  if (setsockopt(fd,IPPROTO_TCP, TCP_NODELAY, (char*)&status,sizeof(status)) != 0){
     //free(aComm);
     ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "setsockopt");
 #ifdef WINDOWS
@@ -300,7 +305,7 @@ trComm *commNewForAccept(char *port){
   s = WSAStartup(MAKEWORD(2,2), &wsaData);
     if (s != 0) {
         printf("WSAStartup failed with error: %d\n", s);
-        return 1;
+        return NULL;
     }
   
 #endif
@@ -346,7 +351,7 @@ trComm *commNewForAccept(char *port){
 
     // We position the option to be able to reuse a port in case this port
     // was already used in a near past by another process
-    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) != 0)
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) != 0)
       continue;
 
     if (bind(fd, rp->ai_addr, rp->ai_addrlen) == 0)
@@ -391,7 +396,7 @@ trComm *commAccept(trComm *aComm){
   s = WSAStartup(MAKEWORD(2,2), &wsaData);
     if (s != 0) {
         printf("WSAStartup failed with error: %d\n", s);
-        return 1;
+        return NULL;
     }
 #endif
 
@@ -408,7 +413,7 @@ trComm *commAccept(trComm *aComm){
 
   // We set TCP_NODELAY flag so that packets sent on this TCP connection
   // will not be delayed by the system layer
-  if (setsockopt(connection,IPPROTO_TCP, TCP_NODELAY, &status, sizeof(status)) != 0){
+  if (setsockopt(connection,IPPROTO_TCP, TCP_NODELAY, (char*)&status, sizeof(status)) != 0){
 #ifdef WINDOWS
     WSACleanup();
 #endif

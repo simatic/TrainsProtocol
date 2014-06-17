@@ -39,7 +39,12 @@
 #include "jniContext.h"
 #endif /* JNI */
 
-sem_t *sem_init_done;
+#ifdef DARWIN
+  // MacOS implements only named semaphores
+  sem_t *sem_init_done;
+#else
+  sem_t sem_init_done;
+#endif
 
 int trErrno;
 
@@ -102,8 +107,10 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
   char trainsHost[1024];
   char *trainsPort;
   int rank;
+#ifdef DARWIN
   char sem_name[128];
- 
+#endif
+
 #ifdef JNI
   /* Converts Java strings to C strings*/
   char *myCallbackCircuitChange;
@@ -133,16 +140,19 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
   if (waitTime > 0)
     waitDefaultTime = waitTime;
 
-
+#ifdef DARWIN
   sprintf(sem_name, "sem_init_done_%d", getpid());
   sem_init_done = sem_open(sem_name, O_CREAT, 0600, 0);
-#ifndef WINDOWS
-  if(sem_init_done == SEM_FAILED)
-    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_open");
-#else
   if(sem_init_done == NULL)
     ERROR_AT_LINE(EXIT_FAILURE, GetLastError(), __FILE__, __LINE__, "sem_open");
-#endif
+#else
+	if (sem_init(&sem_init_done,0,0))
+#ifndef WINDOWS
+    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_open");
+#else
+    ERROR_AT_LINE(EXIT_FAILURE, GetLastError(), __FILE__, __LINE__, "sem_open");
+#endif /* WINDOWS */
+#endif /* DARWIN */
   pthread_mutex_init(&mutexWagonToSend, NULL );
 
   rc= pthread_cond_init(&condWagonToSend, NULL);
@@ -184,7 +194,11 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
 
   automatonInit();
   do {
+#ifdef DARWIN
     rc = sem_wait(sem_init_done);
+#else
+    rc = sem_wait(&sem_init_done);
+#endif
   } while ((rc < 0) && (errno == EINTR));
   if (rc)
     ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_wait()");
