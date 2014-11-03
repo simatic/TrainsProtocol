@@ -280,7 +280,7 @@ void *timeKeeper(void *null){
   timersub(&stopSomme, &startSomme, &diffCPU);
   timersub(&timeEnd, &timeBegin, &diffTimeval);
   printf(
-      "Broadcasters / number / size / ntr / Average number of delivered wagons per recent train received / Average number of msg per wagon / Throughput of uto-broadcasts in Mbps ; %d ; %d ; %d ; %d ; %g ; %g ; %g ; %g\n",
+      "Broadcasters / number / size / ntr / Average number of delivered wagons per recent train received / Average number of msg per wagon / Throughput of uto-broadcasts in Mbps / %%CPU ; %d ; %d ; %d ; %d ; %g ; %g ; %g ; %g\n",
       broadcasters, number, size, ntr,
       ((double) (countersEnd.wagons_delivered - countersBegin.wagons_delivered))
           / ((double) (countersEnd.recent_trains_received
