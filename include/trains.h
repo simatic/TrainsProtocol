@@ -43,7 +43,11 @@
 /**
  * @brief The number of rounds used for the modulos
  */
+#ifdef UNIFORM_BROADCAST
 #define NR 3
+#else /* UNIFORM_BROADCAST */
+#define NR 2
+#endif /* UNIFORM_BROADCAST */
 
 /**
  * @brief The limit number of processes in the circuit

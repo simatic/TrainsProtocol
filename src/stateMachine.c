@@ -192,11 +192,17 @@ void trainHandling(womim *p_womim){
 
   counters.recent_trains_received++;
   counters.recent_trains_bytes_received += p_womim->msg.len;
+  //printf("TRAIN id=%d\n", id);
   if (round == lts[id].stamp.round) {
     round = (round + 1) % NR;
   }
+#ifdef UNIFORM_BROADCAST
   bqueueExtend(wagonsToDeliver, unstableWagons[id][(round - 2 + NR) % NR]);
   cleanList(unstableWagons[id][(round - 2 + NR) % NR]);
+#else /* UNIFORM_BROADCAST */
+  bqueueExtend(wagonsToDeliver, unstableWagons[id][(round - 1 + NR) % NR]);
+  cleanList(unstableWagons[id][(round - 1 + NR) % NR]);  
+#endif /* UNIFORM_BROADCAST */
   if (id == 0) {
     lts[0].circuit = addrUpdateCircuit(p_womim->msg.body.train.circuit,
         myAddress, cameProc, goneProc);
