@@ -323,8 +323,14 @@ int commWritev(trComm *aComm, const struct iovec *iov, int iovcnt){
 
 void freeComm(trComm *aComm){
 
-  if (shutdown(aComm->fd, SHUT_RDWR) < 0)
-    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "shutdown");      
+  if (shutdown(aComm->fd, SHUT_RDWR) < 0) {
+    if (errno != ENOTCONN) {
+      // We have an error on a shutdown and the error is not due to the
+      // fact that the socket was no more connected. Thus, there is
+      // a problem, which we have to signal
+      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "shutdown");
+    }
+  }
   if (close(aComm->fd) < 0)
     ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "close");
 
