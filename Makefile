@@ -21,6 +21,7 @@ clean: WHATTODO=clean
 clean: ${SUBDIRS}
 	for i in '*'~ '*'.bak '*'.tmp; do find . -iname $$i -exec rm -f '{}' \+; done
 	rm -f *~ *.bak *.tmp
+	rm -rf lib
 
 doxygen:
 	doxygen doxy.conf
