@@ -21,7 +21,7 @@ VALGRINDFLAGS =--leak-check=yes --leak-resolution=high --num-callers=40 --tool=m
 
 all: depend $(BIN)
 
-tests: GLOBALFLAGS = -DLATENCY_TEST -DINSERTION_TEST
+tests: GLOBALFLAGS = -DINSERTION_TEST
 tests: depend $(BIN)
 
 client: client.o trainTime.o

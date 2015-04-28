@@ -35,11 +35,16 @@
 
 
 /** 
+ * @brief Type used to store message type
+ */
+typedef unsigned char t_typ;
+
+/** 
  * @brief Header of messages carried by trains protocol for the application using the middleware
  */
 typedef struct {
     int   len;   /**< Length of whole message */
-    char  typ;   /**< Type of message (contains AM_BROADCAST, AM_ARRIVAL or AM_DEPARTURE) */
+    t_typ typ;   /**< Type of message (AM_ARRIVAL, AM_DEPARTURE; AM_TERMINATE, or a application-defined message) */
   } __attribute__((packed)) messageHeader;  
 
 /** 
@@ -53,36 +58,34 @@ typedef struct message{
 } __attribute__((packed)) message;
 
 /**
- * @brief Type of message corresponding to a broadcast requested by application
- */
-#define AM_BROADCAST 0
-
-/**
  * @brief Type of message corresponding to the arrival of a process
  */
-#define AM_ARRIVAL 1
+#define AM_ARRIVAL 0
 
 /**
  * @brief Type of message corresponding to the departure of a process
  */
-#define AM_DEPARTURE 2
+#define AM_DEPARTURE 1
 
 /**
  * @brief Type of message used internally by utoDeliveries to exit its main loop
  */
-#define AM_TERMINATE 3
-
-#ifdef LATENCY_TEST
-/**
- *@brief Type of message used for latency test
- */
-#define AM_PING 4
+#define AM_TERMINATE 2
 
 /**
- *@brief Type of message used for latency test
+ * @brief First value reserved for future Application message
  */
-#define AM_PONG 5
-#endif /* LATENCY_TEST */
+#define AM_RESERVED_FOR_FUTURE_USE_1 3
+
+/**
+ * @brief Second value reserved for future Application message
+ */
+#define AM_RESERVED_FOR_FUTURE_USE_2 4
+
+/**
+ * @brief First value available to application for message typ
+ */
+#define FIRST_VALUE_AVAILABLE_FOR_MESS_TYP (AM_RESERVED_FOR_FUTURE_USE_2 + 1)
 
 /** 
  * @brief Payload when arrival or departure
@@ -121,7 +124,7 @@ typedef  void (*CallbackCircuitChange)(circuitView*);
  * @brief Type of function called by trains middleware when it is ready to uto-deliver a message 
  * to the application layer
  */
-typedef  void (*CallbackUtoDeliver)(address,message*);
+typedef  void (*CallbackUtoDeliver)(address,t_typ,message*);
 
 /** 
  * @brief Callback function called by trains middleware when there is a change in circuit members
@@ -145,10 +148,11 @@ message *newmsg(int payloadSize);
 
 /**
  * @brief uto-broadcast of message @a mp
+ * @param[in] messageTyp This parameter is a @a t_typ field greater or equal to @a FIRST_VALUE_AVAILABLE_FOR_MESS_TYP which can be used by the application  arbitrarily. The intent is that it could be used to name different kinds of data messages so they can be differentiated without looking into the body of the message.
  * @param[in] mp Message to be uto-broadcasted
  * @return 0 upon successful completion, or -1 if an error occurred (in which case, @a trErrno is set appropriately)
  */
-int utoBroadcast(message *mp);
+int utoBroadcast(t_typ messageTyp, message *mp);
 
 /**
  * @brief Function (to be executed by a thread) responsible for delivering messages stored in

@@ -46,6 +46,8 @@
 #include "trains.h"
 #include "errorTrains.h"
 
+#define TEST_MESSAGE FIRST_VALUE_AVAILABLE_FOR_MESS_TYP
+
 int size, interval, position, participantNumber, trainsNumber;
 
 static bool terminate = false;
@@ -62,11 +64,11 @@ void callbackCircuitChange(circuitView *cp){
   }
 }
 
-void callbackUtoDeliver(address sender, message *mp){
+void callbackUtoDeliver(address sender, t_typ messageTyp, message *mp){
 
   if (payloadSize(mp) != size) {
     fprintf(stderr,
-        "Error in file %s:%d : Payload size is incorrect: it is %lu when it should be %lu\n",
+        "Error in file %s:%d : Payload size is incorrect: it is %zu when it should be %d\n",
         __FILE__, __LINE__, payloadSize(mp), size);
     exit(EXIT_FAILURE);
   }
@@ -108,7 +110,7 @@ int main(int argc, char *argv[]){
   wagonMaxLen = atoi(argv[1]);
   size = atoi(argv[2]);
   if (size < sizeof(int)){
-    printf("size should be more than sizeof(int) = %lu", sizeof(int));
+    printf("size should be more than sizeof(int) = %zu\n", sizeof(int));
   }
   interval = atoi(argv[3]);
   participantNumber = atoi(argv[4]);
@@ -146,7 +148,7 @@ int main(int argc, char *argv[]){
     }
     rankMessage++;
     *((int*) (mp->payload)) = rankMessage;
-    if (utoBroadcast(mp) < 0) {
+    if (utoBroadcast(TEST_MESSAGE, mp) < 0) {
       trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
       return EXIT_FAILURE;
     }

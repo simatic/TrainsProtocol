@@ -34,8 +34,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef LATENCY_TEST
-
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <unistd.h>
@@ -49,6 +47,10 @@
 #include "counter.h"
 #include "latencyData.h"
 #include "errorTrains.h"
+
+/* Type of messages broadcast */
+#define PING (FIRST_VALUE_AVAILABLE_FOR_MESS_TYP)
+#define PONG (FIRST_VALUE_AVAILABLE_FOR_MESS_TYP + 1)
 
 /* Semaphore used to block main thread until there are enough participants */
 static sem_t semWaitEnoughMembers;
@@ -112,7 +114,7 @@ static const char* const usageTemplate =
     "Usage: %s [ options ]\n"
         "  -b, --broadcasters number       Number of broadcasting processes.\n"
         "  -c, --cooldown seconds          Duration of cool-down phase (default = 10).\n"
-        "  -f, --frequencyPing             Frequency of AM_PING messages (default = 10000)\n"
+        "  -f, --frequencyPing             Frequency of PING messages (default = 10000)\n"
         "  -h, --help                      Print this information.\n"
         "  -l, --wagonMaxLen               Maximum length of wagons (default = 32768)\n"
         "  -m, --measurement seconds       Duration of measurement phase (default = 600).\n"
@@ -190,7 +192,7 @@ void callbackCircuitChange(circuitView *cp){
     // We can start the experience
     printf("!!! ******** enough members to start utoBroadcasting\n");
 
-    // The participants choose the pingResponder : the participant which will respond to the AM_PING messages
+    // The participants choose the pingResponder : the participant which will respond to the PING messages
     pingResponder = cp->cv_members[0];
 
     printf("!!! The pingResponder for this experience is %d:%s:%s\n",
@@ -204,7 +206,7 @@ void callbackCircuitChange(circuitView *cp){
 }
 
 /* Callback for messages to be UTO-delivered */
-void callbackUtoDeliver(address sender, message *mp){
+void callbackUtoDeliver(address sender, t_typ messageTyp, message *mp){
   char s[MAX_LEN_ADDRESS_AS_STR];
   static int nbRecMsg = 0;
 
@@ -215,20 +217,19 @@ void callbackUtoDeliver(address sender, message *mp){
     exit(EXIT_FAILURE);
   }
 
-  if (mp->header.typ == AM_PING) {
+  if (messageTyp == PING) {
     if (myAddress == pingResponder) {
 
       message *pongMsg = newmsg(size);
-      pongMsg->header.typ = AM_PONG;
       memcpy(pongMsg->payload, mp->payload, pingMessageSize);
 
       int rc;
-      if ((rc = utoBroadcast(pongMsg)) < 0) {
+      if ((rc = utoBroadcast(PONG, pongMsg)) < 0) {
         trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
         exit(EXIT_FAILURE);
       }
     }
-  } else if (mp->header.typ == AM_PONG) {
+  } else if (messageTyp == PONG) {
 
     memcpy(&pingSender, mp->payload, sizeof(address));
     if (pingSender == myAddress) {
@@ -419,7 +420,6 @@ void startTest(){
           exit(EXIT_FAILURE);
         }
         rankMessage++;
-        mp->header.typ = AM_PING;
         gettimeofday(&sendTime, NULL);
         memcpy(mp->payload, &myAddress, sizeof(address));
         memcpy((mp->payload) + sizeof(address), &sendTime, sizeof(struct timeval));
@@ -435,7 +435,7 @@ void startTest(){
       }
 
       pingMessagesCounter = (pingMessagesCounter + 1) % frequencyOfPing;
-      if ((rc = utoBroadcast(mp)) < 0) {
+      if ((rc = utoBroadcast(PING, mp)) < 0) {
         trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
         exit(EXIT_FAILURE);
       }
@@ -449,10 +449,7 @@ void startTest(){
   }
 }
 
-#endif /* LATENCY_TEST */
-
 int main(int argc, char *argv[]){
-#ifdef LATENCY_TEST
   int next_option;
 
   /* Store the program name, which we'll use in error messages.  */
@@ -557,10 +554,6 @@ int main(int argc, char *argv[]){
 
   /* We can start the test */
   startTest();
-
-#else /* LATENCY_TEST */
-  printf("To run latency tests, you have to compile the library with the tests target\n");
-#endif /* LATENCY_TEST */
 
   return EXIT_SUCCESS;
 }

@@ -43,6 +43,7 @@
 #include "trains.h"
 #include "errorTrains.h"
 
+#define TEST_MESSAGE FIRST_VALUE_AVAILABLE_FOR_MESS_TYP
 #define PAYLOAD_SIZE sizeof(int)
 
 sem_t *semWaitEnoughMembers;
@@ -76,9 +77,16 @@ void callbackCircuitChange(circuitView *cp){
   }
 }
 
-void callbackUtoDeliver(address sender, message *mp){
+void callbackUtoDeliver(address sender, t_typ messageTyp, message *mp){
   char s[MAX_LEN_ADDRESS_AS_STR];
   static int nbRecMsg = 0;
+
+  if (messageTyp != TEST_MESSAGE) {
+    fprintf(stderr,
+	    "Error in file %s:%d : Was waiting for message #%d and received message #%d\n",
+        __FILE__, __LINE__, messageTyp, TEST_MESSAGE);
+    exit(EXIT_FAILURE);
+  }
 
   if (payloadSize(mp) != PAYLOAD_SIZE) {
     fprintf(stderr,
@@ -172,7 +180,7 @@ int main(int argc, char *argv[]){
       }
       rankMessage++;
       *((int*) (mp->payload)) = rankMessage;
-      if (utoBroadcast(mp) < 0) {
+      if (utoBroadcast(TEST_MESSAGE, mp) < 0) {
         trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
         return EXIT_FAILURE;
       }

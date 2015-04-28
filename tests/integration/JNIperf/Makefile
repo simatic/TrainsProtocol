@@ -26,7 +26,7 @@ LDFLAGS = -g -shared
 
 all: depend $(BIN)
 
-tests: GLOBALFLAGS = -DLATENCY_TEST -DINSERTION_TEST
+tests: GLOBALFLAGS = -DINSERTION_TEST
 tests: depend $(BIN)
 
 $(BIN): $(OBJECTS)

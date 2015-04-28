@@ -60,7 +60,6 @@ message *newmsg(int payloadSize){
   }
 
   mp = mallocWiw(payloadSize);
-  mp->header.typ = AM_BROADCAST;
 
   // MUTEX_UNLOCK will be done in utoBroadcast
   // MUTEX_UNLOCK(mutexWagonToSend);
@@ -79,11 +78,16 @@ JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, ji
 }
 #endif /* JNI */
 
-int utoBroadcast(message *mp){
+int utoBroadcast(t_typ messageTyp, message *mp){
   //  MUTEX_LOCK(stateMachineMutex); // We DO NOT take this mutex
   // state ALONE_INSERT_WAIT => ALONE_CONNECTION_WAIT require mutexWagonToSend
   // thus cannot corrupt this sending
   // state SEVERAL => ALONE_INSERT_WAIT also require mutexWagonToSend
+
+  if (messageTyp < FIRST_VALUE_AVAILABLE_FOR_MESS_TYP) {
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "messageType is %d, thus a value which is lower than FIRST_VALUE_AVAILABLE_FOR_MESS_TYP (which is %d)", messageTyp, FIRST_VALUE_AVAILABLE_FOR_MESS_TYP);
+  }    
+  mp->header.typ = messageTyp;
 
   if (automatonState == ALONE_INSERT_WAIT) {
     bqueueEnqueue(wagonsToDeliver, wagonToSend);
@@ -234,41 +238,6 @@ void *utoDeliveries(void *null){
       counters.messages_bytes_delivered += payloadSize(mp);
 
       switch (mp->header.typ) {
-#ifdef LATENCY_TEST
-        case AM_PING:
-        case AM_PONG:
-#endif /* LATENCY_TEST */
-        case AM_BROADCAST:
-        {   
-#ifndef JNI
-        (*theCallbackUtoDeliver)(w->header.sender, mp);
-#else /* JNI */
-	        /* Set message header */
-          (*JNIenv)->SetIntField(JNIenv, jmsghdr, jmsghdr_lenID, mp->header.len); 
-          (*JNIenv)->SetIntField(JNIenv, jmsghdr, jmsghdr_typeID, mp->header.typ); 
-
-	        /* Set message */
-          (*JNIenv)->SetObjectField(JNIenv, jmsg, jmsg_hdrID, jmsghdr); 
-          
-          msgPayload_temp = (*JNIenv)->NewByteArray(JNIenv, mp->header.len);
-          if(msgPayload_temp == NULL){
-            ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__,"msgPayload");
-          }
-          msgPayload = (*JNIenv)->NewGlobalRef(JNIenv, msgPayload_temp);
-          if(msgPayload == NULL){
-            ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "Global ref for msgPayload");
-          }
-          (*JNIenv)->DeleteLocalRef(JNIenv, msgPayload_temp);
-          
-          (*JNIenv)->SetByteArrayRegion(JNIenv, msgPayload, 0, payloadSize(mp), (jbyte *)mp->payload); 
-          (*JNIenv)->SetObjectField(JNIenv, jmsg, jmsg_payloadID, msgPayload); 
-          
-          /* Call callback */
-	        (*JNIenv)->CallVoidMethod(JNIenv, jcallbackUtoDeliver, jcallbackUtoDeliver_runID, w->header.sender, jmsg);
-#endif /* JNI */
-             
-          break;
-        }
         case AM_ARRIVAL:
           fillCv(&cv, ((payloadArrivalDeparture*) (mp->payload))->circuit);
           cv.cv_joined = ((payloadArrivalDeparture*) (mp->payload))->ad;
@@ -312,8 +281,33 @@ void *utoDeliveries(void *null){
           terminate = true;
           break;
         default:
-          fprintf(stderr, "Received a message with unknown typ \"%d\"\n",
-              mp->header.typ);
+#ifndef JNI
+	  (*theCallbackUtoDeliver)(w->header.sender, mp->header.typ, mp);
+#else /* JNI */
+	        /* Set message header */
+          (*JNIenv)->SetIntField(JNIenv, jmsghdr, jmsghdr_lenID, mp->header.len); 
+          (*JNIenv)->SetIntField(JNIenv, jmsghdr, jmsghdr_typeID, mp->header.typ); 
+
+	        /* Set message */
+          (*JNIenv)->SetObjectField(JNIenv, jmsg, jmsg_hdrID, jmsghdr); 
+          
+          msgPayload_temp = (*JNIenv)->NewByteArray(JNIenv, mp->header.len);
+          if(msgPayload_temp == NULL){
+            ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__,"msgPayload");
+          }
+          msgPayload = (*JNIenv)->NewGlobalRef(JNIenv, msgPayload_temp);
+          if(msgPayload == NULL){
+            ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "Global ref for msgPayload");
+          }
+          (*JNIenv)->DeleteLocalRef(JNIenv, msgPayload_temp);
+          
+          (*JNIenv)->SetByteArrayRegion(JNIenv, msgPayload, 0, payloadSize(mp), (jbyte *)mp->payload); 
+          (*JNIenv)->SetObjectField(JNIenv, jmsg, jmsg_payloadID, msgPayload); 
+          
+          /* Call callback */
+	        (*JNIenv)->CallVoidMethod(JNIenv, jcallbackUtoDeliver, jcallbackUtoDeliver_runID, w->header.sender, jmsg);
+#endif /* JNI */
+             
           break;
       }
     }

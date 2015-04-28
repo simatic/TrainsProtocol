@@ -18,4 +18,15 @@
        abort();                             \
     }
 
+/** 
+ * @brief Same as @a ERROR_AT_LINE but without having to specify an errnum
+ */
+#define ERROR_AT_LINE_WITHOUT_ERRNUM(status,filename,linenum,...) {	\
+      fprintf(stderr,"%s:%d:",    \
+              filename,linenum);  \
+      fprintf(stderr,__VA_ARGS__);  \
+      fputs("\n",stderr);           \
+      abort();                             \
+    }
+
 #endif /* _ERROR_TRAINS_H */

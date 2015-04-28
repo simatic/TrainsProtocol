@@ -42,6 +42,8 @@
 #include "connect.h"
 #include "counter.h"
 
+#define TEST_MESSAGE FIRST_VALUE_AVAILABLE_FOR_MESS_TYP
+
 int main(int argc, char *argv[]){
 
   int i, j;
@@ -82,7 +84,7 @@ int main(int argc, char *argv[]){
           trError_at_line(rc, trErrno, __FILE__, __LINE__, "newmsg()");
           exit(EXIT_FAILURE);
         }
-	rc = utoBroadcast(mp);
+	rc = utoBroadcast(TEST_MESSAGE, mp);
         if (rc < 0) {
           trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
           exit(EXIT_FAILURE);

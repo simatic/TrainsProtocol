@@ -45,6 +45,9 @@
 #include "counter.h"
 #include "errorTrains.h"
 
+/* Type of messages broadcast */
+#define TEST_MESSAGE FIRST_VALUE_AVAILABLE_FOR_MESS_TYP
+
 /* Semaphore used to block main thread until there are enough participants */
 static sem_t semWaitEnoughMembers;
 
@@ -167,7 +170,7 @@ void callbackCircuitChange(circuitView *cp){
 }
 
 /* Callback for messages to be UTO-delivered */
-void callbackUtoDeliver(address sender, message *mp){
+void callbackUtoDeliver(address sender, t_typ messageTyp, message *mp){
   char s[MAX_LEN_ADDRESS_AS_STR];
   static int nbRecMsg = 0;
 
@@ -352,7 +355,7 @@ void startTest(){
       }
       rankMessage++;
       *((int*) (mp->payload)) = rankMessage;
-      if (utoBroadcast(mp) < 0) {
+      if (utoBroadcast(TEST_MESSAGE, mp) < 0) {
         trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
         exit(EXIT_FAILURE);
       }

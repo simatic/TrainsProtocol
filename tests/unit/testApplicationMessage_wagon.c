@@ -39,6 +39,7 @@
 #define DATA 0xFEDCBA98
 #define SIZE1 42
 #define SIZE2 64
+#define MY_MESSAGE FIRST_VALUE_AVAILABLE_FOR_MESS_TYP
 
 void *functionThread1(void *null) {
   usleep(1000);
@@ -83,10 +84,11 @@ void aCallbackCircuitChange(circuitView *cp){
   }
 }
 
-void aCallbackUtoDeliver(address sender, message *mp){
+void aCallbackUtoDeliver(address sender, t_typ messageTyp, message *mp){
       compare("uto_deliveries (callbackUtoDeliver)",
 	      (sender == FAKE_ADDRESS) &&
 	      (mp->header.len == sizeof(messageHeader) + sizeof(int)) &&
+	      (messageTyp == MY_MESSAGE) &&
 	      (*((int*)(mp->payload)) == DATA));
 }
 
@@ -183,7 +185,7 @@ int main(){
 
   // Test utoBroadcast when automatonState is ALONE_INSERT_WAIT
   automatonState = ALONE_INSERT_WAIT;
-  utoBroadcast(mp);
+  utoBroadcast(MY_MESSAGE, mp);
   w = bqueueDequeue(wagonsToDeliver);
   mp2 = firstMsg(w->p_wagon);
   compare("uto_broadcast (when ALONE)",
@@ -205,6 +207,7 @@ int main(){
   wagonToSend = newWiw();
   mp = newmsg(sizeof(int));
   MUTEX_UNLOCK(mutexWagonToSend);
+  mp->header.typ = MY_MESSAGE;
   *((int*)(mp->payload)) = DATA;
   mp = newmsg(0);
   MUTEX_UNLOCK(mutexWagonToSend);

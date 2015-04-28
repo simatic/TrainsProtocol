@@ -172,7 +172,7 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
   }
   trainsPort = getenv("TRAINS_PORT");
   if (trainsPort == NULL)
-    ERROR_AT_LINE(EXIT_FAILURE,0,__FILE__,__LINE__,"TRAINS_PORT environment variable is not defined");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE,__FILE__,__LINE__,"TRAINS_PORT environment variable is not defined");
   rank = addrID(trainsHost,trainsPort,globalAddrArray);
   if (rank < 0)
     ERROR_AT_LINE(EXIT_FAILURE,0,__FILE__,__LINE__,"Could not find a line in %s file corresponding to TRAINS_HOST environment variable value (%s) and TRAINS_PORT environment variable value (%s)", LOCALISATION, trainsHost, trainsPort);

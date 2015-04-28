@@ -92,7 +92,7 @@
 
 }</span>
 
-<span class="type">void</span> <span class="function">myCallbackUtoDeliver</span><span class="operator">(</span><span class="typedef">address</span> sender<span class="operator">,</span> <span class="typedef">message</span><span class="operator"> *</span>mp<span class="operator">){</span>
+<span class="type">void</span> <span class="function">myCallbackUtoDeliver</span><span class="operator">(</span><span class="typedef">address</span> sender<span class="operator">,</span> <span class="typedef">t_typ</span> messageTyp<span class="operator">,</span> <span class="typedef">message</span><span class="operator"> *</span>mp<span class="operator">){</span>
 
 <span class="comment">/* Your function to call upon receiving a message */</span>
 
@@ -123,8 +123,9 @@
 
 <h2 id="sendMessage">Sending messages</h2>
     
-<p>Sending a message in the Trains Protocol requires 3 steps :
+<p>Sending a message in the Trains Protocol requires 4 steps :
   <ol>
+    <li>Define type of messages which can be broadcast. First type of message takes value <b>FIRST_VALUE_AVAILABLE_FOR_MESS_TYP</b>. Second type of message takes value <b>(FIRST_VALUE_AVAILABLE_FOR_MESS_TYP + 1)</b>. Etc. NB: You can define as much as 250 different type of messages.
     <li>Messages in the Trains Protocol are created with <b>newmsg()</b>, where the size of the message must be specified.</li>
     <li>Then, fill the message with whatever payload you need, respecting the maximum size of the message given in newmsg() (see details below).</li>
     <li>The message can now be sent using the <b>utoBroadcast()</b> function.</li>
@@ -141,6 +142,20 @@
 </pre>
 
 <p>The message payload is an array of char. Just cast it into whatever type or structure you need.</p>
+
+<pre class="codeblock">    
+  <span class="title_ex">Defining type of messages which are broadcast</span>
+
+<span class="comment">/* Type of messages broadcast */</span>
+<span class="preprocessor">
+#define MESSAGE_TYPE_1 (FIRST_VALUE_AVAILABLE_FOR_MESS_TYP + 0)
+#define MESSAGE_TYPE_2 (FIRST_VALUE_AVAILABLE_FOR_MESS_TYP + 1)
+#define MESSAGE_TYPE_3 (FIRST_VALUE_AVAILABLE_FOR_MESS_TYP + 2)
+...
+...
+...
+</span>
+</pre>
 
 <pre class="codeblock">    
   <span class="title_ex">Sending a message with a simple payload (an int, here 7)</span>
@@ -160,7 +175,7 @@ mp<span class="operator"> =</span> newmsg<span class="operator">(</span><span cl
 <span class="operator">*((</span><span class="type">int</span><span class="operator">*) (</span>mp-&gt<span class="field">payload</span><span class="operator">))</span> <span class="operator">=</span> myPayload<span class="operator">;</span>
 
 <span class="comment">/* Sending the message */</span>
-<span class="flow">if</span><span class="operator"> ( (</span>rc<span class="operator"> =</span> utoBroadcast<span class="operator">(</span>mp<span class="operator">)) &lt;</span> <span class="int">0</span><span class="operator">) {</span>
+<span class="flow">if</span><span class="operator"> ( (</span>rc<span class="operator"> =</span> utoBroadcast<span class="operator">(</span>MESSAGE_TYPE_2, mp<span class="operator">)) &lt;</span> <span class="int">0</span><span class="operator">) {</span>
   trError_at_line<span class="operator">(</span>rc<span class="operator">,</span> trErrno<span class="operator">,</span> __FILE__<span class="operator">,</span> __LINE__<span class="operator">,</span><span class="string"> "An error occurred in utoBroadcast()"</span><span class="operator">);</span>
   <span class="external">exit</span><span class="operator">(</span>EXIT_FAILURE<span class="operator">);
 }</span>
@@ -180,12 +195,13 @@ NB : To fill your messages properly (i. e. to cast the data the right way), you 
 <pre class="codeblock">
   <span class="title_ex">Example : printing the message sender and the content upon receiving a message</span>
  
-<span class="type">void</span> <span class="function">myCallbackUtoDeliver</span><span class="operator">(</span><span class="typedef">address</span> sender<span class="operator">,</span> <span class="typedef">message</span><span class="operator"> *</span>mp<span class="operator">){</span>
+<span class="type">void</span> <span class="function">myCallbackUtoDeliver</span><span class="operator">(</span><span class="typedef">address</span> sender<span class="operator">, <span class="typedef">t_typ</span> messageTyp<span class="operator">,</span> <span class="typedef">message</span><span class="operator"> *</span>mp<span class="operator">){</span>
 
   <span class="type">int</span> theContent <span class="operator">=</span> <span class="operator">*((</span><span class="type">int</span><span class="operator">*) (</span>mp-><span class="field">payload</span><span class="operator">));</span>
 
   <span class="external">printf</span><span class="operator">(</span><span class="string">"I received a message from %s\n"</span><span class="operator">,</span> addrToHostname<span class="operator">(</span>sender<span class="operator">));</span>
   <span class="external">printf</span><span class="operator">(</span><span class="string">"The content size is : %d\n"</span><span class="operator">,</span> payloadSize(mp)<span class="operator">);</span>
+  <span class="external">printf</span><span class="operator">(</span><span class="string">"The message type is : %u\n"</span><span class="operator">,</span> messageTyp<span class="operator">);</span>
   <span class="external">printf</span><span class="operator">(</span><span class="string">"The content is : %d\n"</span><span class="operator">,</span> theContent<span class="operator">);</span>
 
   <span class="comment">/* Any other treatment */</span>
