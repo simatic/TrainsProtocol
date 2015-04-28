@@ -16,7 +16,7 @@ OBJECTS  = $(SOURCES:.c=.o)
 # Include directory
 INCLUDEDIRS = -I../../../include -I$(JAVA_HOME)/include
 # Compilation flags (the -fPIC flag is because the files are compiled for a dynamic library)
-CFLAGS = -g -Wall $(INCLUDEDIRS) $(GLOBALFLAGS) -fPIC -lpthread 
+CFLAGS = -g -Wall $(INCLUDEDIRS) $(GLOBALFLAGS) -fPIC -pthread 
 # Link flags
 LDFLAGS = -g -shared
 

@@ -19,7 +19,7 @@ INCLUDEDIRS = -I../include -I$(JAVA_HOME)/include
 # Define UNIFORM_BROADCAST if you want that the trains protocol is uniform and NON_UNIFORM_BROADCAST otherwise
 UNIFORM_OR_NOT = -DNON_UNIFORM_BROADCAST
 # Compilation flags (the -fPIC flag is because the files are compiled for a dynamic library)
-CFLAGS = -g -Wall $(INCLUDEDIRS) $(GLOBALFLAGS) $(UNIFORM_OR_NOT) -fPIC -lpthread 
+CFLAGS = -g -Wall $(INCLUDEDIRS) $(GLOBALFLAGS) $(UNIFORM_OR_NOT) -fPIC -pthread 
 # Link flags
 LDFLAGS = -g -shared
 
