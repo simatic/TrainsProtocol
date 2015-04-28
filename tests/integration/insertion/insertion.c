@@ -133,7 +133,7 @@ int main(int argc, char *argv[]){
     ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
 
   // We initialize the trains protocol
-  rc = trInit(trainsNumber, wagonMaxLen, 0, 0, callbackCircuitChange, callbackUtoDeliver);
+  rc = trInit(trainsNumber, wagonMaxLen, 0, 0, callbackCircuitChange, callbackUtoDeliver, UNIFORM_TOTAL_ORDER);
   if (rc < 0) {
     trError_at_line(rc, trErrno, __FILE__, __LINE__, "trInit()");
     return EXIT_FAILURE;

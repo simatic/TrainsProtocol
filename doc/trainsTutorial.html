@@ -75,7 +75,8 @@
   <span class="type">int</span> waitNb<span class="operator">,</span>                                  <span class="comment">/* The max number of waits (default 10)  */</span>
   <span class="type">int</span> waitTime<span class="operator">,</span>                                <span class="comment">/* The default time to wait, in microsec (default 2)  */</span>
   <span class="typedef">CallbackCircuitChange</span> callbackCircuitChange<span class="operator">,</span> <span class="comment">/* The function to call when the circuit change  */</span>
-  <span class="typedef">CallbackUtoDeliver</span> callbackUtoDeliver        <span class="comment">/* The function to call upon receiving a message */</span>
+  <span class="typedef">CallbackUtoDeliver</span> callbackUtoDeliver,       <span class="comment">/* The function to call upon receiving a message */</span>
+<span class="operator"></span>  <span class="typedef">t_reqOrder</span> reqOrder                           <span class="comment">/* Required order from the protocol. Can be <b>CAUSAL_ORDER</b> (0), <b>TOTAL_ORDER</b> (1) or <b>UNIFORM_TOTAL_ORDER</b> (2) */</span>
 <span class="operator">);</span>
       </pre>
 
@@ -102,12 +103,13 @@
 
   <span class="type">int</span> rc<span class="operator">;</span>
 
-  rc = trInit<span class="operator">(</span>6                         <span class="comment">/* 6 trains */</span><span class="operator">,</span>
-              16384                     <span class="comment">/* Size of wagons : 16KB */</span><span class="operator">,</span>
-              0                         <span class="comment">/* Let waitNb at its default value (10) */</span><span class="operator">,</span>
-              0                         <span class="comment">/* Let waitTime at its default value (2 microsec) */</span><span class="operator">,</span>
-              myCallbackCircuitChange   <span class="comment">/* Each time the circuit changes, myCallbackCircuitChange will be called */</span><span class="operator">,</span>
-              myCallbackUtoDeliver      <span class="comment">/* Upon delivering a message, myCallbackUtoDeliver will be called */</span><span class="operator">);</span>
+  rc = trInit<span class="operator">(</span>6,                         <span class="comment">/* 6 trains */</span><span class="operator">,</span>
+              16384,                     <span class="comment">/* Size of wagons : 16KB */</span><span class="operator">,</span>
+              0,                         <span class="comment">/* Let waitNb at its default value (10) */</span><span class="operator">,</span>
+              0,                         <span class="comment">/* Let waitTime at its default value (2 microsec) */</span><span class="operator">,</span>
+              myCallbackCircuitChange,   <span class="comment">/* Each time the circuit changes, myCallbackCircuitChange will be called */</span><span class="operator">,</span>
+              myCallbackUtoDeliver,      <span class="comment">/* Upon delivering a message, myCallbackUtoDeliver will be called */</span><span class="operator"></span>
+              UNIFORM_TOTAL_ORDER        <span class="comment">/* Messages will be delivered with uniform total order guarantees */</span><span class="operator">);</span>
 
   <span class="flow">if</span><span class="operator"> (</span>rc<span class="operator"> &lt;</span> 0<span class="operator">) {</span>
     trError_at_line<span class="operator">(</span>rc<span class="operator">,</span> trErrno<span class="operator">,</span> __FILE__<span class="operator">,</span> __LINE__<span class="operator">,</span><span class="string"> "An error occurred in trInit\n"</span><span class="operator">);</span>

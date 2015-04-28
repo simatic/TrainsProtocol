@@ -59,6 +59,8 @@ trBqueue* wagonsToDeliver;
 int ntr=1;
 int waitNbMax=10 ;
 int waitDefaultTime=2 ;
+int nbRounds; // Value initialized in trInit
+t_reqOrder requiredOrder;  // Value initialized in trInit
 
 void stateMachine(womim* p_womim);
 void nextState(State s);
@@ -194,15 +196,13 @@ void trainHandling(womim *p_womim){
   counters.recent_trains_bytes_received += p_womim->msg.len;
   //printf("TRAIN id=%d\n", id);
   if (round == lts[id].stamp.round) {
-    round = (round + 1) % NR;
+    round = (round + 1) % nbRounds;
   }
-#ifdef UNIFORM_BROADCAST
-  bqueueExtend(wagonsToDeliver, unstableWagons[id][(round - 2 + NR) % NR]);
-  cleanList(unstableWagons[id][(round - 2 + NR) % NR]);
-#else /* UNIFORM_BROADCAST */
-  bqueueExtend(wagonsToDeliver, unstableWagons[id][(round - 1 + NR) % NR]);
-  cleanList(unstableWagons[id][(round - 1 + NR) % NR]);  
-#endif /* UNIFORM_BROADCAST */
+  if (requiredOrder != CAUSAL_ORDER) {
+    // Thus (requiredOrder == TOTAL_ORDER) || (requiredOrder == UNIFORM_TOTAL_ORDER))
+    bqueueExtend(wagonsToDeliver, unstableWagons[id][(round + 1) % nbRounds]);
+    cleanList(unstableWagons[id][(round + 1) % nbRounds]);
+  }
   if (id == 0) {
     lts[0].circuit = addrUpdateCircuit(p_womim->msg.body.train.circuit,
         myAddress, cameProc, goneProc);
@@ -224,6 +224,8 @@ void trainHandling(womim *p_womim){
         && !(addrIsMember(p_wag->header.sender, goneProc))
         && !(addrIsMine(p_wag->header.sender))) {
       // We add a wiw (corresponding to this p_wag) to unstableWagons[id][round]
+      // (in case of TOTAL_ORDER or UNIFORM_TOTAL_ORDER) or directly to 
+      // wagonsToDeliver (in case of CAUSAL_ORDER)
       wiw *wi = malloc(sizeof(wiw));
       assert(wi != NULL);
       wi->p_wagon = p_wag;
@@ -231,7 +233,12 @@ void trainHandling(womim *p_womim){
       MUTEX_LOCK(p_womim->pfx.mutex);
       p_womim->pfx.counter++;
       MUTEX_UNLOCK(p_womim->pfx.mutex);
-      listAppend(unstableWagons[id][round], wi);
+      if (requiredOrder != CAUSAL_ORDER) {
+	// Thus (requiredOrder == TOTAL_ORDER) || (requiredOrder == UNIFORM_TOTAL_ORDER))
+	listAppend(unstableWagons[id][round], wi);
+      } else {
+	bqueueEnqueue(wagonsToDeliver, wi);
+      }
 
       // Shall this wagon be sent to our successor
       if (!addrIsEqual(succ,p_wag->header.sender)) {
@@ -263,7 +270,12 @@ void trainHandling(womim *p_womim){
     // as we are for the moment alone to access to 
     // wagonToSend->p_wagon->pfx.counter
     wagonToSend->p_womim->pfx.counter++;
-    listAppend(unstableWagons[id][round], wi);
+    if (requiredOrder != CAUSAL_ORDER) {
+      // Thus (requiredOrder == TOTAL_ORDER) || (requiredOrder == UNIFORM_TOTAL_ORDER))
+      listAppend(unstableWagons[id][round], wi);
+    } else {
+      bqueueEnqueue(wagonsToDeliver, wi);
+    }
 
     lts[id].p_wtosend = wagonToSend;
 

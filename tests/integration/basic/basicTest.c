@@ -24,12 +24,13 @@
 /*
  Basic test program
  Syntax:
- basicTest sender nbMemberMin delayBetweenUtoBroadcast nbRecMsgBeforeStop
+ basicTest sender nbMemberMin delayBetweenUtoBroadcast nbRecMsgBeforeStop requiredOrder
  Where:
  - sender is 'y' or 'Y' if user wants the process to utoBrodcast messages
  - nbMemberMin is the minimum number of members in the protocol before starting to utoBroadcast
  - delayBetweenUtoBroadcast is the minimum delay in microseconds between 2 utoBroadcasts by the same process
  - nbRecMsgBeforeStop is the minimum numer of messages to be received before process stops
+ - requiredOrder is 0 for CAUSAL_ORDER, 1 for TOTAL_ORDER or 2 for UNIFORM_TOTAL_ORDER
  */
 #include <stdlib.h>
 #include <unistd.h>
@@ -112,8 +113,9 @@ int main(int argc, char *argv[]){
   int rankMessage = 0;
   char semWaitEnoughMembersName[128];
   char semWaitToDieName[128];
+  t_reqOrder reqOrder;
 
-  if (argc != 5) {
+  if (argc != 6) {
     printf(
         "%s sender nbMemberMin delayBetweenUtoBroadcast nbRecMsgBeforeStop\n",
         argv[0]);
@@ -125,6 +127,8 @@ int main(int argc, char *argv[]){
         "\t- delayBetweenUtoBroadcast is the minimum delay in microseconds between 2 utoBroadcasts by the same process\n");
     printf(
         "\t- nbRecMsgBeforeStop is the minimum numer of messages to be received before process stops\n");
+    printf(
+        "\t- requiredOrder is 0 for CAUSAL_ORDER, 1 for TOTAL_ORDER or 2 for UNIFORM_TOTAL_ORDER\n");
     return EXIT_FAILURE;
   }
 
@@ -133,6 +137,11 @@ int main(int argc, char *argv[]){
   nbMemberMin = atoi(argv[2]);
   delayBetweenTwoUtoBroadcast = atoi(argv[3]);
   nbRecMsgBeforeStop = atoi(argv[4]);
+  reqOrder = atoi(argv[5]);
+  if ((reqOrder < CAUSAL_ORDER) || (reqOrder > UNIFORM_TOTAL_ORDER)) {
+    printf("Error : requiredOrder parameter is %d (while it can be only 0 for CAUSAL_ORDER, 1 for TOTAL_ORDER or 2 for UNIFORM_TOTAL_ORDER\n", reqOrder);
+    return EXIT_FAILURE;
+  }    
 
   sprintf(semWaitEnoughMembersName, "semWaitEnoughMembers_%d", getpid()); 
   semWaitEnoughMembers = sem_open(semWaitEnoughMembersName, O_CREAT, 0644, 0);
@@ -155,7 +164,7 @@ int main(int argc, char *argv[]){
   }
 
   // We initialize the trains protocol
-  rc = trInit(0, 0, 0, 0, callbackCircuitChange, callbackUtoDeliver);
+  rc = trInit(0, 0, 0, 0, callbackCircuitChange, callbackUtoDeliver, reqOrder);
   if (rc < 0) {
     trError_at_line(rc, trErrno, __FILE__, __LINE__, "tr_init()");
     return EXIT_FAILURE;

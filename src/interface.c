@@ -89,13 +89,16 @@ jmethodID jcv_setMembersAddressID;
 #ifndef JNI
 int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime,
     CallbackCircuitChange callbackCircuitChange,
-    CallbackUtoDeliver callbackUtoDeliver){
+    CallbackUtoDeliver callbackUtoDeliver,
+    t_reqOrder reqOrder   ){
 #else /* JNI */
 JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env, 
     jobject obj, jint trainsNumber, jint wagonLength, jint waitNB, 
     jint waitTime, 
     jstring callbackCircuitChange,
-    jstring callbackUtoDeliver){
+    jstring callbackUtoDeliver,
+    jint reqOrder
+){
 #endif /* JNI */
   int rc;
   pthread_t thread;
@@ -133,6 +136,13 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
   if (waitTime > 0)
     waitDefaultTime = waitTime;
 
+  requiredOrder = reqOrder;
+  if (requiredOrder < CAUSAL_ORDER) {
+    requiredOrder = CAUSAL_ORDER;
+  } else if (requiredOrder > UNIFORM_TOTAL_ORDER) {
+    requiredOrder = UNIFORM_TOTAL_ORDER;
+  }
+  nbRounds = requiredOrder + 1;
 
   sprintf(sem_name, "sem_init_done_%d", getpid());
   sem_init_done = sem_open(sem_name, O_CREAT, 0600, 0);

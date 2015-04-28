@@ -41,13 +41,9 @@
 #define LOCALISATION "./addr_file"/**<File's here.*/
 
 /**
- * @brief The number of rounds used for the modulos
+ * @brief The maximum number of rounds used for the modulos
  */
-#ifdef UNIFORM_BROADCAST
 #define NR 3
-#else /* UNIFORM_BROADCAST */
-#define NR 2
-#endif /* UNIFORM_BROADCAST */
 
 /**
  * @brief The limit number of processes in the circuit
@@ -99,6 +95,23 @@ extern int trErrno;
 void trError_at_line(int status, int errnum, const char *filename, unsigned int linenum, const char *format);
 
 /**
+ * \enum t_reqOrder
+ * \brief Possible orders which can be required from Trains algorithm
+ */
+
+typedef enum 
+{
+    CAUSAL_ORDER        = 0, /**< Request for causal order only. */
+    TOTAL_ORDER         = 1, /**< Request for total order, without uniformity guarantees (a message can be delivered to a process which happens to fail ; and, this message may be never be delivered to other participating processes). */
+    UNIFORM_TOTAL_ORDER = 2 /**< Request for uniform total order. If a message is delivered to a process, it is guaranteed that all correct processes will deliver this message. */
+} t_reqOrder;
+
+/**
+ * @brief Number of rounds which must be made by a train before delivery (this value depends of requiredOrder)
+ */
+ extern int nbRounds;
+
+/**
  * @brief Initialization of trains protocol middleware
 
  * @param[in] trainsNumber The number of trains on the circuit
@@ -107,9 +120,15 @@ void trError_at_line(int status, int errnum, const char *filename, unsigned int 
  * @param[in] waitTime The time to wait (in microsecond)
  * @param[in] callbackCircuitChange Function to be called when there is a circuit changed (Arrival or departure of a process)
  * @param[in] callbackUtoDeliver    Function to be called when a message can be uto-delivered by trains protocol
+ * @param[in] reqOrder Order guarantees which Trains algorithm must provide while it is running
  * @return 0 upon successful completion, or -1 if an error occurred (in which case, @a trErrno is set appropriately)
  */
-int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime, CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver callbackUtoDeliver);
+int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime, CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver callbackUtoDeliver, t_reqOrder reqOrder);
+
+/**
+ * @brief Contains the required order specified with @a reqOrder parameter in @a trInit function
+ */
+extern t_reqOrder requiredOrder;
 
 /**
  * @brief Prints (trains middleware specific) error message

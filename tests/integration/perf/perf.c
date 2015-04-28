@@ -73,16 +73,17 @@ int size = -1;
 int trainsNumber = -1;
 bool verbose = false; /* Default value = limited display */
 int warmup = 300; /* Default value = 300 seconds */
+t_reqOrder reqOrder = UNIFORM_TOTAL_ORDER; /* default value = UNIFORM_TOTAL_ORDER */
 
 /* Description of long options for getopt_long.  */
 static const struct option longOptions[] = { { "broadcasters", 1, NULL, 'b' }, {
     "cooldown", 1, NULL, 'c' }, { "help", 0, NULL, 'h' }, { "measurement", 1,
-    NULL, 'm' }, { "number", 1, NULL, 'n' }, { "size", 1, NULL, 's' }, {
+    NULL, 'm' }, { "number", 1, NULL, 'n' }, { "reqOrder",         1, NULL, 'r' }, { "size", 1, NULL, 's' }, {
     "trainsNumber", 1, NULL, 't' }, { "verbose", 0, NULL, 'v' }, { "warmup", 1,
     NULL, 'w' }, { NULL, 0, NULL, 0 } };
 
 /* Description of short options for getopt_long.  */
-static const char* const shortOptions = "b:c:hm:n:s:t:vw:";
+static const char* const shortOptions = "b:c:hm:n:r:s:t:vw:";
 
 /* Usage summary text.  */
 static const char* const usageTemplate =
@@ -92,6 +93,7 @@ static const char* const usageTemplate =
         "  -h, --help                      Print this information.\n"
         "  -m, --measurement seconds       Duration of measurement phase (default = 600).\n"
         "  -n, --number                    Number of participating processes.\n"
+        "  -r, --reqOrder                  Required Order (can be 0 for CAUSAL_ORDER, 1 for TOTAL_ORDER or 2 for UNIFORM_TOTAL_ORDER ; default = 2 for UNIFORM_TOTAL_ORDER).\n"
         "  -s, --size bytes                Bytes contained in each application message uto-broadcasted.\n"
         "  -t, --trainsNumber              Number of trains which should be used by the protocol.\n"
         "  -v, --verbose                   Print verbose messages.\n"
@@ -118,7 +120,7 @@ int optArgToCorrectValue(){
   if (*end != '\0')
     /* The user specified non-digits for this number.  */
     printUsage(EXIT_FAILURE);
-  if (value <= 0)
+  if (value < 0)
     /* The user gave an incorrect value. */
     printUsage(EXIT_FAILURE);
   return value;
@@ -321,7 +323,7 @@ void startTest(){
   // We initialize the trains protocol
   if (gettimeofday(&timeTrInitBegin, NULL ) < 0)
     ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "gettimeofday");
-  rc = trInit(trainsNumber, wagonMaxLen, 0, 0, callbackCircuitChange, callbackUtoDeliver);
+  rc = trInit(trainsNumber, wagonMaxLen, 0, 0, callbackCircuitChange, callbackUtoDeliver, reqOrder);
   if (rc < 0) {
     trError_at_line(rc, trErrno, __FILE__, __LINE__, "tr_init()");
     exit(EXIT_FAILURE);
@@ -398,6 +400,11 @@ int main(int argc, char *argv[]){
       number = optArgToCorrectValue();
       break;
 
+    case 'r':
+      /* User specified -r or --reqOrder.  */
+      reqOrder = optArgToCorrectValue();
+      break;
+
     case 's':
       /* User specified -s or --size.  */
       size = optArgToCorrectValue();
@@ -442,6 +449,11 @@ int main(int argc, char *argv[]){
   check(number, "number");
   check(size, "size");
   check(trainsNumber, "trainsNumber");
+
+  if ((reqOrder < CAUSAL_ORDER) || (reqOrder > UNIFORM_TOTAL_ORDER)) {
+    fprintf(stderr, "Error : reqOrder parameter is %d (while it can be only 0 for CAUSAL_ORDER, 1 for TOTAL_ORDER or 2 for UNIFORM_TOTAL_ORDER\n", reqOrder);
+    return EXIT_FAILURE;
+  }    
 
   /* We can start the test */
   startTest();
