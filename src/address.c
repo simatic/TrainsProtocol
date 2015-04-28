@@ -75,7 +75,7 @@ address rankToAddr(int rank){
 address addrPrec(address ad, addressSet circuit){
   int i=addrToRank(ad);
   if (i==(-1)) {
-    ERROR_AT_LINE(EXIT_FAILURE,0,__FILE__,__LINE__,"addr not found");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE,__FILE__,__LINE__,"addr not found");
   }
   do {
     i=(i+NP-1) % NP;

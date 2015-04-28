@@ -37,7 +37,7 @@ int openConnection(address addr, bool isPred){
 
   rank = addrToRank(addr);
   if (rank == -1) {
-    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__,
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__,
         "Wrong address %d sent to openConnection", addr);
     return (-1);
   } else {
@@ -68,7 +68,7 @@ void closeConnection(address addr, bool isPred){
 
   rank = addrToRank(addr);
   if (rank == -1){
-    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__,
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__,
         "Wrong address %d sent to closeConnection", addr);
   } else {
     tcomm = getTComm(rank, isPred, globalAddrArray);
@@ -87,7 +87,7 @@ address searchSucc(address add){
 
   rank = addrToRank(add);
   if (rank == -1){
-    ERROR_AT_LINE(EXIT_FAILURE, 0, __FILE__, __LINE__,
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__,
         "Wrong address %d given to searchSucc", add);
   } else {
     i = (rank + 1) % NP;

@@ -93,7 +93,7 @@ int sendOther(address addr, bool isPred, MType type, address sender){
   Msg * msg;
 
   if (type == TRAIN) {
-    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__,
         "Wrong MType given to sendOther");
     return (-1);
   } else {
@@ -119,7 +119,7 @@ int sendOther(address addr, bool isPred, MType type, address sender){
     } else {
       //should return an error if the addr is out of rank
       free(msg);
-      ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
+      ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__,
           "Sending failure in sendOther (addr = %d)", addr);
       return (-1);    //same error as commWritev !!
     }
@@ -183,7 +183,7 @@ int sendTrain(address addr, bool isPred, ltsStruct lts){
     return (result);
   } else {
     //should return an error if the addr is out of rank
-    ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__,
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__,
         "Sending failure in sendTrain (addr = %d)", addr);
     return (-1);      //same error as commWritev !!
   }

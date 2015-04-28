@@ -40,7 +40,7 @@ wagon* firstWagon(Msg * msg){
     }
   }
   else {
-    ERROR_AT_LINE(EXIT_FAILURE,0,__FILE__,__LINE__,"Bad type of message given to firstWagon");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE,__FILE__,__LINE__,"Bad type of message given to firstWagon");
     return(NULL);
   }
 }

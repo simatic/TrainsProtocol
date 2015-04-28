@@ -175,7 +175,7 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
     ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE,__FILE__,__LINE__,"TRAINS_PORT environment variable is not defined");
   rank = addrID(trainsHost,trainsPort,globalAddrArray);
   if (rank < 0)
-    ERROR_AT_LINE(EXIT_FAILURE,0,__FILE__,__LINE__,"Could not find a line in %s file corresponding to TRAINS_HOST environment variable value (%s) and TRAINS_PORT environment variable value (%s)", LOCALISATION, trainsHost, trainsPort);
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE,__FILE__,__LINE__,"Could not find a line in %s file corresponding to TRAINS_HOST environment variable value (%s) and TRAINS_PORT environment variable value (%s)", LOCALISATION, trainsHost, trainsPort);
   myAddress=rankToAddr(rank);
 
   automatonInit();
@@ -256,34 +256,34 @@ JNIEXPORT void JNICALL Java_trains_Interface_initIDsMessageHeader(JNIEnv *env, j
   /* Instantiate a MessageHeader object */
   jclass class = (*env)->FindClass(env, "trains/MessageHeader"); 
   if (class == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find class MessageHeader");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "find class MessageHeader");
   }
 
   mid = (*env)->GetMethodID(env, class,
                                "<init>", "(II)V");
   if (mid == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find constructor for MessageHeader");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "find constructor for MessageHeader");
   } 
      
   jobj = (*env)->NewObject(env, class, mid, 42, 0);
   if (jobj == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "instantiate jmsghdr");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "instantiate jmsghdr");
   } 
     
   jmsghdr = (*env)->NewGlobalRef(env, jobj);
   if(jmsghdr == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "Global ref for CircuitView");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "Global ref for CircuitView");
   }
   (*env)->DeleteLocalRef(env, jobj);
 
   jmsghdr_lenID = (*env)->GetFieldID(env, class, "len", "I");
   if (jmsghdr_lenID == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get MessageHeader len field ID");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "get MessageHeader len field ID");
   }
 
   jmsghdr_typeID = (*env)->GetFieldID(env, class, "type", "C");
   if (jmsghdr_lenID == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get MessageHeader type field ID");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "get MessageHeader type field ID");
   }
 }
 
@@ -295,34 +295,34 @@ JNIEXPORT void JNICALL Java_trains_Interface_initIDsMessage(JNIEnv *env, jclass 
   /* Instantiate a Message object */
   jclass class = (*env)->FindClass(env, "trains/Message"); 
   if (class == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find class Message");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "find class Message");
   }
  
   mid = (*env)->GetMethodID(env, class,
                                "<init>", "(Ltrains/MessageHeader;[B)V");
   if (mid == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find constructor for Message");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "find constructor for Message");
   } 
       
   jobj = (*env)->NewObject(env, class, mid, NULL, "");
   if (jobj == NULL){ 
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "instantiate jmsg");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "instantiate jmsg");
   } 
         
   jmsg = (*env)->NewGlobalRef(env, jobj);
   if(jmsg == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "Global ref for CircuitView");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "Global ref for CircuitView");
   }
   (*env)->DeleteLocalRef(env, jobj);
 
   jmsg_payloadID = (*env)->GetFieldID(env, class, "payload", "[B");
   if (jmsg_payloadID == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get Message payload field ID");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "get Message payload field ID");
   }
 
   jmsg_hdrID = (*env)->GetFieldID(env, class, "messageHeader", "Ltrains/MessageHeader;");
   if (jmsg_hdrID == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get Message messageHeader field ID");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "get Message messageHeader field ID");
   }
 }
 
@@ -334,42 +334,42 @@ JNIEXPORT void JNICALL Java_trains_Interface_initIDsCircuitView(JNIEnv *env, jcl
   /* Get the CircuitView singleton */
   jclass class = (*env)->FindClass(env, "trains/CircuitView"); 
   if (class == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find class CircuitView");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "find class CircuitView");
   }
 
   mid = (*env)->GetStaticMethodID(env, class, "getInstance", "()Ltrains/CircuitView;");
   if (mid == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find static factory for CircuitView");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "find static factory for CircuitView");
   }  
 
   jobj = (*env)->CallStaticObjectMethod(env, class, mid);
   if (jobj == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "call static factory for CircuitView");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "call static factory for CircuitView");
   }
   jcv = (*env)->NewGlobalRef(env, jobj);
   if(jcv == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "Global ref for CircuitView");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "Global ref for CircuitView");
   }
   (*env)->DeleteLocalRef(env, jobj);
 
   jcv_nmembID = (*env)->GetFieldID(env, class, "nmemb", "I");
   if (jcv_nmembID == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get CircuitView nmemb field ID");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "get CircuitView nmemb field ID");
   }
 
   jcv_joinedID = (*env)->GetFieldID(env, class, "joined", "I");
   if (jcv_joinedID == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get CircuitView joined field ID");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "get CircuitView joined field ID");
   }
 
   jcv_departedID = (*env)->GetFieldID(env, class, "departed", "I");
   if (jcv_departedID == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get CircuitView departed field ID");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "get CircuitView departed field ID");
   }
 
   jcv_setMembersAddressID = (*env)->GetMethodID(env, class, "setMembersAddress", "(II)V");
   if (mid == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find setMembersAddress methodID");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "find setMembersAddress methodID");
   }  
 }
 
@@ -382,11 +382,11 @@ JNIEXPORT void JNICALL Java_trains_Interface_dumpCountersData(JNIEnv *env, jobje
 
   /*counters_data_temp = (env*)->NewByteArray(env, size);
   if(counters_data_temp = NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "create counters_data_temp byte array");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "create counters_data_temp byte array");
   }
   counters_data = (env*)->NewGlobalRef(env, counters_data_temp);
   if(counters_data = NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "create countersdata byte array");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "create countersdata byte array");
   }
   (*env)->DeleteLocalRef(env, counters_data_temp);
 */

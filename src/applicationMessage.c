@@ -153,7 +153,7 @@ void *utoDeliveries(void *null){
   JNIEnv *JNIenv;
   (*jvm)->AttachCurrentThread(jvm, (void **)&JNIenv, NULL);
   if (*JNIenv == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "attach the current thread to the JVM");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "attach the current thread to the JVM");
   }
 
   /* Callbacks : get methods IDs and instantiate objects  */
@@ -166,7 +166,7 @@ void *utoDeliveries(void *null){
     (*JNIenv)->ExceptionClear(JNIenv);
   }*/
   if (class == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find class implementing CallbackUtoDeliver");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "find class implementing CallbackUtoDeliver");
   }
   
   strcat(destUto, "()L");
@@ -175,28 +175,28 @@ void *utoDeliveries(void *null){
 
   mid = (*JNIenv)->GetStaticMethodID(JNIenv, class, "getInstance", destUto);
   if (mid == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find callbackCircuitChange getInstance()");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "find callbackCircuitChange getInstance()");
   }  
   
   jobj = (*JNIenv)->CallStaticObjectMethod(JNIenv, class, mid);
   if (jobj == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "call static factory for callbackCircuitChange");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "call static factory for callbackCircuitChange");
   }
   
   jcallbackUtoDeliver = (*JNIenv)->NewGlobalRef(JNIenv, jobj);
   if(jcallbackUtoDeliver == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "Global ref for CircuitView");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "Global ref for CircuitView");
   }
   (*JNIenv)->DeleteLocalRef(JNIenv, jobj);
   
   jcallbackUtoDeliver_runID = (*JNIenv)->GetMethodID(JNIenv, class, "run", "(ILtrains/Message;)V");
   if (jcallbackUtoDeliver_runID == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get method ID for running callbackUtoDeliver");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "get method ID for running callbackUtoDeliver");
   }  
     
   class = (*JNIenv)->FindClass(JNIenv, theJNICallbackCircuitChange);
   if (class == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find class implementing CallbackCircuitChange");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "find class implementing CallbackCircuitChange");
   }
 
   strcat(destCC, "()L");
@@ -205,23 +205,23 @@ void *utoDeliveries(void *null){
 
   mid = (*JNIenv)->GetStaticMethodID(JNIenv, class, "getInstance", destCC);
   if (mid == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "find callbackCircuitChange getInstance()");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "find callbackCircuitChange getInstance()");
   }  
 
   jobj = (*JNIenv)->CallStaticObjectMethod(JNIenv, class, mid);
   if (jobj == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "call static factory for callbackCircuitChange");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "call static factory for callbackCircuitChange");
   }
 
   jcallbackCircuitChange = (*JNIenv)->NewGlobalRef(JNIenv, jobj);
   if(jcallbackCircuitChange == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "Global ref for CircuitView");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "Global ref for CircuitView");
   }
   (*JNIenv)->DeleteLocalRef(JNIenv, jobj);
   
   jcallbackCircuitChange_runID = (*JNIenv)->GetMethodID(JNIenv, class, "run", "(Ltrains/CircuitView;)V");
   if (jcallbackUtoDeliver_runID == NULL){
-    ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "get method ID for running callbackUtoDeliver");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "get method ID for running callbackUtoDeliver");
   }  
 #endif /* JNI */
     
@@ -293,11 +293,11 @@ void *utoDeliveries(void *null){
           
           msgPayload_temp = (*JNIenv)->NewByteArray(JNIenv, mp->header.len);
           if(msgPayload_temp == NULL){
-            ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__,"msgPayload");
+            ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__,"msgPayload");
           }
           msgPayload = (*JNIenv)->NewGlobalRef(JNIenv, msgPayload_temp);
           if(msgPayload == NULL){
-            ERROR_AT_LINE(EXIT_FAILURE, 1, __FILE__, __LINE__, "Global ref for msgPayload");
+            ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "Global ref for msgPayload");
           }
           (*JNIenv)->DeleteLocalRef(JNIenv, msgPayload_temp);
           
