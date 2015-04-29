@@ -39,6 +39,7 @@ jobject jcallbackODeliver;
 jobject jcallbackCircuitChange;
 jmethodID jcallbackODeliver_runID;
 jmethodID jcallbackCircuitChange_runID;
+static message* savedMp;
 #else /* JNI */
 CallbackCircuitChange theCallbackCircuitChange;
 CallbackODeliver theCallbackODeliver;
@@ -74,6 +75,7 @@ JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, ji
   /* The content of the message is filled */
   (*env)->GetByteArrayRegion(env, payload, 0, payloadSize, (jbyte *) (mp->payload));
 
+  savedMp = mp;
   return 0;
 }
 #endif /* JNI */
@@ -104,8 +106,9 @@ int oBroadcast(t_typ messageTyp, message *mp){
 }
 
 #ifdef JNI
-JNIEXPORT jint JNICALL Java_trains_Interface_oBroadcast(JNIEnv *env, jobject obj, jobject msg){ 
-  oBroadcast(NULL);
+JNIEXPORT jint JNICALL Java_trains_Interface_oBroadcast(JNIEnv *env, jobject obj, jchar messageTyp, jobject msg){
+  oBroadcast(messageTyp, savedMp);
+  savedMp = NULL;
 
   return 0;
 }
@@ -188,12 +191,12 @@ void *oDeliveries(void *null){
     ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "Global ref for CircuitView");
   }
   (*JNIenv)->DeleteLocalRef(JNIenv, jobj);
-  
-  jcallbackODeliver_runID = (*JNIenv)->GetMethodID(JNIenv, class, "run", "(ILtrains/Message;)V");
+
+  jcallbackODeliver_runID = (*JNIenv)->GetMethodID(JNIenv, class, "run", "(ICLtrains/Message;)V");
   if (jcallbackODeliver_runID == NULL){
     ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "get method ID for running callbackODeliver");
   }  
-    
+
   class = (*JNIenv)->FindClass(JNIenv, theJNICallbackCircuitChange);
   if (class == NULL){
     ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "find class implementing CallbackCircuitChange");
@@ -305,7 +308,7 @@ void *oDeliveries(void *null){
           (*JNIenv)->SetObjectField(JNIenv, jmsg, jmsg_payloadID, msgPayload); 
           
           /* Call callback */
-	        (*JNIenv)->CallVoidMethod(JNIenv, jcallbackODeliver, jcallbackODeliver_runID, w->header.sender, jmsg);
+	  (*JNIenv)->CallVoidMethod(JNIenv, jcallbackODeliver, jcallbackODeliver_runID, w->header.sender, mp->header.typ, jmsg);
 #endif /* JNI */
              
           break;
