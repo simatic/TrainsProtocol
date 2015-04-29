@@ -1,21 +1,21 @@
 # Subdirectories containing a Makefile
 SUBDIRS = $(dir $(wildcard */Makefile) $(wildcard */*/Makefile) $(wildcard */*/*/Makefile))
 
-.PHONY: all clean ${SUBDIRS}
+.PHONY: all allWithInstrumentation clean doxygen cleandoxygen ${SUBDIRS}
 
 usage:
 	@echo Possible make targets :
-	@echo "\t - all           : compile the library"
-	@echo "\t - tests         : compile the library with the tools required for tests"
-	@echo "\t - clean         : remove all temporary files"
-	@echo "\t - doxygen       : generate the doxygen doc in doc/doxygen"
-	@echo "\t - cleandoxygen  : remove the doc/doxygen directory"
+	@echo "   - all                    : compile the middleware library and its tests"
+	@echo "   - allWithInstrumentation : compile the middleware library and its tests, with instrumentation code (which slows down the library, but allows fine-grained performance measures)"
+	@echo "   - clean                  : remove all temporary files"
+	@echo "   - doxygen                : generate the doxygen doc in doc/doxygen"
+	@echo "   - cleandoxygen           : remove the doc/doxygen directory"
 
 all: WHATTODO=all
 all: ${SUBDIRS}
 
-tests: WHATTODO=tests
-tests: $(SUBDIRS)
+allWithInstrumentation: WHATTODO=allWithInstrumentation
+allWithInstrumentation: $(SUBDIRS)
 
 clean: WHATTODO=clean
 clean: ${SUBDIRS}

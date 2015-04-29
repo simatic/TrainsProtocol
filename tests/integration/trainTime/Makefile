@@ -17,12 +17,12 @@ VALGRINDFLAGS =--leak-check=yes --leak-resolution=high --num-callers=40 --tool=m
 
 ### Rules.  ############################################################
 
-.PHONY:         all clean
+.PHONY:         all allWithInstrumentation clean
 
 all: depend $(BIN)
 
-tests: GLOBALFLAGS = -DINSERTION_TEST
-tests: depend $(BIN)
+allWithInstrumentation: GLOBALFLAGS = -DINSERTION_TEST
+allWithInstrumentation: depend $(BIN)
 
 client: client.o trainTime.o
 	$(CC) $^ -o $@ $(LDFLAGS)

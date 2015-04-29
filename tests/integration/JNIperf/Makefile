@@ -22,12 +22,12 @@ LDFLAGS = -g -shared
 
 ### Rules.  ############################################################
 
-.PHONY:         all clean
+.PHONY:         all allWithInstrumentation clean
 
 all: depend $(BIN)
 
-tests: GLOBALFLAGS = -DINSERTION_TEST
-tests: depend $(BIN)
+allWithInstrumentation: GLOBALFLAGS = -DINSERTION_TEST
+allWithInstrumentation: depend $(BIN)
 
 $(BIN): $(OBJECTS)
 	$(CC) $(LDFLAGS) $^ -o $@ 

@@ -23,15 +23,15 @@ LDFLAGS = -g -shared
 
 ### Rules.  ############################################################
 
-.PHONY:         all allForJNI clean
+.PHONY:         all allForJNI allWithInstrumentation clean
 
 all: depend $(BIN)
 
 allForJNI: GLOBALFLAGS = -DJNI
 allForJNI: depend $(BIN)
 
-tests: GLOBALFLAGS = -DLATENCY_TEST -DINSERTION_TEST
-tests: depend $(BIN)
+allWithInstrumentation: GLOBALFLAGS = -DINSERTION_TEST
+allWithInstrumentation: depend $(BIN)
 
 $(BIN): $(OBJECTS)
 	mkdir -p ../lib

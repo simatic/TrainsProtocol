@@ -17,12 +17,12 @@ VALGRINDFLAGS =--leak-check=yes --leak-resolution=high --num-callers=40 --tool=m
 
 ### Rules.  ############################################################
 
-.PHONY:         all clean run valgrind
+.PHONY:         all allWithInstrumentation clean run valgrind
 
 all: depend $(BIN)
 
-tests: GLOBALFLAGS = -DINSERTION_TEST
-tests: depend $(BIN)
+allWithInstrumentation: GLOBALFLAGS = -DINSERTION_TEST
+allWithInstrumentation: depend $(BIN)
 
 $(BIN): $(OBJECTS)
 	$(CC) $^ -o $@ $(LDFLAGS)
