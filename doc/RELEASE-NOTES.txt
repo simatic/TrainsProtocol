@@ -1,3 +1,20 @@
+Version 02.00.01 (April 2015)
+=============================
+
+Contributors:  Michel SIMATIC
+
+Corrections/Evolutions
+----------------------
+- Updates to work properly with TrainsProtocolJava
+
+Known issues
+------------
+- Latency performance tests does not work properly
+- Scripts for launching batch tests do not work properly
+- Porting to Windows is not finished
+
+
+
 Version 02.00.00 (April 2015)
 =============================
 
