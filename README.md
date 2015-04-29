@@ -32,6 +32,10 @@ See `tests/integration/basic/addr_file` for an example
 
 `export TRAINS_PORT=port` to be used by application
 
+Tutorial
+--------
+See [tutorial](doc/trainsTutorial.html)
+
 Known issues
 ------------
 See "Known issues" section in the [RELEASE-NOTES](doc/RELEASE-NOTES.txt)
