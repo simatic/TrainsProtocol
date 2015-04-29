@@ -64,7 +64,7 @@ void callbackCircuitChange(circuitView *cp){
   }
 }
 
-void callbackUtoDeliver(address sender, t_typ messageTyp, message *mp){
+void callbackODeliver(address sender, t_typ messageTyp, message *mp){
 
   if (payloadSize(mp) != size) {
     fprintf(stderr,
@@ -133,7 +133,7 @@ int main(int argc, char *argv[]){
     ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
 
   // We initialize the trains protocol
-  rc = trInit(trainsNumber, wagonMaxLen, 0, 0, callbackCircuitChange, callbackUtoDeliver, UNIFORM_TOTAL_ORDER);
+  rc = trInit(trainsNumber, wagonMaxLen, 0, 0, callbackCircuitChange, callbackODeliver, UNIFORM_TOTAL_ORDER);
   if (rc < 0) {
     trError_at_line(rc, trErrno, __FILE__, __LINE__, "trInit()");
     return EXIT_FAILURE;
@@ -148,8 +148,8 @@ int main(int argc, char *argv[]){
     }
     rankMessage++;
     *((int*) (mp->payload)) = rankMessage;
-    if (utoBroadcast(TEST_MESSAGE, mp) < 0) {
-      trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
+    if (oBroadcast(TEST_MESSAGE, mp) < 0) {
+      trError_at_line(rc, trErrno, __FILE__, __LINE__, "oBroadcast()");
       return EXIT_FAILURE;
     }
   }

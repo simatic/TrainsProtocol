@@ -1,28 +1,28 @@
-Trains Protocol : a uniform and totally-ordered broadcast protocol
-==================================================================
+Trains Protocol : a uniform and totally-ordered broadcast algorithm
+===================================================================
 
-Trains protocol is a uniform and totally-ordered broadcast protocol [[Défago et al., 2004]](#bibliography).
+Trains protocol is historically a uniform and totally-ordered broadcast algorithm [[Défago et al., 2004]](#bibliography). It can also ensure plain total order, or causal order.
 
-It is designed to be a throughput-efficient protocol, especially for short messages (100 bytes or lower) [[Simatic, 2012]](#bibliography).
+It is designed to be a throughput-efficient algorithm, especially for short messages (100 bytes or lower) [[Simatic, 2012]](#bibliography).
 
-Compilation of Trains protocol middleware
------------------------------------------
-`make` (with no target) generates the library, the unit and integration tests, 
+Compilation of Trains middleware
+--------------------------------
+`make all` (with no target) generates the library, the unit and integration tests, 
 
 `make doc`              generates the doxygen documentation.
 
 There is no installation target.
 
-Generating an application using Trains protocol
------------------------------------------------
+Generating an application using Trains middleware
+-------------------------------------------------
 `tests/integration/basic` contains a basic integration test which shows the APIs which can be used.
 
 To compile, you should add `-Iinclude` (where `include` is the path to `include` directory of this TrainsProtocol GIT project) to your compilation instruction
 
 To link, you should add `-Lsrc -ltrains -pthread` (where `src` is the path to `src` directory of this TrainsProtocol GIT project) to your link instruction
 
-Running an application using Trains protocol
------------------------------------------------
+Running an application using Trains middleware
+----------------------------------------------
 In the directory where you will launch your application, create a file called addr_file which describes the participants processes. Each line should follow the rank:hostname:port rule syntax.
 - rank : the rank the protocol participant process will have in your application (between 0 and 15)
 - hostname : the name of a host (may be localhost) on which you will run your application

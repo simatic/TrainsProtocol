@@ -68,7 +68,7 @@ typedef struct message{
 #define AM_DEPARTURE 1
 
 /**
- * @brief Type of message used internally by utoDeliveries to exit its main loop
+ * @brief Type of message used internally by oDeliveries to exit its main loop
  */
 #define AM_TERMINATE 2
 
@@ -121,10 +121,10 @@ typedef struct {
 typedef  void (*CallbackCircuitChange)(circuitView*);
 
 /** 
- * @brief Type of function called by trains middleware when it is ready to uto-deliver a message 
+ * @brief Type of function called by trains middleware when it is ready to o-deliver a message 
  * to the application layer
  */
-typedef  void (*CallbackUtoDeliver)(address,t_typ,message*);
+typedef  void (*CallbackODeliver)(address,t_typ,message*);
 
 /** 
  * @brief Callback function called by trains middleware when there is a change in circuit members
@@ -132,10 +132,10 @@ typedef  void (*CallbackUtoDeliver)(address,t_typ,message*);
 extern CallbackCircuitChange theCallbackCircuitChange;
 
 /** 
- * @brief Callback function called by trains middleware when it is ready to uto-deliver a message 
+ * @brief Callback function called by trains middleware when it is ready to o-deliver a message 
  * to the application layer
  */
-extern CallbackUtoDeliver theCallbackUtoDeliver;
+extern CallbackODeliver theCallbackODeliver;
 
 
 /**
@@ -147,18 +147,18 @@ extern CallbackUtoDeliver theCallbackUtoDeliver;
 message *newmsg(int payloadSize);
 
 /**
- * @brief uto-broadcast of message @a mp
+ * @brief o-broadcast of message @a mp
  * @param[in] messageTyp This parameter is a @a t_typ field greater or equal to @a FIRST_VALUE_AVAILABLE_FOR_MESS_TYP which can be used by the application  arbitrarily. The intent is that it could be used to name different kinds of data messages so they can be differentiated without looking into the body of the message.
- * @param[in] mp Message to be uto-broadcasted
+ * @param[in] mp Message to be o-broadcasted
  * @return 0 upon successful completion, or -1 if an error occurred (in which case, @a trErrno is set appropriately)
  */
-int utoBroadcast(t_typ messageTyp, message *mp);
+int oBroadcast(t_typ messageTyp, message *mp);
 
 /**
  * @brief Function (to be executed by a thread) responsible for delivering messages stored in
  * global variable @a wagonsToDeliver to application layer
  * @param[in] null Unused parameter
  */
-void *utoDeliveries(void *null);
+void *oDeliveries(void *null);
 
 #endif /* _APPLICATION_MESSAGE_H */

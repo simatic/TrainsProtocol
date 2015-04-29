@@ -25,13 +25,13 @@
 #include <jni.h>
 
 extern char *theJNICallbackCircuitChange;
-extern char *theJNICallbackUtoDeliver;
+extern char *theJNICallbackODeliver;
 extern JavaVM *jvm;
 
 /* Callback IDs*/
-extern jobject jcallbackUtoDeliver;
+extern jobject jcallbackODeliver;
 extern jobject jcallbackCircuitChange;
-extern jmethodID jcallbackUtoDeliver_runID;
+extern jmethodID jcallbackODeliver_runID;
 extern jmethodID jcallbackCircuitChange_runID;
  
 /* Objects & Fields IDs*/

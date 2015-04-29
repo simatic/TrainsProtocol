@@ -64,7 +64,7 @@ void compare(char *testType, bool result){
 void aCallbackCircuitChange(circuitView *cp){
   if (addrIsNull(cp->cv_departed)) {
     // A process joined
-    compare("uto_deliveries (callbackCircuitChange) test1",
+    compare("o_deliveries (callbackCircuitChange) test1",
 	    (cp->cv_joined == 0x0001) &&
 	    (cp->cv_nmemb == 3) &&
 	    (cp->cv_members[0] == 0x0001) &&
@@ -73,19 +73,19 @@ void aCallbackCircuitChange(circuitView *cp){
   } else {
     // A process left
     if (cp->cv_departed == 0x0002) {
-      compare("uto_deliveries (callbackCircuitChange) test2",
+      compare("o_deliveries (callbackCircuitChange) test2",
 	      (cp->cv_nmemb == 1) &&
 	      (cp->cv_members[0] == 0x0001));
     } else {
-      compare("uto_deliveries (callbackCircuitChange) test3",
+      compare("o_deliveries (callbackCircuitChange) test3",
 	      (cp->cv_nmemb == 1) &&
 	      (cp->cv_members[0] == 0x0001));
     }
   }
 }
 
-void aCallbackUtoDeliver(address sender, t_typ messageTyp, message *mp){
-      compare("uto_deliveries (callbackUtoDeliver)",
+void aCallbackODeliver(address sender, t_typ messageTyp, message *mp){
+      compare("o_deliveries (callbackODeliver)",
 	      (sender == FAKE_ADDRESS) &&
 	      (mp->header.len == sizeof(messageHeader) + sizeof(int)) &&
 	      (messageTyp == MY_MESSAGE) &&
@@ -183,18 +183,18 @@ int main(){
   compare("newmsg (which calls mallocmsg_outdated) test4",
 	  mp == firstMsg(wagonToSend->p_wagon));
 
-  // Test utoBroadcast when automatonState is ALONE_INSERT_WAIT
+  // Test oBroadcast when automatonState is ALONE_INSERT_WAIT
   automatonState = ALONE_INSERT_WAIT;
-  utoBroadcast(MY_MESSAGE, mp);
+  oBroadcast(MY_MESSAGE, mp);
   w = bqueueDequeue(wagonsToDeliver);
   mp2 = firstMsg(w->p_wagon);
-  compare("uto_broadcast (when ALONE)",
+  compare("o_broadcast (when ALONE)",
 	  (mp == mp2) &&
 	  (firstMsg(wagonToSend->p_wagon) == NULL));
 
-  // Test utoDeliveries
+  // Test oDeliveries
   theCallbackCircuitChange = aCallbackCircuitChange;
-  theCallbackUtoDeliver = aCallbackUtoDeliver;
+  theCallbackODeliver = aCallbackODeliver;
 
   myAddress = FAKE_ADDRESS;
 
@@ -214,7 +214,7 @@ int main(){
   mp->header.typ = AM_TERMINATE;
   bqueueEnqueue(wagonsToDeliver, wagonToSend);
 
-  utoDeliveries(NULL);
+  oDeliveries(NULL);
 
   return EXIT_SUCCESS;
 }

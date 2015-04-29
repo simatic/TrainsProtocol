@@ -119,11 +119,11 @@ typedef enum
  * @param[in] waitNb The number of time to wait
  * @param[in] waitTime The time to wait (in microsecond)
  * @param[in] callbackCircuitChange Function to be called when there is a circuit changed (Arrival or departure of a process)
- * @param[in] callbackUtoDeliver    Function to be called when a message can be uto-delivered by trains protocol
+ * @param[in] callbackODeliver    Function to be called when a message can be o-delivered by trains protocol
  * @param[in] reqOrder Order guarantees which Trains algorithm must provide while it is running
  * @return 0 upon successful completion, or -1 if an error occurred (in which case, @a trErrno is set appropriately)
  */
-int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime, CallbackCircuitChange callbackCircuitChange, CallbackUtoDeliver callbackUtoDeliver, t_reqOrder reqOrder);
+int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime, CallbackCircuitChange callbackCircuitChange, CallbackODeliver callbackODeliver, t_reqOrder reqOrder);
 
 /**
  * @brief Contains the required order specified with @a reqOrder parameter in @a trInit function

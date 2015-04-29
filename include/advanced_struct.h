@@ -148,7 +148,7 @@ void freeWiw(wiw * ww);
 void freeWomim(womim *wo);
 
 /**
- * @brief Wiw containing the next messages to be uto-broadcasted
+ * @brief Wiw containing the next messages to be o-broadcasted
  */
 extern wiw * wagonToSend;
 

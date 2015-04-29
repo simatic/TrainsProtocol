@@ -122,7 +122,7 @@ static const char* const usageTemplate =
         "  -m, --measurement seconds       Duration of measurement phase (default = 600).\n"
         "  -n, --number                    Number of participating processes.\n"
         "  -r, --reqOrder                  Required Order (can be 0 for CAUSAL_ORDER, 1 for TOTAL_ORDER or 2 for UNIFORM_TOTAL_ORDER ; default = 2 for UNIFORM_TOTAL_ORDER).\n"
-        "  -s, --size bytes                Bytes contained in each application message uto-broadcasted.\n"
+        "  -s, --size bytes                Bytes contained in each application message o-broadcasted.\n"
         "  -t, --trainsNumber              Number of trains which should be used by the protocol.\n"
         "  -v, --verbose                   Print verbose messages.\n"
         ""
@@ -193,7 +193,7 @@ void callbackCircuitChange(circuitView *cp){
         rank++)
       ;
     // We can start the experience
-    printf("!!! ******** enough members to start utoBroadcasting\n");
+    printf("!!! ******** enough members to start oBroadcasting\n");
 
     // The participants choose the pingResponder : the participant which will respond to the PING messages
     pingResponder = cp->cv_members[0];
@@ -208,8 +208,8 @@ void callbackCircuitChange(circuitView *cp){
   }
 }
 
-/* Callback for messages to be UTO-delivered */
-void callbackUtoDeliver(address sender, t_typ messageTyp, message *mp){
+/* Callback for messages to be O-delivered */
+void callbackODeliver(address sender, t_typ messageTyp, message *mp){
   char s[MAX_LEN_ADDRESS_AS_STR];
   static int nbRecMsg = 0;
 
@@ -227,8 +227,8 @@ void callbackUtoDeliver(address sender, t_typ messageTyp, message *mp){
       memcpy(pongMsg->payload, mp->payload, pingMessageSize);
 
       int rc;
-      if ((rc = utoBroadcast(PONG, pongMsg)) < 0) {
-        trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
+      if ((rc = oBroadcast(PONG, pongMsg)) < 0) {
+        trError_at_line(rc, trErrno, __FILE__, __LINE__, "oBroadcast()");
         exit(EXIT_FAILURE);
       }
     }
@@ -329,7 +329,7 @@ void *timeKeeper(void *null){
   timersub(&stopSomme, &startSomme, &diffCPU);
   timersub(&timeEnd, &timeBegin, &diffTimeval);
   printf(
-      "Broadcasters / number / size / ntr / Average number of delivered wagons per recent train received / Average number of msg per wagon / Throughput of uto-broadcasts in Mbps / %%CPU ; %d ; %d ; %d ; %d ; %g ; %g ; %g ; %g\n",
+      "Broadcasters / number / size / ntr / Average number of delivered wagons per recent train received / Average number of msg per wagon / Throughput of o-broadcasts in Mbps / %%CPU ; %d ; %d ; %d ; %d ; %g ; %g ; %g ; %g\n",
       broadcasters, number, size, ntr,
       ((double) (countersEnd.wagons_delivered - countersBegin.wagons_delivered))
           / ((double) (countersEnd.recent_trains_received
@@ -388,7 +388,7 @@ void startTest(){
   // We initialize the trains protocol
   if (gettimeofday(&timeTrInitBegin, NULL ) < 0)
     ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "gettimeofday");
-  rc = trInit(trainsNumber, wagonMaxLen, 0, 0, callbackCircuitChange, callbackUtoDeliver, reqOrder);
+  rc = trInit(trainsNumber, wagonMaxLen, 0, 0, callbackCircuitChange, callbackODeliver, reqOrder);
   if (rc < 0) {
     trError_at_line(rc, trErrno, __FILE__, __LINE__, "tr_init()");
     exit(EXIT_FAILURE);
@@ -438,8 +438,8 @@ void startTest(){
       }
 
       pingMessagesCounter = (pingMessagesCounter + 1) % frequencyOfPing;
-      if ((rc = utoBroadcast(PING, mp)) < 0) {
-        trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
+      if ((rc = oBroadcast(PING, mp)) < 0) {
+        trError_at_line(rc, trErrno, __FILE__, __LINE__, "oBroadcast()");
         exit(EXIT_FAILURE);
       }
 

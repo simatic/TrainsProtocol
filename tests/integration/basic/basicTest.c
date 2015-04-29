@@ -24,11 +24,11 @@
 /*
  Basic test program
  Syntax:
- basicTest sender nbMemberMin delayBetweenUtoBroadcast nbRecMsgBeforeStop requiredOrder
+ basicTest sender nbMemberMin delayBetweenOBroadcast nbRecMsgBeforeStop requiredOrder
  Where:
- - sender is 'y' or 'Y' if user wants the process to utoBrodcast messages
- - nbMemberMin is the minimum number of members in the protocol before starting to utoBroadcast
- - delayBetweenUtoBroadcast is the minimum delay in microseconds between 2 utoBroadcasts by the same process
+ - sender is 'y' or 'Y' if user wants the process to oBrodcast messages
+ - nbMemberMin is the minimum number of members in the protocol before starting to oBroadcast
+ - delayBetweenOBroadcast is the minimum delay in microseconds between 2 oBroadcasts by the same process
  - nbRecMsgBeforeStop is the minimum numer of messages to be received before process stops
  - requiredOrder is 0 for CAUSAL_ORDER, 1 for TOTAL_ORDER or 2 for UNIFORM_TOTAL_ORDER
  */
@@ -52,7 +52,7 @@ sem_t *semWaitToDie;
 
 bool sender;
 int nbMemberMin;
-int delayBetweenTwoUtoBroadcast;
+int delayBetweenTwoOBroadcast;
 int nbRecMsgBeforeStop;
 
 bool terminate = false;
@@ -69,7 +69,7 @@ void callbackCircuitChange(circuitView *cp){
   }
 
   if (cp->cv_nmemb >= nbMemberMin) {
-    printf("!!! ******** enough members to start utoBroadcasting\n");
+    printf("!!! ******** enough members to start oBroadcasting\n");
     int rc = sem_post(semWaitEnoughMembers);
     if (rc) {
       ERROR_AT_LINE(rc, errno, __FILE__, __LINE__, "sem_post()");
@@ -78,7 +78,7 @@ void callbackCircuitChange(circuitView *cp){
   }
 }
 
-void callbackUtoDeliver(address sender, t_typ messageTyp, message *mp){
+void callbackODeliver(address sender, t_typ messageTyp, message *mp){
   char s[MAX_LEN_ADDRESS_AS_STR];
   static int nbRecMsg = 0;
 
@@ -117,14 +117,14 @@ int main(int argc, char *argv[]){
 
   if (argc != 6) {
     printf(
-        "%s sender nbMemberMin delayBetweenUtoBroadcast nbRecMsgBeforeStop\n",
+        "%s sender nbMemberMin delayBetweenOBroadcast nbRecMsgBeforeStop\n",
         argv[0]);
     printf(
-        "\t- sender is 'y' or 'Y' if user wants the process to utoBrodcast messages\n");
+        "\t- sender is 'y' or 'Y' if user wants the process to oBrodcast messages\n");
     printf(
-        "\t- nbMemberMin is the minimum number of members in the protocol before starting to utoBroadcast\n");
+        "\t- nbMemberMin is the minimum number of members in the protocol before starting to oBroadcast\n");
     printf(
-        "\t- delayBetweenUtoBroadcast is the minimum delay in microseconds between 2 utoBroadcasts by the same process\n");
+        "\t- delayBetweenOBroadcast is the minimum delay in microseconds between 2 oBroadcasts by the same process\n");
     printf(
         "\t- nbRecMsgBeforeStop is the minimum numer of messages to be received before process stops\n");
     printf(
@@ -135,7 +135,7 @@ int main(int argc, char *argv[]){
   // We initialize the different variables which will be used
   sender = (index("yY", argv[1][0]) != NULL );
   nbMemberMin = atoi(argv[2]);
-  delayBetweenTwoUtoBroadcast = atoi(argv[3]);
+  delayBetweenTwoOBroadcast = atoi(argv[3]);
   nbRecMsgBeforeStop = atoi(argv[4]);
   reqOrder = atoi(argv[5]);
   if ((reqOrder < CAUSAL_ORDER) || (reqOrder > UNIFORM_TOTAL_ORDER)) {
@@ -164,7 +164,7 @@ int main(int argc, char *argv[]){
   }
 
   // We initialize the trains protocol
-  rc = trInit(0, 0, 0, 0, callbackCircuitChange, callbackUtoDeliver, reqOrder);
+  rc = trInit(0, 0, 0, 0, callbackCircuitChange, callbackODeliver, reqOrder);
   if (rc < 0) {
     trError_at_line(rc, trErrno, __FILE__, __LINE__, "tr_init()");
     return EXIT_FAILURE;
@@ -189,14 +189,14 @@ int main(int argc, char *argv[]){
       }
       rankMessage++;
       *((int*) (mp->payload)) = rankMessage;
-      if (utoBroadcast(TEST_MESSAGE, mp) < 0) {
-        trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
+      if (oBroadcast(TEST_MESSAGE, mp) < 0) {
+        trError_at_line(rc, trErrno, __FILE__, __LINE__, "oBroadcast()");
         return EXIT_FAILURE;
       }
-      usleep(delayBetweenTwoUtoBroadcast);
+      usleep(delayBetweenTwoOBroadcast);
     }
   } else {
-    // Process waits that callbackUtoDelivery tells it to die
+    // Process waits that callbackODelivery tells it to die
     do {
       rc = sem_wait(semWaitToDie);
     } while ((rc < 0) && (errno == EINTR));

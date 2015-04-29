@@ -47,7 +47,7 @@ int trErrno;
 
 /* JNI global variables */
 char *theJNICallbackCircuitChange;
-char *theJNICallbackUtoDeliver;
+char *theJNICallbackODeliver;
 JavaVM *jvm;
 
 /* Global variables for caching methods and fields IDs
@@ -56,7 +56,7 @@ JavaVM *jvm;
 
 /* Callback IDs */
 jmethodID jcircuitChangeID;
-jmethodID jutoDeliverID;
+jmethodID joDeliverID;
  
 /* Objects & Fields IDs */
 jobject jmsghdr = NULL;
@@ -83,20 +83,20 @@ jmethodID jcv_setMembersAddressID;
  * @param[in] waitNb The number of time to wait
  * @param[in] waitTime The time to wait (in microsecond)
  * @param[in] callbackCircuitChange Function to be called when there is a circuit changed (Arrival or departure of a process)
- * @param[in] callbackUtoDeliver    Function to be called when a message can be uto-delivered by trains protocol
+ * @param[in] callbackODeliver    Function to be called when a message can be o-delivered by trains protocol
  * @return 0 upon successful completion, or -1 if an error occurred (in which case, @a trErrno is set appropriately)
  */
 #ifndef JNI
 int trInit(int trainsNumber, int wagonLength, int waitNb, int waitTime,
     CallbackCircuitChange callbackCircuitChange,
-    CallbackUtoDeliver callbackUtoDeliver,
+    CallbackODeliver callbackODeliver,
     t_reqOrder reqOrder   ){
 #else /* JNI */
 JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env, 
     jobject obj, jint trainsNumber, jint wagonLength, jint waitNB, 
     jint waitTime, 
     jstring callbackCircuitChange,
-    jstring callbackUtoDeliver,
+    jstring callbackODeliver,
     jint reqOrder
 ){
 #endif /* JNI */
@@ -110,18 +110,18 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
 #ifdef JNI
   /* Converts Java strings to C strings*/
   char *myCallbackCircuitChange;
-  char *myCallbackUtoDeliver;
+  char *myCallbackODeliver;
 
   myCallbackCircuitChange = malloc(128*sizeof(char));
-  myCallbackUtoDeliver = malloc(128*sizeof(char));
+  myCallbackODeliver = malloc(128*sizeof(char));
   
   const char *str = (*env)->GetStringUTFChars(env, callbackCircuitChange, 0);
   strncpy(myCallbackCircuitChange, str, 128);
   (*env)->ReleaseStringUTFChars(env, callbackCircuitChange, str);
   
-  str = (*env)->GetStringUTFChars(env, callbackUtoDeliver, 0);
-  strncpy(myCallbackUtoDeliver, str, 128);
-  (*env)->ReleaseStringUTFChars(env, callbackUtoDeliver, str);
+  str = (*env)->GetStringUTFChars(env, callbackODeliver, 0);
+  strncpy(myCallbackODeliver, str, 128);
+  (*env)->ReleaseStringUTFChars(env, callbackODeliver, str);
 #endif /* JNI */
  
   if (trainsNumber > 0)
@@ -156,16 +156,16 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
 
 #ifndef JNI
   theCallbackCircuitChange = callbackCircuitChange;
-  theCallbackUtoDeliver = callbackUtoDeliver;
+  theCallbackODeliver = callbackODeliver;
 #else /* JNI */
   /* Get and format the name of the callback classes */
   theJNICallbackCircuitChange = malloc(255*sizeof(char));
-  theJNICallbackUtoDeliver = malloc(255*sizeof(char));
+  theJNICallbackODeliver = malloc(255*sizeof(char));
 
   theJNICallbackCircuitChange = myCallbackCircuitChange;
-  theJNICallbackUtoDeliver = myCallbackUtoDeliver;   
+  theJNICallbackODeliver = myCallbackODeliver;   
   format_class_name(theJNICallbackCircuitChange); 
-  format_class_name(theJNICallbackUtoDeliver); 
+  format_class_name(theJNICallbackODeliver); 
 
   /* Store the JVM in the jvm variable so that 
    * we can perform the callbacks in the same JVM
@@ -195,7 +195,7 @@ JNIEXPORT jint JNICALL Java_trains_Interface_trInit(JNIEnv *env,
   if (rc)
     ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "sem_wait()");
 
-  rc = pthread_create(&thread, NULL, utoDeliveries, NULL);
+  rc = pthread_create(&thread, NULL, oDeliveries, NULL);
   if (rc)
     ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_create");
   rc = pthread_detach(thread);

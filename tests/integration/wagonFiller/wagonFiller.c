@@ -84,9 +84,9 @@ int main(int argc, char *argv[]){
           trError_at_line(rc, trErrno, __FILE__, __LINE__, "newmsg()");
           exit(EXIT_FAILURE);
         }
-	rc = utoBroadcast(TEST_MESSAGE, mp);
+	rc = oBroadcast(TEST_MESSAGE, mp);
         if (rc < 0) {
-          trError_at_line(rc, trErrno, __FILE__, __LINE__, "utoBroadcast()");
+          trError_at_line(rc, trErrno, __FILE__, __LINE__, "oBroadcast()");
           exit(EXIT_FAILURE);
         }
         msgCounter++;

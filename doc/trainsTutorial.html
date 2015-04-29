@@ -1,30 +1,30 @@
 <html>
   <head>
-    <title>Trains Protocol middleware interface tutorial</title>
+    <title>Trains algorithm middleware interface tutorial</title>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
     <link rel="stylesheet" type="text/css" href="trainsTutorial.css"/>
   </head>
 
   <body id="top">
     
-    <h1>Trains Protocol middleware interface tutorial</h1>
+    <h1>Trains algorithm middleware interface tutorial</h1>
     <h2>Table of contents</h2>
 
     <ol>
       <li><a href="#addr_file">Managing the addr_file</a></li>
       <li><a href="#initialization">Initialization</a></li>
       <li><a href="#sendMessage">Sending messages</a></li>
-      <li><a href="#utoDeliver">Receiving messages</a></li>
+      <li><a href="#oDeliver">Receiving messages</a></li>
       <li><a href="#circuitChange">Using the CallbackCircuitChange</a></li>
     </ol>
     <hr/>
     
     <h2 id="introduction">Introduction</h2>
-    <p>This tutorial explains how an application can use the interface of the trains (protocol) middleware. Using the interface, the application will take advantage of the uniform and totally-ordered broadcast capabilities of the middleware.</p>
+    <p>This tutorial explains how an application can use the interface of the trains (algorithm) middleware. Using the interface, the application will take advantage of the broadcast ordering capabilities of the middleware. The order ensured can be causal order, total order, or uniform total order, depending on one of the parameter given to the middleware initialization function.</p>
 
     <h2 id="addr_file">Managing the addr_file</h2>
-    <p> A file named <b>addr_file</b> must be located in the same directory than your binary. This file is used by the protocol to record the potential participants.</p>
-    <p>To add one participant, you should respect the <b>rank:hostname:port</b> syntax on each line of <b>addr_file</b>. The rank is a number between 0 and 15. Each rank must be unique, and each hostname:port pair should be unique too. Thus, the protocol cannot handle more than 16 participants.</p>
+    <p> A file named <b>addr_file</b> must be located in the same directory than your binary. This file is used by the middleware to record the potential participants.</p>
+    <p>To add one participant, you should respect the <b>rank:hostname:port</b> syntax on each line of <b>addr_file</b>. The rank is a number between 0 and 15. Each rank must be unique, and each hostname:port pair should be unique too. Thus, the middleware cannot handle more than 16 participants.</p>
 
     <p>You can add comments beginning the line with '#'. Empty lines are allowed too.</p>
     <p>Before launching the application, be sure that the <b>TRAINS_PORT</b> environment variable has been set to the value you want to use as your port in the addr_file (e. g. with <tt>export TRAINS_PORT=1234</tt>, as in the examples below).</p>
@@ -63,8 +63,8 @@
 
 
     <h2 id="initialization">Initialization</h2>
-    <p>You should include <tt>"trains.h"</tt> when using the Trains Protocol.</p>
-    <p>Before using the Trains Protocol, you must call the <b>trInit</b> function with a number of arguments to initialize the library.</p>
+    <p>You should include <tt>"trains.h"</tt> when using the Trains middleware.</p>
+    <p>Before using the Trains middleware, you must call the <b>trInit</b> function with a number of arguments to initialize the middleware.</p>
     
     <pre class="codeblock">
       <span class="title_ex">trInit prototype :</span>
@@ -75,8 +75,8 @@
   <span class="type">int</span> waitNb<span class="operator">,</span>                                  <span class="comment">/* The max number of waits (default 10)  */</span>
   <span class="type">int</span> waitTime<span class="operator">,</span>                                <span class="comment">/* The default time to wait, in microsec (default 2)  */</span>
   <span class="typedef">CallbackCircuitChange</span> callbackCircuitChange<span class="operator">,</span> <span class="comment">/* The function to call when the circuit change  */</span>
-  <span class="typedef">CallbackUtoDeliver</span> callbackUtoDeliver,       <span class="comment">/* The function to call upon receiving a message */</span>
-<span class="operator"></span>  <span class="typedef">t_reqOrder</span> reqOrder                           <span class="comment">/* Required order from the protocol. Can be <b>CAUSAL_ORDER</b> (0), <b>TOTAL_ORDER</b> (1) or <b>UNIFORM_TOTAL_ORDER</b> (2) */</span>
+  <span class="typedef">CallbackODeliver</span> callbackODeliver,           <span class="comment">/* The function to call upon receiving a message */</span>
+<span class="operator"></span>  <span class="typedef">t_reqOrder</span> reqOrder                          <span class="comment">/* Required order from the middleware. Can be <b>CAUSAL_ORDER</b> (0), <b>TOTAL_ORDER</b> (1) or <b>UNIFORM_TOTAL_ORDER</b> (2) */</span>
 <span class="operator">);</span>
       </pre>
 
@@ -93,8 +93,8 @@
 
 }</span>
 
-<span class="type">void</span> <span class="function">myCallbackUtoDeliver</span><span class="operator">(</span><span class="typedef">address</span> sender<span class="operator">,</span> <span class="typedef">t_typ</span> messageTyp<span class="operator">,</span> <span class="typedef">message</span><span class="operator"> *</span>mp<span class="operator">){</span>
-
+<span class="type">void</span> <span class="function">myCallbackODeliver</span><span class="operator">(</span><span class="typedef">address</span> sender<span class="operator">,</span> <span class="typedef">t_typ</span> messageTyp<span class="operator">,</span> <span class="typedef">message</span><span class="operator"> *</span>mp<span class="operator">){</span>
+   
 <span class="comment">/* Your function to call upon receiving a message */</span>
 
 <span class="operator">}</span>
@@ -108,7 +108,7 @@
               0,                         <span class="comment">/* Let waitNb at its default value (10) */</span><span class="operator">,</span>
               0,                         <span class="comment">/* Let waitTime at its default value (2 microsec) */</span><span class="operator">,</span>
               myCallbackCircuitChange,   <span class="comment">/* Each time the circuit changes, myCallbackCircuitChange will be called */</span><span class="operator">,</span>
-              myCallbackUtoDeliver,      <span class="comment">/* Upon delivering a message, myCallbackUtoDeliver will be called */</span><span class="operator"></span>
+              myCallbackODeliver,        <span class="comment">/* Upon delivering a message, myCallbackODeliver will be called */</span><span class="operator"></span>
               UNIFORM_TOTAL_ORDER        <span class="comment">/* Messages will be delivered with uniform total order guarantees */</span><span class="operator">);</span>
 
   <span class="flow">if</span><span class="operator"> (</span>rc<span class="operator"> &lt;</span> 0<span class="operator">) {</span>
@@ -125,12 +125,12 @@
 
 <h2 id="sendMessage">Sending messages</h2>
     
-<p>Sending a message in the Trains Protocol requires 4 steps :
+<p>Sending a message in the Trains middleware requires 4 steps :
   <ol>
-    <li>Define type of messages which can be broadcast. First type of message takes value <b>FIRST_VALUE_AVAILABLE_FOR_MESS_TYP</b>. Second type of message takes value <b>(FIRST_VALUE_AVAILABLE_FOR_MESS_TYP + 1)</b>. Etc. NB: You can define as much as 250 different type of messages.
-    <li>Messages in the Trains Protocol are created with <b>newmsg()</b>, where the size of the message must be specified.</li>
+    <li>Define type of messages which can be broadcast. First type of message takes value <b>FIRST_VALUE_AVAILABLE_FOR_MESS_TYP</b>. Second type of message takes value <b>(FIRST_VALUE_AVAILABLE_FOR_MESS_TYP + 1)</b>. Etc. In this manner, you can define as much as 250 different type of messages.
+    <li>Messages in the Trains middleware are created with <b>newmsg()</b>, where the size of the message must be specified.</li>
     <li>Then, fill the message with whatever payload you need, respecting the maximum size of the message given in newmsg() (see details below).</li>
-    <li>The message can now be sent using the <b>utoBroadcast()</b> function.</li>
+    <li>The message can now be sent using the <b>oBroadcast()</b> function.</li>
   </ol>
 
 
@@ -177,8 +177,8 @@ mp<span class="operator"> =</span> newmsg<span class="operator">(</span><span cl
 <span class="operator">*((</span><span class="type">int</span><span class="operator">*) (</span>mp-&gt<span class="field">payload</span><span class="operator">))</span> <span class="operator">=</span> myPayload<span class="operator">;</span>
 
 <span class="comment">/* Sending the message */</span>
-<span class="flow">if</span><span class="operator"> ( (</span>rc<span class="operator"> =</span> utoBroadcast<span class="operator">(</span>MESSAGE_TYPE_2, mp<span class="operator">)) &lt;</span> <span class="int">0</span><span class="operator">) {</span>
-  trError_at_line<span class="operator">(</span>rc<span class="operator">,</span> trErrno<span class="operator">,</span> __FILE__<span class="operator">,</span> __LINE__<span class="operator">,</span><span class="string"> "An error occurred in utoBroadcast()"</span><span class="operator">);</span>
+<span class="flow">if</span><span class="operator"> ( (</span>rc<span class="operator"> =</span> oBroadcast<span class="operator">(</span>MESSAGE_TYPE_2, mp<span class="operator">)) &lt;</span> <span class="int">0</span><span class="operator">) {</span>
+  trError_at_line<span class="operator">(</span>rc<span class="operator">,</span> trErrno<span class="operator">,</span> __FILE__<span class="operator">,</span> __LINE__<span class="operator">,</span><span class="string"> "An error occurred in oBroadcast()"</span><span class="operator">);</span>
   <span class="external">exit</span><span class="operator">(</span>EXIT_FAILURE<span class="operator">);
 }</span>
 
@@ -187,17 +187,17 @@ mp<span class="operator"> =</span> newmsg<span class="operator">(</span><span cl
 ...
 </pre>
 
-NB : To fill your messages properly (i. e. to cast the data the right way), you can either do it whenever manually you have to, make your own function (e. g. a function that would create the message and do the cast for you). Or you can use other technics like <a href="http://www.json.org/">JSON</a>.
+NB : To fill your messages properly (i. e. to cast the data the right way), you can either do it manually whenever you have to. To do so, make your own function (e. g. a function that creates the message and do the cast for you). Or you can use other technics like <a href="http://www.json.org/">JSON</a>.
 
-<h2 id="utoDeliver">Receiving messages</h2>
+<h2 id="oDeliver">Receiving messages</h2>
 
-<p>Upon receiving a message, the trains middleware automatically calls the function previously specified as callbackUtoDeliver parameter in <b>trInit()</b>.</p>
+<p>Upon receiving a message, the trains middleware automatically calls the function previously specified as callbackODeliver parameter in <b>trInit()</b>.</p>
 <p>To access a message content, use the <tt>payload</tt> field of the message. Following the <a href="#sendMessage">Sending messages section</a> example, if the payload is an int, you can access it by casting the payload into an <tt>int</tt>.</p> 
 
 <pre class="codeblock">
   <span class="title_ex">Example : printing the message sender and the content upon receiving a message</span>
  
-<span class="type">void</span> <span class="function">myCallbackUtoDeliver</span><span class="operator">(</span><span class="typedef">address</span> sender<span class="operator">, <span class="typedef">t_typ</span> messageTyp<span class="operator">,</span> <span class="typedef">message</span><span class="operator"> *</span>mp<span class="operator">){</span>
+<span class="type">void</span> <span class="function">myCallbackODeliver</span><span class="operator">(</span><span class="typedef">address</span> sender<span class="operator">, <span class="typedef">t_typ</span> messageTyp<span class="operator">,</span> <span class="typedef">message</span><span class="operator"> *</span>mp<span class="operator">){</span>
 
   <span class="type">int</span> theContent <span class="operator">=</span> <span class="operator">*((</span><span class="type">int</span><span class="operator">*) (</span>mp-><span class="field">payload</span><span class="operator">));</span>
 
@@ -215,7 +215,7 @@ NB : To fill your messages properly (i. e. to cast the data the right way), you 
 
 <h2 id="circuitChange">Using the CallbackCircuitChange</h2>
 
-Whenever the trains middleware detects a participant arrival or departure in the trains protocol, the function set in trInit as the callbackCircuitChange is called with a circuitView* argument. A circuitView is a structure providing the circuit state.
+Whenever the trains middleware detects a participant arrival or departure in the trains algorithm, the function set in trInit as the callbackCircuitChange is called with a circuitView* argument. A circuitView is a structure providing the circuit state.
 
 <pre class="codeblock">
   <span class="title_ex">circuitView structure detail</span>
@@ -231,8 +231,8 @@ Whenever the trains middleware detects a participant arrival or departure in the
 <ul>
   <li><tt>cv_nmemb</tt> is the number of participants when the function is called.</li>
   <li><tt>cv_members</tt> is an array whose cells contains the addresses of the participants.</li>
-  <li><tt>cv_joined</tt> is the address of the participant that just joined the protocol. If callbackCircuitChange was called because of a departure, it contains a null address.</li>
-  <li><tt>cv_departed</tt> is the address of the participant that just left the protocol. If callbackCircuitChange was called because of an arrival, it contains a null address.</li>
+  <li><tt>cv_joined</tt> is the address of the participant that just joined the algorithm. If callbackCircuitChange was called because of a departure, it contains a null address.</li>
+  <li><tt>cv_departed</tt> is the address of the participant that just left the algorithm. If callbackCircuitChange was called because of an arrival, it contains a null address.</li>
 </ul>
 <b><u>Example</u> :</b><br/>The addr_file contains 16 participants (rank 0 to 15), the rank 5  participant is connected and rank 8 joins. The trains middleware detects this arrival and calls the callbackCircuitChange.<br/>
 <ul>
@@ -245,7 +245,7 @@ Whenever the trains middleware detects a participant arrival or departure in the
 </ul>
 
 
-<p>The following example shows how to print the circuit modifications whenever a participant either join or leave the circuit.</p>
+<p>The following example shows how to print the circuit modifications whenever a participant either joins or leaves the circuit.</p>
 
 <pre class="codeblock">
   <span class="title_ex">Example : printing the circuit modifications</span>

@@ -35,13 +35,13 @@ Developer(s): Michel Simatic, Arthur Foltz, Damien Graux, Nicolas Hascoet, Steph
 #include "trains_Interface.h"
 #include "jniContext.h"
 /* Global JNI variables */
-jobject jcallbackUtoDeliver;
+jobject jcallbackODeliver;
 jobject jcallbackCircuitChange;
-jmethodID jcallbackUtoDeliver_runID;
+jmethodID jcallbackODeliver_runID;
 jmethodID jcallbackCircuitChange_runID;
 #else /* JNI */
 CallbackCircuitChange theCallbackCircuitChange;
-CallbackUtoDeliver theCallbackUtoDeliver;
+CallbackODeliver theCallbackODeliver;
 #endif /* JNI */
 
 message *newmsg(int payloadSize){
@@ -61,7 +61,7 @@ message *newmsg(int payloadSize){
 
   mp = mallocWiw(payloadSize);
 
-  // MUTEX_UNLOCK will be done in utoBroadcast
+  // MUTEX_UNLOCK will be done in oBroadcast
   // MUTEX_UNLOCK(mutexWagonToSend);
   //
   return mp;
@@ -78,7 +78,7 @@ JNIEXPORT jint JNICALL Java_trains_Interface_newmsg(JNIEnv *env, jobject obj, ji
 }
 #endif /* JNI */
 
-int utoBroadcast(t_typ messageTyp, message *mp){
+int oBroadcast(t_typ messageTyp, message *mp){
   //  MUTEX_LOCK(stateMachineMutex); // We DO NOT take this mutex
   // state ALONE_INSERT_WAIT => ALONE_CONNECTION_WAIT require mutexWagonToSend
   // thus cannot corrupt this sending
@@ -104,8 +104,8 @@ int utoBroadcast(t_typ messageTyp, message *mp){
 }
 
 #ifdef JNI
-JNIEXPORT jint JNICALL Java_trains_Interface_utoBroadcast(JNIEnv *env, jobject obj, jobject msg){ 
-  utoBroadcast(NULL);
+JNIEXPORT jint JNICALL Java_trains_Interface_oBroadcast(JNIEnv *env, jobject obj, jobject msg){ 
+  oBroadcast(NULL);
 
   return 0;
 }
@@ -127,7 +127,7 @@ static void fillCv(circuitView *cp, addressSet circuit){
   }
 }
 
-void *utoDeliveries(void *null){
+void *oDeliveries(void *null){
   wiw *wi;
   wagon *w;
   message *mp;
@@ -140,7 +140,7 @@ void *utoDeliveries(void *null){
   jclass class;
   jmethodID mid = NULL;
   jobject jobj;
-  char destUto[255];
+  char destO[255];
   char destCC[255];
   jbyteArray msgPayload_temp;
   jbyteArray msgPayload;
@@ -157,7 +157,7 @@ void *utoDeliveries(void *null){
   }
 
   /* Callbacks : get methods IDs and instantiate objects  */
-  class = (*JNIenv)->FindClass(JNIenv, theJNICallbackUtoDeliver);
+  class = (*JNIenv)->FindClass(JNIenv, theJNICallbackODeliver);
   /*jthrowable exec;
   exec = (*JNIenv)->ExceptionOccurred(JNIenv);
   if (exec) {
@@ -166,14 +166,14 @@ void *utoDeliveries(void *null){
     (*JNIenv)->ExceptionClear(JNIenv);
   }*/
   if (class == NULL){
-    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "find class implementing CallbackUtoDeliver");
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "find class implementing CallbackODeliver");
   }
   
-  strcat(destUto, "()L");
-  strcat(destUto, theJNICallbackUtoDeliver);
-  strcat(destUto, ";");  
+  strcat(destO, "()L");
+  strcat(destO, theJNICallbackODeliver);
+  strcat(destO, ";");  
 
-  mid = (*JNIenv)->GetStaticMethodID(JNIenv, class, "getInstance", destUto);
+  mid = (*JNIenv)->GetStaticMethodID(JNIenv, class, "getInstance", destO);
   if (mid == NULL){
     ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "find callbackCircuitChange getInstance()");
   }  
@@ -183,15 +183,15 @@ void *utoDeliveries(void *null){
     ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "call static factory for callbackCircuitChange");
   }
   
-  jcallbackUtoDeliver = (*JNIenv)->NewGlobalRef(JNIenv, jobj);
-  if(jcallbackUtoDeliver == NULL){
+  jcallbackODeliver = (*JNIenv)->NewGlobalRef(JNIenv, jobj);
+  if(jcallbackODeliver == NULL){
     ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "Global ref for CircuitView");
   }
   (*JNIenv)->DeleteLocalRef(JNIenv, jobj);
   
-  jcallbackUtoDeliver_runID = (*JNIenv)->GetMethodID(JNIenv, class, "run", "(ILtrains/Message;)V");
-  if (jcallbackUtoDeliver_runID == NULL){
-    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "get method ID for running callbackUtoDeliver");
+  jcallbackODeliver_runID = (*JNIenv)->GetMethodID(JNIenv, class, "run", "(ILtrains/Message;)V");
+  if (jcallbackODeliver_runID == NULL){
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "get method ID for running callbackODeliver");
   }  
     
   class = (*JNIenv)->FindClass(JNIenv, theJNICallbackCircuitChange);
@@ -220,8 +220,8 @@ void *utoDeliveries(void *null){
   (*JNIenv)->DeleteLocalRef(JNIenv, jobj);
   
   jcallbackCircuitChange_runID = (*JNIenv)->GetMethodID(JNIenv, class, "run", "(Ltrains/CircuitView;)V");
-  if (jcallbackUtoDeliver_runID == NULL){
-    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "get method ID for running callbackUtoDeliver");
+  if (jcallbackODeliver_runID == NULL){
+    ERROR_AT_LINE_WITHOUT_ERRNUM(EXIT_FAILURE, __FILE__, __LINE__, "get method ID for running callbackODeliver");
   }  
 #endif /* JNI */
     
@@ -282,7 +282,7 @@ void *utoDeliveries(void *null){
           break;
         default:
 #ifndef JNI
-	  (*theCallbackUtoDeliver)(w->header.sender, mp->header.typ, mp);
+	  (*theCallbackODeliver)(w->header.sender, mp->header.typ, mp);
 #else /* JNI */
 	        /* Set message header */
           (*JNIenv)->SetIntField(JNIenv, jmsghdr, jmsghdr_lenID, mp->header.len); 
@@ -305,7 +305,7 @@ void *utoDeliveries(void *null){
           (*JNIenv)->SetObjectField(JNIenv, jmsg, jmsg_payloadID, msgPayload); 
           
           /* Call callback */
-	        (*JNIenv)->CallVoidMethod(JNIenv, jcallbackUtoDeliver, jcallbackUtoDeliver_runID, w->header.sender, jmsg);
+	        (*JNIenv)->CallVoidMethod(JNIenv, jcallbackODeliver, jcallbackODeliver_runID, w->header.sender, jmsg);
 #endif /* JNI */
              
           break;
