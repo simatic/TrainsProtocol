@@ -3,23 +3,27 @@
 
 UNAME := $(shell uname)
 
-# Binary to build
+# Binaries to build
+STATIC_LIB = ../lib/libtrains.a
 ifeq ($(UNAME), Linux)
-	BIN  = ../lib/libtrains.so
+	DYNAMIC_LIB  = ../lib/libtrains.so
 endif
 ifeq ($(UNAME), Darwin)
-	BIN  = ../lib/libtrains.jnilib
+	DYNAMIC_LIB  = ../lib/libtrains.jnilib
 endif
-# C source files for the library
+BIN = $(STATIC_LIB) $(DYNAMIC_LIB)
+# C source files
 SOURCES  = $(wildcard *.c)
-# Object files corresponding to source files
-OBJECTS  = $(SOURCES:.c=.o)
+# Object files of static library
+OBJECTS_STATIC  = $(SOURCES:.c=.o)
+# Object files of dynamic library
+OBJECTS_DYNAMIC  = address_dyn.o advanced_struct_dyn.o applicationMessage_dyn.o bqueue_dyn.o comm_dyn.o connect_dyn.o counter_dyn.o interface_dyn.o iomsg_dyn.o list_dyn.o management_addr_dyn.o msg_dyn.o signalArrival_dyn.o stateMachine_dyn.o wagon_dyn.o
 # Include directory
 INCLUDEDIRS = -I../include -I$(JAVA_HOME)/include
-# Compilation flags (the -fPIC flag is because the files are compiled for a dynamic library)
-CFLAGS = -g -Wall $(INCLUDEDIRS) $(GLOBALFLAGS) -fPIC -pthread 
-# Link flags
-LDFLAGS = -g -shared
+# Common compilation flags
+COMMON_CFLAGS = -g -Wall $(INCLUDEDIRS) $(GLOBALFLAGS) -pthread
+# Common link flags
+COMMON_LDFLAGS = -g
 
 ### Rules.  ############################################################
 
@@ -33,14 +37,66 @@ allForJNI: depend $(BIN)
 allWithInstrumentation: GLOBALFLAGS = -DINSERTION_TEST
 allWithInstrumentation: depend $(BIN)
 
-$(BIN): $(OBJECTS)
+$(STATIC_LIB): CFLAGS = $(COMMON_CFLAGS)
+$(STATIC_LIB): $(OBJECTS_STATIC)
 	mkdir -p ../lib
-	$(CC) $(LDFLAGS) $^ -o $@ 
+	ar rc $@ $^
+
+$(DYNAMIC_LIB): CFLAGS = $(COMMON_CFLAGS) -fPIC
+$(DYNAMIC_LIB): $(OBJECTS_DYNAMIC)
+	mkdir -p ../lib
+	$(CC) $(COMMON_LDFLAGS) -shared $^ -o $@ 
+
+address_dyn.o: address.c
+	$(CC) $(CFLAGS) $^  -c -o $@
+
+advanced_struct_dyn.o: advanced_struct.c
+	$(CC) $(CFLAGS) $^  -c -o $@
+
+applicationMessage_dyn.o: applicationMessage.c
+	$(CC) $(CFLAGS) $^  -c -o $@
+
+bqueue_dyn.o: bqueue.c
+	$(CC) $(CFLAGS) $^  -c -o $@
+
+comm_dyn.o: comm.c
+	$(CC) $(CFLAGS) $^  -c -o $@
+
+connect_dyn.o: connect.c
+	$(CC) $(CFLAGS) $^  -c -o $@
+
+counter_dyn.o: counter.c
+	$(CC) $(CFLAGS) $^  -c -o $@
+
+interface_dyn.o: interface.c
+	$(CC) $(CFLAGS) $^  -c -o $@
+
+iomsg_dyn.o: iomsg.c
+	$(CC) $(CFLAGS) $^  -c -o $@
+
+list_dyn.o: list.c
+	$(CC) $(CFLAGS) $^  -c -o $@
+
+management_addr_dyn.o: management_addr.c
+	$(CC) $(CFLAGS) $^  -c -o $@
+
+msg_dyn.o: msg.c
+	$(CC) $(CFLAGS) $^  -c -o $@
+
+signalArrival_dyn.o: signalArrival.c
+	$(CC) $(CFLAGS) $^  -c -o $@
+
+stateMachine_dyn.o: stateMachine.c
+	$(CC) $(CFLAGS) $^  -c -o $@
+
+wagon_dyn.o: wagon.c
+	$(CC) $(CFLAGS) $^  -c -o $@
 
 clean:
 	rm -f *~ *.bak *.BAK 
-	rm -f $(OBJECTS) $(BIN) depend
+	rm -f $(OBJECTS_STATIC) $(OBJECTS_DYNAMIC) $(BIN) depend
 
+depend: CFLAGS = $(COMMON_CFLAGS)
 depend: $(SOURCES)
 	gcc -M $(CFLAGS) $(SOURCES) >depend 2>/dev/null
 

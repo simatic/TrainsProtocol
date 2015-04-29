@@ -10,8 +10,8 @@ OBJECTS		= $(SOURCES:.c=.o)
 INCLUDEDIRS = -I../../../include
 # Compilation flags
 CFLAGS = -Wall -g $(INCLUDEDIRS) $(GLOBALFLAGS)
-# Link flags
-LDFLAGS = -g -L../../../lib -ltrains -lm -pthread
+# Link flags ("-Wl,-Bstatic" option is here to force linking with trains static lib ; "-Wl,-Bdynamic" specifies that othe rlibraries will be dynamically linked)
+LDFLAGS = -g -pthread -lm -Wl,-Bstatic -L../../../lib -ltrains -Wl,-Bdynamic
 # Valgrind options
 VALGRINDFLAGS =--leak-check=yes --leak-resolution=high --num-callers=40 --tool=memcheck --show-reachable=yes
 

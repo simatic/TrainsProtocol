@@ -28,7 +28,7 @@
 #include "address.h"
 
 address myAddress = 0x0001;
-address nullAddress = 0x0000;
+extern address nullAddress;
 char s[MAX_LEN_ADDRESS_AS_STR];
 
 void compare(char *testType, int ad, int target){

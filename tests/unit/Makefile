@@ -8,8 +8,8 @@ SOURCES		= $(wildcard *.c)
 INCLUDEDIRS = -I../../include
 # Compilation flags
 CFLAGS = -g -Wall $(INCLUDEDIRS) $(GLOBALFLAGS)
-# Link flags
-LDFLAGS = -g -L../../lib -ltrains -pthread
+# Link flags ("-Wl,-Bstatic" option is here to force linking with trains static lib ; "-Wl,-Bdynamic" specifies that othe rlibraries will be dynamically linked)
+LDFLAGS = -g -pthread -Wl,-Bstatic -L../../lib -ltrains -Wl,-Bdynamic
 # Valgrind options
 VALGRINDFLAGS =--leak-check=yes --leak-resolution=high --num-callers=40 --tool=memcheck --show-reachable=yes
 
