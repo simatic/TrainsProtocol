@@ -1,4 +1,79 @@
-Version 00.01.02
+Version 02.00.00 (April 2015)
+=============================
+
+Contributors:  Trong PHAN, Michel SIMATIC
+
+Corrections/Evolutions
+----------------------
+- Trains algorithm handles CAUSAL_ORDER and TOTAL_ORDER in addition
+  to UNIFORM_TOTAL_ORDER
+- Interface changes:
+  - One paramater is added to trInit (to specify the desired order)
+  - utoBroadcast() become oBroadcast()
+  - oBroadcast() takes an additional parameter: messageType. This
+    parameter is transmitted to CallbackODeliver() callback
+- Generation of a static library in addition to the dynamic library
+- Miscellaneous improvements in documentation
+
+Known issues
+------------
+- Latency performance tests does not work properly
+- Scripts for launching batch tests do not work properly
+- Porting to Windows is not finished
+
+
+
+Version 01.01.01 (June 2014)
+============================
+
+Contributors:  Thomas LECOURT, Michel SIMATIC
+
+Corrections/Evolutions
+----------------------
+- Library is generated in lib directory
+- Thanks to shutdown system call, no more need to use signals
+
+Known issues
+------------
+- Porting to Windows is not finished
+
+
+
+Version 01.01.00 (January 2013)
+===============================
+
+Contributors:  Stéphanie OUILLON, Michel SIMATIC, Tiezhen WANG
+
+Corrections/Evolutions
+----------------------
+- Improvements in the code to allow porting on Mac
+- Code adaptation for Java interface (by using JNI)
+
+Known issues
+------------
+None
+
+
+
+Version 01.00.00 (September 2012) 
+=================================
+
+Contributors: Arthur FOLTZ, Nicolas HASCOËT, Michel SIMATIC
+
+Corrections/Evolutions
+----------------------
+- Improvements in the format of addr_file
+- Creation of a tutorial
+- Performance (throughput and latency) tests
+
+Known issues
+------------
+None
+
+
+
+Version 00.01.02 (June 2012) 
+============================
 
 Contributors: Damien GRAUX, Nathan REBOUD, Michel SIMATIC
 
@@ -20,6 +95,6 @@ Differences with 00.01.00
 NB: The release number is formated according to information found in
 http://fr.wikipedia.org/wiki/Version_d%27un_logiciel:
 x.y.z has the following sense:
-- x (which starts at 1) is the published version
+- x (which starts at 0) is the published version
 - y (which starts at 0) is the y-th supplement of functionality in version x
-- z (which starts at 0) is the z-th revision in version x.z
+- z (which starts at 0) is the z-th revision in version x.y
