@@ -57,7 +57,6 @@
 #include <semaphore.h>
 #include <strings.h>
 #include <pthread.h>
-#include <string.h>
 #include "trains.h"
 #include "counter.h"
 #include "latencyData.h"
@@ -87,7 +86,7 @@ struct timeval timeTrInitBegin, timeTrInitEnd;
 /* Global variables of the program */
 pingRecord record;
 address pingSender;
-int minMessageSize = sizeof(struct timeval);
+int minMessageSize = sizeof(int); // to store the integer of PLAIN messages
 circuitView lastView;
 
 /* Storage of the program name, which we'll use in error messages.  */
@@ -179,14 +178,19 @@ void check(int value, char *name){
 void broadcastPing(){
   struct timeval sendTime;
   int rc;
-  message *mp = newmsg(size);
+  message *mp = NULL;
+  if (size >= sizeof(struct timeval)) {
+    mp = newmsg(size);
+  } else {
+    mp = newmsg(sizeof(struct timeval));
+  }
   if (mp == NULL) {
     trError_at_line(-1, trErrno, __FILE__, __LINE__, "newPingMsg()");
     exit(EXIT_FAILURE);
   }
 
   gettimeofday(&sendTime, NULL);
-  memcpy(mp->payload, &sendTime, sizeof(struct timeval));
+  *(struct timeval*)(mp->payload) = sendTime;
 
   if ((rc = oBroadcast(PING, mp)) < 0) {
     trError_at_line(rc, trErrno, __FILE__, __LINE__, "oBroadcast()");
@@ -242,13 +246,6 @@ void callbackODeliver(address sender, t_typ messageTyp, message *mp){
   static int nbWaitedPong;
   static int nbRecMsg = 0;
 
-  if (payloadSize(mp) != size) {
-    fprintf(stderr,
-        "Error in file %s:%d : Payload size is incorrect: it is %lu when it should be %d\n",
-        __FILE__, __LINE__, payloadSize(mp), size);
-    exit(EXIT_FAILURE);
-  }
-
   if (messageTyp == PING) {
     int rc;
     message *pongMsg = newmsg(size);
@@ -259,7 +256,7 @@ void callbackODeliver(address sender, t_typ messageTyp, message *mp){
     senderOfInitialPing = sender;
     nbWaitedPong = number;
 
-    memcpy(pongMsg->payload, mp->payload, minMessageSize);
+    *(struct timeval *)(pongMsg->payload) = *(struct timeval *)(mp->payload);
       
     if ((rc = oBroadcast(PONG, pongMsg)) < 0) {
       trError_at_line(rc, trErrno, __FILE__, __LINE__, "oBroadcast()");
@@ -270,7 +267,7 @@ void callbackODeliver(address sender, t_typ messageTyp, message *mp){
     if (nbWaitedPong == 0) {
       if (addrIsMine(senderOfInitialPing)) {
 	struct timeval sendDate, receiveDate, latency;
-	memcpy(&sendDate, mp->payload, sizeof(struct timeval));
+	sendDate = *(struct timeval*)(mp->payload);
 	gettimeofday(&receiveDate, NULL );
 	timersub(&receiveDate, &sendDate, &latency);
 	if (measurementPhase) {
@@ -374,7 +371,7 @@ void *timeKeeper(void *null){
   setStatistics(&record);
 
   printf(
-      "Broadcasters / number / size / ntr / Average number of delivered wagons per recent train received / Average number of msg per wagon / Throughput of o-broadcasts in Mbps / %%CPU / Number of PING sent by this process / Average of PING-lastPONG time (ms); %d ; %d ; %d ; %d ; %g ; %g ; %g ; %g ; %u ; %.2lf\n",
+      "Broadcasters / number / size / ntr / Average number of delivered wagons per recent train received / Average number of msg per wagon / Average size of msg delivered / Throughput of o-broadcasts in Mbps / %%CPU / Number of PING sent by this process / Average of PING-lastPONG time (ms); %d ; %d ; %d ; %d ; %g ; %g ; %g ; %g ; %g ; %u ; %.2lf\n",
       broadcasters, number, size, ntr,
       ((double) (countersEnd.wagons_delivered - countersBegin.wagons_delivered))
           / ((double) (countersEnd.recent_trains_received
@@ -383,6 +380,10 @@ void *timeKeeper(void *null){
           - countersBegin.messages_delivered))
           / ((double) (countersEnd.wagons_delivered
               - countersBegin.wagons_delivered)),
+      ((double)(countersEnd.messages_bytes_delivered - 
+		countersBegin.messages_bytes_delivered)) / 
+      ((double)(countersEnd.messages_delivered -
+		countersBegin.messages_delivered)),
       ((double) (countersEnd.messages_bytes_delivered
           - countersBegin.messages_bytes_delivered) * 8)
           / ((double) (diffTimeval.tv_sec * 1000000 + diffTimeval.tv_usec)),
