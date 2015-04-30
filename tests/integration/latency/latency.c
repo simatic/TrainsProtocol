@@ -22,9 +22,24 @@
  */
 
 /*
- Program for doing  latency performance tests
+ Program for doing latency performance tests
  Syntax:
  latency --help
+
+ Principle:
+ - All processes spend their time broadcasting PLAIN messages of size bytes
+   (specified thanks to --size parameter).
+ - When the test starts launched, the first process of the view broadcasts a 
+   PING message containing the time at which the message is sent.
+ - When a process receives a PING message, it broadcasts a PONG message
+   containing the time which was contained in PING message.
+ - When the process which initially sent the PING message has received the
+   PONG message of all members of the view, it memorizes the delay between 
+   its PING message and the last PONG message.
+ - When a process p different from the process q which initially sent the PING
+   message receives a PONG message from all members of the view, if process p
+   is successor of process q in the view, it sends a PING message containing 
+   the time at which the message is sent. 
 
  For the printf, we have used ";" as the separator between data.
  As explained in http://forthescience.org/blog/2009/04/16/change-separator-in-gnuplot/, to change
@@ -49,8 +64,9 @@
 #include "errorTrains.h"
 
 /* Type of messages broadcast */
-#define PING (FIRST_VALUE_AVAILABLE_FOR_MESS_TYP)
-#define PONG (FIRST_VALUE_AVAILABLE_FOR_MESS_TYP + 1)
+#define PLAIN (FIRST_VALUE_AVAILABLE_FOR_MESS_TYP)
+#define PING  (FIRST_VALUE_AVAILABLE_FOR_MESS_TYP + 1)
+#define PONG  (FIRST_VALUE_AVAILABLE_FOR_MESS_TYP + 2)
 
 /* Semaphore used to block main thread until there are enough participants */
 static sem_t semWaitEnoughMembers;
@@ -70,10 +86,9 @@ struct timeval timeTrInitBegin, timeTrInitEnd;
 
 /* Global variables of the program */
 pingRecord record;
-address pingResponder;
 address pingSender;
-struct timeval sendTime, sendDate, receiveDate, latency;
-int pingMessageSize = sizeof(address) + sizeof(struct timeval);
+int minMessageSize = sizeof(struct timeval);
+circuitView lastView;
 
 /* Storage of the program name, which we'll use in error messages.  */
 char *programName;
@@ -81,7 +96,6 @@ char *programName;
 /* Parameters of the program */
 int broadcasters           = -1;
 int cooldown               = 10; /* Default value = 10 seconds */
-int frequencyOfPing  = 10000; /* Default value = 10 000 */
 int alternateMaxWagonLen   = (1<<15); /* Default value 32768 */
 int measurement            = 600; /* Default value = 600 seconds */
 int number                 = -1;
@@ -95,7 +109,6 @@ t_reqOrder reqOrder = UNIFORM_TOTAL_ORDER; /* default value = UNIFORM_TOTAL_ORDE
 static const struct option longOptions[] = {
     { "broadcasters",     1, NULL, 'b' },
     { "cooldown",         1, NULL, 'c' },
-    { "frequencyOfPing",  1, NULL, 'f' },
     { "help",             0, NULL, 'h' },
     { "wagonMaxLen",      1, NULL, 'l' },
     { "measurement",      1, NULL, 'm' },
@@ -109,14 +122,13 @@ static const struct option longOptions[] = {
 };
 
 /* Description of short options for getopt_long.  */
-static const char* const shortOptions = "b:c:f:hl:m:n:r:s:t:vw:";
+static const char* const shortOptions = "b:c:hl:m:n:r:s:t:vw:";
 
 /* Usage summary text.  */
 static const char* const usageTemplate =
     "Usage: %s [ options ]\n"
         "  -b, --broadcasters number       Number of broadcasting processes.\n"
         "  -c, --cooldown seconds          Duration of cool-down phase (default = 10).\n"
-        "  -f, --frequencyPing             Frequency of PING messages (default = 10000)\n"
         "  -h, --help                      Print this information.\n"
         "  -l, --wagonMaxLen               Maximum length of wagons (default = 32768)\n"
         "  -m, --measurement seconds       Duration of measurement phase (default = 600).\n"
@@ -163,6 +175,25 @@ void check(int value, char *name){
   }
 }
 
+/* Broadcasts a PING message */
+void broadcastPing(){
+  struct timeval sendTime;
+  int rc;
+  message *mp = newmsg(size);
+  if (mp == NULL) {
+    trError_at_line(-1, trErrno, __FILE__, __LINE__, "newPingMsg()");
+    exit(EXIT_FAILURE);
+  }
+
+  gettimeofday(&sendTime, NULL);
+  memcpy(mp->payload, &sendTime, sizeof(struct timeval));
+
+  if ((rc = oBroadcast(PING, mp)) < 0) {
+    trError_at_line(rc, trErrno, __FILE__, __LINE__, "oBroadcast()");
+    exit(EXIT_FAILURE);
+  }
+}
+
 /* Prints message msg, followed by a ";" and the difference between stop and start */
 void printDiffTimeval(char *msg, struct timeval stop, struct timeval start){
   struct timeval diffTimeval;
@@ -174,6 +205,8 @@ void printDiffTimeval(char *msg, struct timeval stop, struct timeval start){
 /* Callback for circuit changes */
 void callbackCircuitChange(circuitView *cp){
   char s[MAX_LEN_ADDRESS_AS_STR];
+
+  lastView = *cp;
 
   printf("!!! ******** callbackCircuitChange called with %d members (process ",
       cp->cv_nmemb);
@@ -195,12 +228,6 @@ void callbackCircuitChange(circuitView *cp){
     // We can start the experience
     printf("!!! ******** enough members to start oBroadcasting\n");
 
-    // The participants choose the pingResponder : the participant which will respond to the PING messages
-    pingResponder = cp->cv_members[0];
-
-    printf("!!! The pingResponder for this experience is %d:%s:%s\n",
-        addrToRank(pingResponder), addrToHostname(pingResponder), addrToPort(pingResponder));
-
     // The experience starts
     int rc = sem_post(&semWaitEnoughMembers);
     if (rc)
@@ -211,6 +238,8 @@ void callbackCircuitChange(circuitView *cp){
 /* Callback for messages to be O-delivered */
 void callbackODeliver(address sender, t_typ messageTyp, message *mp){
   char s[MAX_LEN_ADDRESS_AS_STR];
+  static address senderOfInitialPing;
+  static int nbWaitedPong;
   static int nbRecMsg = 0;
 
   if (payloadSize(mp) != size) {
@@ -221,38 +250,51 @@ void callbackODeliver(address sender, t_typ messageTyp, message *mp){
   }
 
   if (messageTyp == PING) {
-    if (myAddress == pingResponder) {
+    int rc;
+    message *pongMsg = newmsg(size);
+    if (pongMsg == NULL) {
+      trError_at_line(-1, trErrno, __FILE__, __LINE__, "newPongMsg()");
+      exit(EXIT_FAILURE);
+    }
+    senderOfInitialPing = sender;
+    nbWaitedPong = number;
 
-      message *pongMsg = newmsg(size);
-      memcpy(pongMsg->payload, mp->payload, pingMessageSize);
-
-      int rc;
-      if ((rc = oBroadcast(PONG, pongMsg)) < 0) {
-        trError_at_line(rc, trErrno, __FILE__, __LINE__, "oBroadcast()");
-        exit(EXIT_FAILURE);
-      }
+    memcpy(pongMsg->payload, mp->payload, minMessageSize);
+      
+    if ((rc = oBroadcast(PONG, pongMsg)) < 0) {
+      trError_at_line(rc, trErrno, __FILE__, __LINE__, "oBroadcast()");
+      exit(EXIT_FAILURE);
     }
   } else if (messageTyp == PONG) {
-
-    memcpy(&pingSender, mp->payload, sizeof(address));
-    if (pingSender == myAddress) {
-      memcpy(&sendDate, mp->payload + sizeof(address), sizeof(struct timeval));
-      gettimeofday(&receiveDate, NULL );
-      timersub(&receiveDate, &sendDate, &latency);
-
-      if (measurementPhase) {
-        recordValue(latency, &record);
+    --nbWaitedPong;
+    if (nbWaitedPong == 0) {
+      if (addrIsMine(senderOfInitialPing)) {
+	struct timeval sendDate, receiveDate, latency;
+	memcpy(&sendDate, mp->payload, sizeof(struct timeval));
+	gettimeofday(&receiveDate, NULL );
+	timersub(&receiveDate, &sendDate, &latency);
+	if (measurementPhase) {
+	  recordValue(latency, &record);
+	}
+      } else {
+	// Compute rank of senderOfInitialPing in lastCircuitView. Thus, we will be able to
+	// check if current process is successor of senderOfInitialPing. If it is the
+	// case, send a PING message.
+	int rankSenderOfInitialPing;
+	for (rankSenderOfInitialPing = 0; (rankSenderOfInitialPing < lastView.cv_nmemb) && !addrIsEqual(senderOfInitialPing,lastView.cv_members[rankSenderOfInitialPing]); ++rankSenderOfInitialPing)
+	  ;
+	if (rank == (rankSenderOfInitialPing + 1) % lastView.cv_nmemb) {
+	  broadcastPing();
+	}
       }
-
     }
+  } else {
+    /* PLAIN message */
+    nbRecMsg++;
+    if (verbose)
+      printf("!!! %5d-th PLAIN message (received from %s / contents = %5d)\n", nbRecMsg,
+	     addrToStr(s, sender), *((int*) (mp->payload)));
   }
-
-  nbRecMsg++;
-
-  if (verbose)
-    printf("!!! %5d-ieme message (recu de %s / contenu = %5d)\n", nbRecMsg,
-        addrToStr(s, sender), *((int*) (mp->payload)));
-
 }
 
 /* Thread taking care of respecting the times of the experiment. */
@@ -290,8 +332,8 @@ void *timeKeeper(void *null){
 
   // We display the results
   printf(
-      "%s --broadcasters %d --cooldown %d --frequencyPing %d --wagonMaxLen %d --measurement %d --number %d --size %d --trainsNumber %d  --warmup %d\n",
-      programName, broadcasters, cooldown, frequencyOfPing, wagonMaxLen, measurement, number, size,
+      "%s --broadcasters %d --cooldown %d --wagonMaxLen %d --measurement %d --number %d --size %d --trainsNumber %d  --warmup %d\n",
+      programName, broadcasters, cooldown, wagonMaxLen, measurement, number, size,
       trainsNumber, warmup);
 
   printDiffTimeval("time for tr_init (in sec)", timeTrInitEnd, timeTrInitBegin);
@@ -328,8 +370,11 @@ void *timeKeeper(void *null){
 
   timersub(&stopSomme, &startSomme, &diffCPU);
   timersub(&timeEnd, &timeBegin, &diffTimeval);
+
+  setStatistics(&record);
+
   printf(
-      "Broadcasters / number / size / ntr / Average number of delivered wagons per recent train received / Average number of msg per wagon / Throughput of o-broadcasts in Mbps / %%CPU ; %d ; %d ; %d ; %d ; %g ; %g ; %g ; %g\n",
+      "Broadcasters / number / size / ntr / Average number of delivered wagons per recent train received / Average number of msg per wagon / Throughput of o-broadcasts in Mbps / %%CPU / Number of PING sent by this process / Average of PING-lastPONG time (ms); %d ; %d ; %d ; %d ; %g ; %g ; %g ; %g ; %u ; %.2lf\n",
       broadcasters, number, size, ntr,
       ((double) (countersEnd.wagons_delivered - countersBegin.wagons_delivered))
           / ((double) (countersEnd.recent_trains_received
@@ -342,22 +387,18 @@ void *timeKeeper(void *null){
           - countersBegin.messages_bytes_delivered) * 8)
           / ((double) (diffTimeval.tv_sec * 1000000 + diffTimeval.tv_usec)),
       ((double) (diffCPU.tv_sec * 1000000 + diffCPU.tv_usec)
-          / (double) (diffTimeval.tv_sec * 1000000 + diffTimeval.tv_usec)));
+       / (double) (diffTimeval.tv_sec * 1000000 + diffTimeval.tv_usec)),
+      record.currentRecordsNb,
+	 record.mean);
 
   // Latency results
-
-  setStatistics(&record);
-  if (rank >= broadcasters) {
-    printf("\nWARNING : This participant was not a broadcaster\n"
-        "It didn't send any PING message\n");
-  }
   printf("\n"
-      "Number of ping records during this experience : %u\n"
-      "Average latency  (ms)   : %.2lf\n"
-      "Variance                : %lf\n"
-      "Standard deviation      : %lf\n"
-      "95%% confidence interval : [%.2lf ; %.2lf]\n"
-      "99%% confidence interval : [%.2lf ; %.2lf]\n", record.currentRecordsNb,
+      "Number of PING sent by this process: %u\n"
+      "Average of PING-lastPONG time (ms) : %.2lf\n"
+      "Variance                           : %lf\n"
+      "Standard deviation                 : %lf\n"
+      "95%% confidence interval           : [%.2lf ; %.2lf]\n"
+      "99%% confidence interval           : [%.2lf ; %.2lf]\n", record.currentRecordsNb,
       record.mean, record.variance, record.standardDeviation,
       record.min95confidenceInterval, record.max95confidenceInterval,
       record.min99confidenceInterval, record.max99confidenceInterval);
@@ -378,7 +419,6 @@ void startTest(){
   int rc;
   int rankMessage = 0;
   pthread_t thread;
-  int pingMessagesCounter = 0;
   record = newPingRecord();
 
   rc = sem_init(&semWaitEnoughMembers, 0, 0);
@@ -411,44 +451,32 @@ void startTest(){
   if (rc < 0)
     ERROR_AT_LINE(EXIT_FAILURE, rc, __FILE__, __LINE__, "pthread_detach");
 
+  // If process is the first process of the view, it sends the initial
+  // PING message.
+  if (rank == 0) {
+    broadcastPing();
+  }
+
   // We check if process should be a broadcasting process
   if (rank < broadcasters) {
-    // It is the case
+    // It is the case. We broadcast PLAIN messages.
     do {
-      message *mp = NULL;
-      if (pingMessagesCounter == 0) {
-        mp = newmsg(size);
-        if (mp == NULL ) {
-          trError_at_line(rc, trErrno, __FILE__, __LINE__, "newPingMsg()");
-          exit(EXIT_FAILURE);
-        }
-        rankMessage++;
-        gettimeofday(&sendTime, NULL);
-        memcpy(mp->payload, &myAddress, sizeof(address));
-        memcpy((mp->payload) + sizeof(address), &sendTime, sizeof(struct timeval));
-
-      } else {
-        mp = newmsg(size);
-        if (mp == NULL ) {
-          trError_at_line(rc, trErrno, __FILE__, __LINE__, "newmsg()");
-          exit(EXIT_FAILURE);
-        }
-        rankMessage++;
-        *((int*) (mp->payload)) = rankMessage;
+      message *mp = newmsg(size);
+      if (mp == NULL) {
+	trError_at_line(rc, trErrno, __FILE__, __LINE__, "newmsg()");
+	exit(EXIT_FAILURE);
       }
-
-      pingMessagesCounter = (pingMessagesCounter + 1) % frequencyOfPing;
-      if ((rc = oBroadcast(PING, mp)) < 0) {
+      rankMessage++;
+      *((int*) (mp->payload)) = rankMessage;
+      if ((rc = oBroadcast(PLAIN, mp)) < 0) {
         trError_at_line(rc, trErrno, __FILE__, __LINE__, "oBroadcast()");
         exit(EXIT_FAILURE);
       }
-
     } while (1);
   } else {
-    printf("\nWARNING : this process is not a broadcaster\n"
-        "It will not send PING messages during this experience\n"
-        "Thus the ping results are not to be taken into account\n\n");
-    while (1);
+    // Sleep enough time to be sure that this thread does not exist
+    // before all other jobs are done
+    sleep(warmup + measurement + cooldown + 1);
   }
 }
 
@@ -457,8 +485,6 @@ int main(int argc, char *argv[]){
 
   /* Store the program name, which we'll use in error messages.  */
   programName = argv[0];
-
-
 
   /* Parse options.  */
   do {
@@ -472,10 +498,6 @@ int main(int argc, char *argv[]){
     case 'c':
       /* User specified -c or --cooldown.  */
       cooldown = optArgToCorrectValue();
-      break;
-
-    case 'f':
-      frequencyOfPing = optArgToCorrectValue();
       break;
 
     case 'h':
@@ -547,9 +569,12 @@ int main(int argc, char *argv[]){
   check(size, "size");
   check(trainsNumber, "trainsNumber");
 
-  if (size < pingMessageSize){
-    fprintf(stderr, "Size too small ==> set to minimal value %d\n", pingMessageSize);
-    size = pingMessageSize;
+  if (size < minMessageSize){
+    fprintf(stderr, "Warning: Size parameter must be at leat %d. As specified size is %d, size set to %d\n",
+	    minMessageSize,
+	    size,
+	    minMessageSize);
+    size = minMessageSize;
   }
 
   if ((reqOrder < CAUSAL_ORDER) || (reqOrder > UNIFORM_TOTAL_ORDER)) {
@@ -562,7 +587,7 @@ int main(int argc, char *argv[]){
   wagonMaxLen = alternateMaxWagonLen;
 
   if (wagonMaxLen < size){
-    fprintf(stderr, "wagonMaxLength too small (< size) ==> results will not be significative\n");
+    fprintf(stderr, "Warning: wagonMaxLength parameter too small (< size parameter) ==> results will not be significative\n");
   }
 
   /* We can start the test */
