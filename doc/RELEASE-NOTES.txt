@@ -1,4 +1,21 @@
-Version 02.00.01 (April 2015)
+Version 02.00.02 (30/04/2015)
+=============================
+
+Contributors:  Michel SIMATIC
+
+Corrections/Evolutions
+----------------------
+- Modify latency performance test to make it work properly
+
+Known issues
+------------
+- Scripts for launching batch performance tests do not work properly
+- Porting to MacOS not yet tested
+- Porting to Windows is not finished
+
+
+
+Version 02.00.01 (29/04/2015)
 =============================
 
 Contributors:  Michel SIMATIC
@@ -10,12 +27,13 @@ Corrections/Evolutions
 Known issues
 ------------
 - Latency performance tests does not work properly
-- Scripts for launching batch tests do not work properly
+- Scripts for launching batch performance tests do not work properly
+- Porting to MacOS not yet tested
 - Porting to Windows is not finished
 
 
 
-Version 02.00.00 (April 2015)
+Version 02.00.00 (29/04/2015)
 =============================
 
 Contributors:  Trong PHAN, Michel SIMATIC
@@ -35,7 +53,8 @@ Corrections/Evolutions
 Known issues
 ------------
 - Latency performance tests does not work properly
-- Scripts for launching batch tests do not work properly
+- Scripts for launching batch performance tests do not work properly
+- Porting to MacOS not yet tested
 - Porting to Windows is not finished
 
 
