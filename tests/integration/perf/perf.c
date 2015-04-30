@@ -67,6 +67,7 @@ char *programName;
 /* Parameters of the program */
 int broadcasters = -1;
 int cooldown = 10; /* Default value = 10 seconds */
+int alternateMaxWagonLen   = (1<<15); /* Default value 32768 */
 int measurement = 600; /* Default value = 600 seconds */
 int number = -1;
 int size = -1;
@@ -77,13 +78,13 @@ t_reqOrder reqOrder = UNIFORM_TOTAL_ORDER; /* default value = UNIFORM_TOTAL_ORDE
 
 /* Description of long options for getopt_long.  */
 static const struct option longOptions[] = { { "broadcasters", 1, NULL, 'b' }, {
-    "cooldown", 1, NULL, 'c' }, { "help", 0, NULL, 'h' }, { "measurement", 1,
+    "cooldown", 1, NULL, 'c' }, { "help", 0, NULL, 'h' },     { "wagonMaxLen",      1, NULL, 'l' }, { "measurement", 1,
     NULL, 'm' }, { "number", 1, NULL, 'n' }, { "reqOrder",         1, NULL, 'r' }, { "size", 1, NULL, 's' }, {
     "trainsNumber", 1, NULL, 't' }, { "verbose", 0, NULL, 'v' }, { "warmup", 1,
     NULL, 'w' }, { NULL, 0, NULL, 0 } };
 
 /* Description of short options for getopt_long.  */
-static const char* const shortOptions = "b:c:hm:n:r:s:t:vw:";
+static const char* const shortOptions = "b:c:hl:m:n:r:s:t:vw:";
 
 /* Usage summary text.  */
 static const char* const usageTemplate =
@@ -91,6 +92,7 @@ static const char* const usageTemplate =
         "  -b, --broadcasters number       Number of broadcasting processes.\n"
         "  -c, --cooldown seconds          Duration of cool-down phase (default = 10).\n"
         "  -h, --help                      Print this information.\n"
+        "  -l, --wagonMaxLen               Maximum length of wagons (default = 32768)\n"
         "  -m, --measurement seconds       Duration of measurement phase (default = 600).\n"
         "  -n, --number                    Number of participating processes.\n"
         "  -r, --reqOrder                  Required Order (can be 0 for CAUSAL_ORDER, 1 for TOTAL_ORDER or 2 for UNIFORM_TOTAL_ORDER ; default = 2 for UNIFORM_TOTAL_ORDER).\n"
@@ -224,8 +226,8 @@ void *timeKeeper(void *null){
 
   // We display the results
   printf(
-      "%s --broadcasters %d --cooldown %d --measurement %d --number %d --size %d --trainsNumber %d  --warmup %d\n",
-      programName, broadcasters, cooldown, measurement, number, size,
+      "%s --broadcasters %d --cooldown %d --wagonMaxLen %d --measurement %d --number %d --size %d --trainsNumber %d  --warmup %d\n",
+      programName, broadcasters, cooldown, alternateMaxWagonLen, measurement, number, size,
       trainsNumber, warmup);
 
   printDiffTimeval("time for tr_init (in sec)", timeTrInitEnd, timeTrInitBegin);
@@ -323,7 +325,7 @@ void startTest(){
   // We initialize the trains protocol
   if (gettimeofday(&timeTrInitBegin, NULL ) < 0)
     ERROR_AT_LINE(EXIT_FAILURE, errno, __FILE__, __LINE__, "gettimeofday");
-  rc = trInit(trainsNumber, wagonMaxLen, 0, 0, callbackCircuitChange, callbackODeliver, reqOrder);
+  rc = trInit(trainsNumber, alternateMaxWagonLen, 0, 0, callbackCircuitChange, callbackODeliver, reqOrder);
   if (rc < 0) {
     trError_at_line(rc, trErrno, __FILE__, __LINE__, "tr_init()");
     exit(EXIT_FAILURE);
@@ -362,6 +364,10 @@ void startTest(){
         exit(EXIT_FAILURE);
       }
     } while (1);
+  } else {
+    // Sleep enough time to be sure that this thread does not exist
+    // before all other jobs are done
+    sleep(warmup + measurement + cooldown + 1);
   }
 }
 
@@ -388,6 +394,10 @@ int main(int argc, char *argv[]){
     case 'h':
       /* User specified -h or --help.  */
       printUsage(EXIT_SUCCESS);
+      break;
+
+    case 'l':
+      alternateMaxWagonLen = optArgToCorrectValue();
       break;
 
     case 'm':
@@ -447,6 +457,7 @@ int main(int argc, char *argv[]){
   /* Check that parameters without default values were specified. */
   check(broadcasters, "broadcasters");
   check(number, "number");
+  check(alternateMaxWagonLen, "alternateMaxWagonLen");
   check(size, "size");
   check(trainsNumber, "trainsNumber");
 
