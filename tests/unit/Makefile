@@ -1,5 +1,7 @@
 ### Configuration.  ####################################################
 
+UNAME := $(shell uname)
+
 # Binaries to build
 BIN		= testAddress testApplicationMessage_wagon testBqueue testComm testList testManagement_addr
 # C source files for the binaries
@@ -8,8 +10,19 @@ SOURCES		= $(wildcard *.c)
 INCLUDEDIRS = -I../../include
 # Compilation flags
 CFLAGS = -g -Wall $(INCLUDEDIRS) $(GLOBALFLAGS)
-# Link flags ("-Wl,-Bstatic" option is here to force linking with trains static lib ; "-Wl,-Bdynamic" specifies that othe rlibraries will be dynamically linked)
-LDFLAGS = -g -pthread -Wl,-Bstatic -L../../lib -ltrains -Wl,-Bdynamic
+# Libraries
+ifeq ($(UNAME), Linux)
+   # "-Wl,-Bstatic" option is here to force linking with trains static lib ; "-Wl,-Bdynamic" specifies that other libraries will be dynamically linked
+   # "-pthread" is required for linking on Linux
+   LIBS  = -Wl,-Bstatic -L../../lib -ltrains -Wl,-Bdynamic -pthread
+endif
+ifeq ($(UNAME), Darwin)
+   # On MacOS, one must specify directly the name of the static library we want to link with. Moreover, you must have executed ranlib on this library (http://docstore.mik.ua/orelly/unix3/mac/ch05_05.htm), with "-c" option (that is "ranlib -c", see http://lists.gnu.org/archive/html/libtool/2002-07/msg00025.html)
+   # No need for "-pthread" option on MacOS (if you put it, you get a warning)
+   LIBS  = ../../lib/libtrains.a
+endif
+# Link flags
+LDFLAGS = -g $(LIBS) 
 # Valgrind options
 VALGRINDFLAGS =--leak-check=yes --leak-resolution=high --num-callers=40 --tool=memcheck --show-reachable=yes
 

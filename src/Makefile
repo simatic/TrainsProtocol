@@ -6,12 +6,17 @@ UNAME := $(shell uname)
 # Binaries to build
 STATIC_LIB = ../lib/libtrains.a
 ifeq ($(UNAME), Linux)
+	RANLIB_OPTIONS =  
 	DYNAMIC_LIB  = ../lib/libtrains.so
+	JNI_LIB = ../lib/phonyLibWhichIsHereBecauseWeNeedAJNI_LINOnMacOS.phonyLib
 endif
 ifeq ($(UNAME), Darwin)
-	DYNAMIC_LIB  = ../lib/libtrains.jnilib
+	# On MacOS, we need -c option (http://lists.gnu.org/archive/html/libtool/2002-07/msg00025.html) and this option does not exist on Linux
+	RANLIB_OPTIONS = -c
+	DYNAMIC_LIB  = ../lib/libtrains.dylib
+	JNI_LIB  = ../lib/libtrains.jnilib
 endif
-BIN = $(STATIC_LIB) $(DYNAMIC_LIB)
+BIN = $(STATIC_LIB) $(DYNAMIC_LIB) $(JNI_LIB)
 # C source files
 SOURCES  = $(wildcard *.c)
 # Object files of static library
@@ -41,11 +46,15 @@ $(STATIC_LIB): CFLAGS = $(COMMON_CFLAGS)
 $(STATIC_LIB): $(OBJECTS_STATIC)
 	mkdir -p ../lib
 	ar rc $@ $^
+	ranlib $(RANLIB_OPTIONS) $@
 
 $(DYNAMIC_LIB): CFLAGS = $(COMMON_CFLAGS) -fPIC
 $(DYNAMIC_LIB): $(OBJECTS_DYNAMIC)
 	mkdir -p ../lib
 	$(CC) $(COMMON_LDFLAGS) -shared $^ -o $@ 
+
+$(JNI_LIB): $(DYNAMIC_LIB)
+	ln -s $(DYNAMIC_LIB) $(JNI_LIB)
 
 address_dyn.o: address.c
 	$(CC) $(CFLAGS) $^  -c -o $@
