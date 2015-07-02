@@ -9,7 +9,7 @@
 #  - measurement
 #  - cooldown
 #  - sleepAfterCooldown
-#  - freq
+#  - ping
 #
 # Each test generates 2 or more file (depending on the number of
 # participants to the protocol) named for instance
@@ -35,8 +35,8 @@ sleepAfterCooldown=290 # done by script program. Should be 290
 #           take off final '_'$j
 hostnames=('b313-01' 'b313-02' 'b313-04' 'b313-06' 'b313-07' 'b313-08' 'b313-09' 'b313-10' 'b313-11' 'b313-12' 'b313-13')
 
-# Frequency of a PING message
-freq="10000"
+# Measure of ping during test (0 for FALSE ; 1 for TRUE)
+ping=1
 
 ##########################################
 # Verify the different arguments
@@ -67,13 +67,13 @@ fi
 echo -e " *** Number of machines: $number\n *** Number of trains: $train\n *** Length of a wagon: $wagon\n *** Size of a message: $size\n *** $(date +"%d.%m.%y %H:%M:%S")"
 
 # The different arguments for the latency program
-opt="-b $number -c $cooldown -f $freq -l $wagon -m $measurement -n $number -s $size -t $train -w $warmup"
+opt="-b $number -c $cooldown -l $wagon -m $measurement -n $number -p $ping -s $size -t $train -w $warmup"
 
 ### We build the different ssh commands to be lauched for this
 ### iteration and put those in an array
 cmd=()
 for ((i=0;i<$number;i++)); do
-  ficname='latency_cooldown_'$cooldown'_wagonMaxLength_'$wagon'_measurement_'$measurement'_number_'$number'_ntr_'$train'_size_'$size'_warmup_'$warmup'_'${hostnames[$i]}'_'$i
+  ficname='latency_cooldown_'$cooldown'_wagonMaxLength_'$wagon'_measurement_'$measurement'_number_'$number'_ntr_'$train'_ping_'$ping'_size_'$size'_warmup_'$warmup'_'${hostnames[$i]}'_'$i
   dist="\"who > ~/results/$ficname ; ./latency $opt >> ~/results/$ficname\""
   cmd[${#cmd[*]}]="ssh ${hostnames[$i]} $dist"
 done #i

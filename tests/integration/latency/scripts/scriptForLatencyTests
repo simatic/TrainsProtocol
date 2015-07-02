@@ -9,8 +9,11 @@
 #  - measurement          /* the measurement phase duration */
 #  - cooldown             /* the cooldown phase duration */
 #  - sleepAfterCooldown   /* to complete the cooldown phase */
-#  - freq                 /* the frequency of a PING message
-#                            among all the messages */
+#  - ping                 /* Measurement of ping during test */
+#  - pingAlone            /* True if you want only ping and pong */
+#                         /* messages to be sent during the test */
+#                         /* Thus the ping will be small, but    */
+#                         /* the throughput will be also small   */
 #
 # Each test generates "number of participants" file (depending on the
 # number of participants to the protocol) named for instance
@@ -21,7 +24,7 @@
 ##########################################
 
 # List of sizes for the messages
-listsize=(10 100 200 500 1000 2000 5000 10000 15000 20000)
+listsize=(10 100 1000 10000)
 
 # Warmup time in seconds
 warmup=300
@@ -39,13 +42,14 @@ sleepAfterCooldown=290 # done by script program. Should be 290
 # following ficname definition, take off final '_'$j
 # EDIT : Easier to use the result if we keep this number attributed to
 # each participant
-hostnames=('b313-01' 'b313-02' 'b313-04' 'b313-06' 'b313-07' 'b313-08' 'b313-09' 'b313-10' 'b313-11' 'b313-12' 'b313-13')
+hostnames=('b313-04' 'b313-05' 'b313-06' 'b313-07' 'b313-08' 'b313-09' 'b313-10' 'b313-11')
 
 # List of trains.
 # Each cell in this array is a number of trains list and each index
 # corresponds to the number of particpants.
 # Thus, each number of participants has its own list of trains
-liststrains=([2]="1 2 3 4" [4]="1 3 4 5" [8]="1 3 7 8 9")
+#liststrains=([2]="1 2 3 4" [4]="1 3 4 5" [8]="1 3 7 8 9")
+liststrains=([2]="4" [4]="8" [6]="12" [8]="16")
 
 # Maximum number of machines for simultaneous launch of latency code.
 # NB : Cannot be more than the size hostname list.
@@ -53,11 +57,16 @@ liststrains=([2]="1 2 3 4" [4]="1 3 4 5" [8]="1 3 7 8 9")
 # numbermachines is a number of participants array
 numbermachines=(${!liststrains[*]})
 
-# Frequency of a PING message
-freq="10000"
-
 # Maximum length for a wagon array
-listwagon=(8192 16384 32768 65536)
+# listwagon=(8192 16384 32768 65536)
+listwagon=(4096)
+
+# Measure of ping during test (0 for FALSE ; 1 for TRUE)
+ping=1
+
+# Ping measures must be done alone (there will be no messages broadcasted
+# in parallel to evaluate the maximum throughput) (0 for FALSE ; 1 for TRUE)
+pingAlone=0
 
 ##########################################
 # Verify the different arguments
@@ -204,13 +213,17 @@ for index in ${!numbermachines[*]}; do
 	fi
 
 	# The different arguments for the latency program
-	opt="-b ${numbermachines[$index]} -c $cooldown -f $freq -l $length -m $measurement -n ${numbermachines[$index]} -s $size -t $ntr -w $warmup"
+	broadcasters=(${numbermachines[$index]})
+	if [[ $pingAlone -eq 1 ]]; then
+	  broadcasters=0
+	fi
+	opt="-b $broadcasters -c $cooldown -l $length -m $measurement -n ${numbermachines[$index]} -p $ping -s $size -t $ntr -w $warmup"
 
-	### We build the different ssh commands to be lauched for this
+	### We build the different ssh commands to be launched for this
 	### iteration and put those in an array
 	cmd=()
 	for ((i=0;i<${numbermachines[$index]};i++)); do
-	  ficname='latency_cooldown_'$cooldown'_wagonMaxLength_'$length'_measurement_'$measurement'_number_'${numbermachines[$index]}'_ntr_'$ntr'_size_'$size'_warmup_'$warmup'_'${hostnames[$i]}'_'$i
+	  ficname='latency_cooldown_'$cooldown'_wagonMaxLength_'$length'_measurement_'$measurement'_number_'${numbermachines[$index]}'_ntr_'$ntr'_ping_'$ping'_pingAlone_'$pingAlone'_size_'$size'_warmup_'$warmup'_'${hostnames[$i]}'_'$i
 	  dist="\"who > ~/results/$ficname ; ./latency $opt >> ~/results/$ficname\""
 	  cmd[${#cmd[*]}]="ssh ${hostnames[$i]} $dist"
 	done #i

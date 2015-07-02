@@ -98,6 +98,7 @@ int cooldown               = 10; /* Default value = 10 seconds */
 int alternateMaxWagonLen   = (1<<15); /* Default value 32768 */
 int measurement            = 600; /* Default value = 600 seconds */
 int number                 = -1;
+int ping                   = 1; /* Default vaule = true */
 int size                   = -1;
 int trainsNumber           = -1;
 bool verbose               = false; /* Default value = limited display */
@@ -112,6 +113,7 @@ static const struct option longOptions[] = {
     { "wagonMaxLen",      1, NULL, 'l' },
     { "measurement",      1, NULL, 'm' },
     { "number",           1, NULL, 'n' },
+    { "ping",             1, NULL, 'p' },
     { "reqOrder",         1, NULL, 'r' },
     { "size",             1, NULL, 's' },
     { "trainsNumber",     1, NULL, 't' },
@@ -121,7 +123,7 @@ static const struct option longOptions[] = {
 };
 
 /* Description of short options for getopt_long.  */
-static const char* const shortOptions = "b:c:hl:m:n:r:s:t:vw:";
+static const char* const shortOptions = "b:c:hl:m:n:p:r:s:t:vw:";
 
 /* Usage summary text.  */
 static const char* const usageTemplate =
@@ -132,11 +134,11 @@ static const char* const usageTemplate =
         "  -l, --wagonMaxLen               Maximum length of wagons (default = 32768)\n"
         "  -m, --measurement seconds       Duration of measurement phase (default = 600).\n"
         "  -n, --number                    Number of participating processes.\n"
+        "  -p, --ping                      Boolean indicating if ping time should be measured or not during test (0 for FALSE ; default = 1 for TRUE).\n"
         "  -r, --reqOrder                  Required Order (can be 0 for CAUSAL_ORDER, 1 for TOTAL_ORDER or 2 for UNIFORM_TOTAL_ORDER ; default = 2 for UNIFORM_TOTAL_ORDER).\n"
         "  -s, --size bytes                Bytes contained in each application message o-broadcasted.\n"
         "  -t, --trainsNumber              Number of trains which should be used by the protocol.\n"
         "  -v, --verbose                   Print verbose messages.\n"
-        ""
         "  -w, --warmup seconds            Duration of warm-up phase (default = 300).\n";
 
 /* Print usage information and exit.  If IS_ERROR is non-zero, write to
@@ -178,12 +180,9 @@ void check(int value, char *name){
 void broadcastPing(){
   struct timeval sendTime;
   int rc;
-  message *mp = NULL;
-  if (size >= sizeof(struct timeval)) {
-    mp = newmsg(size);
-  } else {
-    mp = newmsg(sizeof(struct timeval));
-  }
+  message *mp = newmsg(size >= sizeof(struct timeval) ?
+		       size :
+		       sizeof(struct timeval));
   if (mp == NULL) {
     trError_at_line(-1, trErrno, __FILE__, __LINE__, "newPingMsg()");
     exit(EXIT_FAILURE);
@@ -248,7 +247,9 @@ void callbackODeliver(address sender, t_typ messageTyp, message *mp){
 
   if (messageTyp == PING) {
     int rc;
-    message *pongMsg = newmsg(size);
+    message *pongMsg = newmsg(size >= sizeof(struct timeval) ?
+			      size :
+			      sizeof(struct timeval));
     if (pongMsg == NULL) {
       trError_at_line(-1, trErrno, __FILE__, __LINE__, "newPongMsg()");
       exit(EXIT_FAILURE);
@@ -329,8 +330,8 @@ void *timeKeeper(void *null){
 
   // We display the results
   printf(
-      "%s --broadcasters %d --cooldown %d --wagonMaxLen %d --measurement %d --number %d --size %d --trainsNumber %d  --warmup %d\n",
-      programName, broadcasters, cooldown, wagonMaxLen, measurement, number, size,
+      "%s --broadcasters %d --cooldown %d --wagonMaxLen %d --measurement %d --number %d --ping %d --size %d --trainsNumber %d  --warmup %d\n",
+      programName, broadcasters, cooldown, wagonMaxLen, measurement, number, ping, size,
       trainsNumber, warmup);
 
   printDiffTimeval("time for tr_init (in sec)", timeTrInitEnd, timeTrInitBegin);
@@ -371,8 +372,8 @@ void *timeKeeper(void *null){
   setStatistics(&record);
 
   printf(
-      "Broadcasters / number / size / ntr / Average number of delivered wagons per recent train received / Average number of msg per wagon / Average size of msg delivered / Throughput of o-broadcasts in Mbps / %%CPU / Number of PING sent by this process / Average of PING-lastPONG time (ms); %d ; %d ; %d ; %d ; %g ; %g ; %g ; %g ; %g ; %u ; %.2lf\n",
-      broadcasters, number, size, ntr,
+      "Broadcasters / number / size / ntr / ping measured (1) or not (0) / Average number of delivered wagons per recent train received / Average number of msg per wagon / Average size of msg delivered / Throughput of o-broadcasts in Mbps / %%CPU / Number of PING sent by this process / Average of PING-lastPONG time (ms); %d ; %d ; %d ; %d ; %d ; %g ; %g ; %g ; %g ; %g ; %u ; %.2lf\n",
+      broadcasters, number, size, ntr, ping,
       ((double) (countersEnd.wagons_delivered - countersBegin.wagons_delivered))
           / ((double) (countersEnd.recent_trains_received
               - countersBegin.recent_trains_received)),
@@ -454,7 +455,7 @@ void startTest(){
 
   // If process is the first process of the view, it sends the initial
   // PING message.
-  if (rank == 0) {
+  if (rank == 0 && ping == 1) {
     broadcastPing();
   }
 
@@ -520,6 +521,11 @@ int main(int argc, char *argv[]){
       number = optArgToCorrectValue();
       break;
 
+    case 'p':
+      /*User specified -p or --ping. */
+      ping = optArgToCorrectValue();
+      break;
+      
     case 'r':
       /* User specified -r or --reqOrder.  */
       reqOrder = optArgToCorrectValue();
