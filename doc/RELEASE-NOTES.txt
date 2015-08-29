@@ -1,3 +1,29 @@
+Version 02.00.06 (29/08/2015)
+=============================
+
+Contributors:  Michel SIMATIC
+
+Corrections/Evolutions
+----------------------
+- Properly correct the bug corrected in V02.00.05 (a unit test
+  was not compiling and thus running anymore)
+
+Known issues
+------------
+- Throughput performance test in tests/integration/perf is no longer
+  useful, as latency test in tests/integration/latency can do the same by
+  using -p option when launching latency program. Maybe we should remove
+  tests/integration/perf and rename tests/integration/latency into
+  tests/integration/latencyAndThroughput. If we do so, to be coherent,
+  we will have to adapt Java version of perf program (in TrainsProtocolJava
+  project)
+- On MacOS, perf and latency integration tests are not operationnal 
+  (we should replace call to sem_init by a call to sem_open, as in basic 
+  integration test). All of the other tests are operational
+- Porting to Windows is not finished
+
+
+
 Version 02.00.05 (29/08/2015)
 =============================
 
