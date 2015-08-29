@@ -149,7 +149,7 @@ int main(){
 	  (((payloadArrivalDeparture*)(mp->payload))->circuit == (FAKE_CIRCUIT|FAKE_ADDRESS)));
 
   // Test signalDepartures
-  signalDepartures(0x0003, FAKE_CIRCUIT);
+  signalDepartures(0x0003, FAKE_CIRCUIT, false);
   mp = nextMsg(wagonToSend->p_wagon, mp);
   mp2 = nextMsg(wagonToSend->p_wagon, mp);
   compare("signalDeparturesArrival_outdated (which tests signalArrivalDepartures_outdated)",
@@ -201,7 +201,7 @@ int main(){
   freeWiw(wagonToSend);
   wagonToSend = newWiw();
   signalArrival(0x0001, 0x0007);
-  signalDepartures(0x0006, 0x0001);
+  signalDepartures(0x0006, 0x0001, false);
   bqueueEnqueue(wagonsToDeliver, wagonToSend);
 
   wagonToSend = newWiw();
