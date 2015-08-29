@@ -33,10 +33,13 @@
  * @param[in] typ Type of message to add in @a header.typ of the message
  * @param[in] ad Address of arrived or gone process
  * @param[in] circuit Circuit into (respectively from) which process come (respectively left)
+ * @param[in] mutexWagonToSendAlreadyLocked Indicates whether mutexWagonToSend mutex is already locked (true) or not (false)
 */
-static void signalArrivalDepartures(char typ, address ad, addressSet circuit){
+static void signalArrivalDepartures(char typ, address ad, addressSet circuit, bool mutexWagonToSendAlreadyLocked){
   message *mp;
-  MUTEX_LOCK(mutexWagonToSend);
+  if (!mutexWagonToSendAlreadyLocked) {
+    MUTEX_LOCK(mutexWagonToSend);
+  }
 
   // This function is called by thread processing the receiving of a train.
   // Thus, we must not call newmsg() as newmsg could get stuck when asking
@@ -60,21 +63,23 @@ static void signalArrivalDepartures(char typ, address ad, addressSet circuit){
   ((payloadArrivalDeparture*)(mp->payload))->ad = ad;
   ((payloadArrivalDeparture*)(mp->payload))->circuit = circuit;
 
-  MUTEX_UNLOCK(mutexWagonToSend);
+  if (!mutexWagonToSendAlreadyLocked) {
+    MUTEX_UNLOCK(mutexWagonToSend);
+  }
 }
 
 void signalArrival(address arrived, addressSet circuit){
   circuit |= arrived;
-  signalArrivalDepartures(AM_ARRIVAL, arrived, circuit);
+  signalArrivalDepartures(AM_ARRIVAL, arrived, circuit, false);
 }
 
-void signalDepartures(addressSet goneSet, addressSet circuit){
+void signalDepartures(addressSet goneSet, addressSet circuit, bool mutexWagonToSendAlreadyLocked){
   address ad;
   if (goneSet != 0){
 	  circuit &= ~goneSet;
 	  for (ad = 1; ad != 0; ad <<= 1) {
 		  if (addrIsMember(ad, goneSet)) {
-			  signalArrivalDepartures(AM_DEPARTURE, ad, circuit);
+		    signalArrivalDepartures(AM_DEPARTURE, ad, circuit, mutexWagonToSendAlreadyLocked);
 		  }
 	  }
   }

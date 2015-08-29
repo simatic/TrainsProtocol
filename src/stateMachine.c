@@ -207,7 +207,7 @@ void trainHandling(womim *p_womim){
     lts[0].circuit = addrUpdateCircuit(p_womim->msg.body.train.circuit,
         myAddress, cameProc, goneProc);
     cameProc = 0;
-    signalDepartures(goneProc, lts[0].circuit);
+    signalDepartures(goneProc, lts[0].circuit, false);
     goneProc = 0;
   } else {
     lts[id].circuit = lts[0].circuit;
@@ -624,7 +624,7 @@ void stateMachine(womim* p_womim){
         addrAppendGone(&cameProc, &goneProc, prec);
         prec = addrPrec(prec, lts[lis].circuit);
       }
-      signalDepartures(goneProc, lts[lis].circuit);
+      signalDepartures(goneProc, lts[lis].circuit, true);
       goneProc = 0;
       int aRound;
       for (aRound = 1; aRound <= NR; aRound++) {

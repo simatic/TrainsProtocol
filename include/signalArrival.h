@@ -44,8 +44,9 @@ void signalArrival(address arrived, addressSet circuit);
  * @brief Adds one application message to wagon @a w per process which adress appears in @a departedSet
  * @param[in] goneSet Set of gone process coded as one bit set per pne process
  * @param[in] circuit Circuit from which processes have gone (Processes in @a departedSet may not appear in @a circuit, but it is not mandatory)
+ * @param[in] mutexWagonToSendAlreadyLocked Indicates whether mutexWagonToSend mutex is already locked (true) or not (false)
 */
-void signalDepartures(addressSet goneSet, addressSet circuit);
+void signalDepartures(addressSet goneSet, addressSet circuit, bool mutexWagonToSendAlreadyLocked);
 
 
 #endif /* _SIGNAL_ARRIVAL_H */
